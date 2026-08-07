@@ -431,7 +431,11 @@ router.delete('/oauth/link/:provider', authenticate, asyncHandler(async (req, re
     'SELECT password_hash FROM users WHERE id = $1',
     [userId],
   );
-  const hasPassword = !!userRow?.password_hash;
+  // A password_hash is only a usable fallback login method if password
+  // login is actually enabled — REQUIRE_OIDC_LOGIN rejects it at the route
+  // level regardless of whether the column is set (e.g. a hash left over
+  // from before the flag was turned on).
+  const hasUsablePasswordFallback = !!userRow?.password_hash && !config.requireOidcLogin;
 
   const linkCount = await query<{ count: number }>(
     'SELECT COUNT(*) as count FROM user_oauth_links WHERE user_id = $1',
@@ -439,8 +443,12 @@ router.delete('/oauth/link/:provider', authenticate, asyncHandler(async (req, re
   );
   const totalLinks = Number(linkCount.rows[0]?.count ?? 0);
 
-  if (!hasPassword && totalLinks <= 1) {
-    throw new ValidationError('Set a password before disconnecting your last login method');
+  if (!hasUsablePasswordFallback && totalLinks <= 1) {
+    throw new ValidationError(
+      config.requireOidcLogin
+        ? 'This is your only sign-in method and password login is disabled on this instance — connect another SSO provider before disconnecting it.'
+        : 'Set a password before disconnecting your last login method'
+    );
   }
 
   const result = await query(

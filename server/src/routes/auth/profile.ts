@@ -7,6 +7,7 @@ import { config } from '../../lib/config.js';
 import { clearAuthCookies } from '../../lib/cookies.js';
 import { ConflictError, ForbiddenError, UnauthorizedError, ValidationError } from '../../lib/httpErrors.js';
 import { createLogger } from '../../lib/logger.js';
+import { requirePasswordAuthEnabled } from '../../lib/passwordAuthGate.js';
 import { isSelfHosted, planLabel, subStatusLabel } from '../../lib/planGate.js';
 import { queryMaybeOne, queryOne } from '../../lib/queryHelpers.js';
 import { revokeAllUserTokens } from '../../lib/refreshTokens.js';
@@ -141,6 +142,7 @@ router.put('/active-location', authenticate, asyncHandler(async (req, res) => {
 
 // PUT /api/auth/password — change password
 router.put('/password', authenticate, asyncHandler(async (req, res) => {
+  requirePasswordAuthEnabled();
   const { currentPassword, newPassword } = req.body;
 
   if (!newPassword) {

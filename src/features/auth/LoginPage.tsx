@@ -37,7 +37,7 @@ export function LoginPage() {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const { config: authStatus } = useAuthStatusConfig();
-  const { registrationEnabled, oauthProviders } = authStatus;
+  const { registrationEnabled, oauthProviders, passwordLoginEnabled } = authStatus;
   const demoMode = authStatus.demoMode && !demoFailed;
 
   useOAuthReturn();
@@ -132,57 +132,64 @@ export function LoginPage() {
             <Card>
               <CardContent className="py-6">
                 <SocialButtons providers={oauthProviders} oidcDisplayName={authStatus.oidcDisplayName} />
-                {oauthProviders.length > 0 && <SocialDivider />}
-                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                  {formError && (
-                    <p role="alert" className="text-[13px] text-[var(--destructive)] bg-[var(--destructive-soft)] px-3.5 py-2.5 rounded-[var(--radius-sm)]">
-                      {formError}
-                    </p>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      ref={emailRef}
-                      id="login-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); if (formError) setFormError(''); }}
-                      placeholder="Enter email"
-                      autoComplete="email"
-                      autoFocus
-                      required
-                      enterKeyHint="next"
-                    />
-                  </div>
-                  <div className="relative space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <PasswordInput
-                      ref={passwordRef}
-                      id="login-password"
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); if (formError) setFormError(''); }}
-                      placeholder="Enter password"
-                      autoComplete="current-password"
-                      required
-                      enterKeyHint="done"
-                    />
-                    <Link to="/forgot-password" className="absolute right-0 top-0 text-[13px] text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none shrink-0">
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={!email.trim() || !password || loading}
-                    fullWidth
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                </form>
+                {oauthProviders.length > 0 && passwordLoginEnabled && <SocialDivider />}
+                {passwordLoginEnabled && (
+                  <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                    {formError && (
+                      <p role="alert" className="text-[13px] text-[var(--destructive)] bg-[var(--destructive-soft)] px-3.5 py-2.5 rounded-[var(--radius-sm)]">
+                        {formError}
+                      </p>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input
+                        ref={emailRef}
+                        id="login-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); if (formError) setFormError(''); }}
+                        placeholder="Enter email"
+                        autoComplete="email"
+                        autoFocus
+                        required
+                        enterKeyHint="next"
+                      />
+                    </div>
+                    <div className="relative space-y-2">
+                      <Label htmlFor="login-password">Password</Label>
+                      <PasswordInput
+                        ref={passwordRef}
+                        id="login-password"
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); if (formError) setFormError(''); }}
+                        placeholder="Enter password"
+                        autoComplete="current-password"
+                        required
+                        enterKeyHint="done"
+                      />
+                      <Link to="/forgot-password" className="absolute right-0 top-0 text-[13px] text-[var(--accent)] hover:underline focus-visible:underline focus-visible:outline-none shrink-0">
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={!email.trim() || !password || loading}
+                      fullWidth
+                    >
+                      <LogIn className="h-4 w-4 mr-2" />
+                      {loading ? 'Signing in...' : 'Sign In'}
+                    </Button>
+                  </form>
+                )}
+                {!passwordLoginEnabled && oauthProviders.length === 0 && (
+                  <p role="alert" className="text-[13px] text-[var(--destructive)] bg-[var(--destructive-soft)] px-3.5 py-2.5 rounded-[var(--radius-sm)]">
+                    No sign-in method is configured for this instance. Contact your administrator.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
-            {registrationEnabled && (
+            {registrationEnabled && passwordLoginEnabled && (
               <p className="text-center text-[14px] text-[var(--text-secondary)]">
                 Don't have an account?{' '}
                 <Link to="/register" className="text-[var(--accent)] font-medium hover:underline focus-visible:underline focus-visible:outline-none">

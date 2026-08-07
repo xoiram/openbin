@@ -58,8 +58,13 @@ export function RegisterPage() {
     if (!authStatus.registrationEnabled || authStatus.registrationMode === 'closed') {
       showToast({ message: 'Registration is currently disabled', variant: 'warning' });
       navigate('/login');
+      return;
     }
-  }, [statusLoaded, authStatus.registrationEnabled, authStatus.registrationMode, navigate, showToast]);
+    if (!authStatus.passwordLoginEnabled) {
+      showToast({ message: 'Sign up automatically by signing in with SSO on the login page.', variant: 'default' });
+      navigate('/login');
+    }
+  }, [statusLoaded, authStatus.registrationEnabled, authStatus.registrationMode, authStatus.passwordLoginEnabled, navigate, showToast]);
 
   // Debounced invite code preview with abort on change
   useEffect(() => {

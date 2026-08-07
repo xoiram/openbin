@@ -6,6 +6,7 @@ import { verifyLocationMembership } from '../../lib/binAccess.js';
 import { clearAuthCookies, setAccessTokenCookie, setRefreshTokenCookie } from '../../lib/cookies.js';
 import { ConflictError, ForbiddenError, UnauthorizedError, ValidationError } from '../../lib/httpErrors.js';
 import { createLogger } from '../../lib/logger.js';
+import { requirePasswordAuthEnabled } from '../../lib/passwordAuthGate.js';
 import { queryMaybeOne } from '../../lib/queryHelpers.js';
 import { createRefreshToken, revokeAllUserTokens, revokeSingleToken, rotateRefreshToken } from '../../lib/refreshTokens.js';
 import { authenticate, signToken } from '../../middleware/auth.js';
@@ -17,6 +18,7 @@ const router = Router();
 
 // POST /api/auth/login
 router.post('/login', asyncHandler(async (req, res) => {
+  requirePasswordAuthEnabled();
   const { email, password } = req.body;
 
   if (!email || !password) {

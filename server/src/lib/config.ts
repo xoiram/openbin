@@ -147,6 +147,14 @@ export const config = Object.freeze({
   // another means can opt in to accepting an absent claim.
   oidcAllowUnverifiedEmail: parseBool(process.env.OIDC_ALLOW_UNVERIFIED_EMAIL, false),
 
+  // When true, disables every password-based auth path instance-wide
+  // (login, register, forgot/reset-password, set/change password) — all
+  // users must sign in via one of the configured OAuth/OIDC providers.
+  // Validated below: requires at least one provider actually configured,
+  // and is a hard incompatibility with DEMO_MODE (demo-login is a full
+  // credential-check bypass).
+  requireOidcLogin: parseBool(process.env.REQUIRE_OIDC_LOGIN, false),
+
   trialPeriodDays: clamp(parseInt(process.env.TRIAL_PERIOD_DAYS || '7', 10), 1, 90, 7),
   planLimits: Object.freeze({
     // Free tier
@@ -371,6 +379,35 @@ if (config.oidcIssuerUrl || config.oidcClientId || config.oidcClientSecret) {
   if (!/^https:\/\//.test(config.oidcIssuerUrl!)) {
     throw new Error('OIDC_ISSUER_URL must start with https://');
   }
+}
+
+// Validate REQUIRE_OIDC_LOGIN at startup. getOAuthProviders() (oauth.ts)
+// can't be imported here — oauth.ts imports `config` from this module, so
+// importing it back would be circular. Duplicate its minimal gating logic
+// inline instead; keep both in sync if that logic ever changes.
+if (config.requireOidcLogin) {
+  const hasGenericOidc = !!(config.oidcIssuerUrl && config.oidcClientId && config.oidcClientSecret);
+  const hasGoogle = !config.selfHosted && !!(config.googleClientId && config.googleClientSecret);
+  const hasApple = !config.selfHosted && !!(
+    config.appleClientId && config.appleTeamId && config.appleKeyId && config.applePrivateKey
+  );
+  if (!hasGenericOidc && !hasGoogle && !hasApple) {
+    throw new Error(
+      'REQUIRE_OIDC_LOGIN=true requires at least one OAuth/OIDC provider to be configured: ' +
+      'generic OIDC (OIDC_ISSUER_URL + OIDC_CLIENT_ID + OIDC_CLIENT_SECRET + BASE_URL), ' +
+      'or Google/Apple (cloud only, SELF_HOSTED=false).'
+    );
+  }
+}
+
+// demo-login (routes/auth/status.ts POST /demo-login) is a complete
+// credential-check bypass gated solely on config.demoMode — combined with
+// REQUIRE_OIDC_LOGIN it would silently defeat the whole point of the flag.
+if (config.requireOidcLogin && config.demoMode) {
+  throw new Error(
+    'REQUIRE_OIDC_LOGIN=true is incompatible with DEMO_MODE=true — demo-login bypasses ' +
+    'all credential checks. Disable DEMO_MODE before enabling REQUIRE_OIDC_LOGIN.'
+  );
 }
 
 /** Returns true if all required env vars for AI are set. */
