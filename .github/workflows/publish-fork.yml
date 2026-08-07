@@ -1,0 +1,65 @@
+name: Publish image (fork)
+
+# Manual, on-demand build+push of this fork's image to GHCR under this repo
+# owner's namespace. Not part of upstream's release process (docker-publish.yml
+# pushes to akifbayram's own registry + DockerHub, and its deploy job depends
+# on secrets that don't exist on a fork) — this is fork-only infra and
+# shouldn't be carried into an eventual upstream PR.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to publish'
+        required: false
+        default: 'dev'
+      edition:
+        description: 'Build edition'
+        required: false
+        default: 'selfhosted'
+        type: choice
+        options:
+          - selfhosted
+          - cloud
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image namespace
+        run: echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute version
+        id: version
+        run: |
+          pkg_version=$(node -p "require('./package.json').version")
+          echo "version=${pkg_version}-${{ inputs.edition }}.${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ env.OWNER_LC }}/openbin:${{ inputs.tag }}
+          build-args: |
+            BUILD_EDITION=${{ inputs.edition }}
+            BUILD_VERSION=${{ steps.version.outputs.version }}
+            APK_UPGRADE_BUST=${{ github.run_id }}
+          cache-from: type=gha,scope=fork-${{ inputs.edition }}
+          cache-to: type=gha,mode=max,scope=fork-${{ inputs.edition }}
