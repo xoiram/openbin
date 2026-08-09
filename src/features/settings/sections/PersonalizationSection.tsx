@@ -1,4 +1,5 @@
 import { RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
@@ -7,43 +8,67 @@ import { SettingsPageHeader } from '../SettingsPageHeader';
 import { SettingsSection } from '../SettingsSection';
 import { SavedBadge, useSavedFlash } from '../useSavedFlash';
 
-const TERM_ROWS = [
-  { key: 'termBin', singular: 'Bin', plural: 'Bins', hint: 'A container of items' },
-  { key: 'termLocation', singular: 'Location', plural: 'Locations', hint: 'The top-level workspace' },
-  { key: 'termArea', singular: 'Area', plural: 'Areas', hint: 'A section within a location' },
-] as const;
-
 export function PersonalizationSection() {
   const { settings, updateSettings, resetSettings } = useAppSettings();
   const { saved, flash } = useSavedFlash();
+  const { t } = useTranslation('settings');
+
+  const termRows = [
+    {
+      key: 'termBin' as const,
+      singular: t('personalization.terms.bin.singular', { defaultValue: 'Bin' }),
+      plural: t('personalization.terms.bin.plural', { defaultValue: 'Bins' }),
+      hint: t('personalization.terms.bin.hint', { defaultValue: 'A container of items' }),
+    },
+    {
+      key: 'termLocation' as const,
+      singular: t('personalization.terms.location.singular', { defaultValue: 'Location' }),
+      plural: t('personalization.terms.location.plural', { defaultValue: 'Locations' }),
+      hint: t('personalization.terms.location.hint', { defaultValue: 'The top-level workspace' }),
+    },
+    {
+      key: 'termArea' as const,
+      singular: t('personalization.terms.area.singular', { defaultValue: 'Area' }),
+      plural: t('personalization.terms.area.plural', { defaultValue: 'Areas' }),
+      hint: t('personalization.terms.area.hint', { defaultValue: 'A section within a location' }),
+    },
+  ];
 
   return (
     <>
       <SettingsPageHeader
-        title="Personalization"
-        description="Customize naming and branding for your workspace."
+        title={t('personalization.title', { defaultValue: 'Personalization' })}
+        description={t('personalization.description', {
+          defaultValue: 'Customize naming and branding for your workspace.',
+        })}
         action={<SavedBadge visible={saved} />}
       />
 
-      <SettingsSection label="App Name">
-        <FormField label="Workspace name" htmlFor="app-name" hint="Shown in the header and browser tab.">
+      <SettingsSection label={t('personalization.appNameSection', { defaultValue: 'App Name' })}>
+        <FormField
+          label={t('personalization.workspaceNameLabel', { defaultValue: 'Workspace name' })}
+          htmlFor="app-name"
+          hint={t('personalization.workspaceNameHint', { defaultValue: 'Shown in the header and browser tab.' })}
+        >
           <Input
             id="app-name"
             value={settings.appName}
             onChange={(e) => updateSettings({ appName: e.target.value })}
             onBlur={flash}
-            placeholder="OpenBin"
+            placeholder={t('personalization.workspaceNamePlaceholder', { defaultValue: 'OpenBin' })}
           />
         </FormField>
       </SettingsSection>
 
       <SettingsSection
-        label="Custom Terminology"
+        label={t('personalization.terminologySection', { defaultValue: 'Custom Terminology' })}
         dividerAbove
-        description="Rename core concepts to match your workflow. Singular and plural are used throughout the UI."
+        description={t('personalization.terminologyDescription', {
+          defaultValue: 'Rename core concepts to match your workflow. Singular and plural are used throughout the UI.',
+        })}
       >
         <div className="flex flex-col gap-4">
-          {TERM_ROWS.map(({ key, singular, plural, hint }) => {
+          {termRows.map(({ key, singular, plural, hint }) => {
             const raw = settings[key];
             const parts = raw ? raw.split('|') : ['', ''];
             return (
@@ -61,7 +86,7 @@ export function PersonalizationSection() {
                   }}
                   onBlur={flash}
                   placeholder={singular}
-                  aria-label={`${singular} singular name`}
+                  aria-label={`${singular} ${t('personalization.singularNameSuffix', { defaultValue: 'singular name' })}`}
                 />
                 <Input
                   value={parts[1] || ''}
@@ -72,7 +97,7 @@ export function PersonalizationSection() {
                   }}
                   onBlur={flash}
                   placeholder={plural}
-                  aria-label={`${plural} plural name`}
+                  aria-label={`${plural} ${t('personalization.pluralNameSuffix', { defaultValue: 'plural name' })}`}
                 />
               </div>
             );
@@ -83,7 +108,7 @@ export function PersonalizationSection() {
       <div className="pt-2">
         <Button variant="outline" onClick={resetSettings}>
           <RotateCcw className="h-4 w-4 mr-2" />
-          Reset to defaults
+          {t('personalization.resetToDefaults', { defaultValue: 'Reset to defaults' })}
         </Button>
       </div>
     </>

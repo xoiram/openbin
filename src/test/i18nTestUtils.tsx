@@ -5,10 +5,12 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 import enAuth from '@/locales/en/auth.json';
 import enCommon from '@/locales/en/common.json';
 import enOnboarding from '@/locales/en/onboarding.json';
+import enSettings from '@/locales/en/settings.json';
 import enTour from '@/locales/en/tour.json';
 import nbAuth from '@/locales/nb/auth.json';
 import nbCommon from '@/locales/nb/common.json';
 import nbOnboarding from '@/locales/nb/onboarding.json';
+import nbSettings from '@/locales/nb/settings.json';
 import nbTour from '@/locales/nb/tour.json';
 
 /**
@@ -23,11 +25,11 @@ function createTestI18n() {
   instance.use(initReactI18next).init({
     lng: 'en',
     fallbackLng: 'en',
-    ns: ['common', 'auth', 'onboarding', 'tour'],
+    ns: ['common', 'auth', 'onboarding', 'tour', 'settings'],
     defaultNS: 'common',
     resources: {
-      en: { common: enCommon, auth: enAuth, onboarding: enOnboarding, tour: enTour },
-      nb: { common: nbCommon, auth: nbAuth, onboarding: nbOnboarding, tour: nbTour },
+      en: { common: enCommon, auth: enAuth, onboarding: enOnboarding, tour: enTour, settings: enSettings },
+      nb: { common: nbCommon, auth: nbAuth, onboarding: nbOnboarding, tour: nbTour, settings: nbSettings },
     },
     interpolation: { escapeValue: false },
     react: { useSuspense: false },

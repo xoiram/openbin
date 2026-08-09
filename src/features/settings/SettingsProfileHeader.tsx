@@ -1,6 +1,7 @@
 import { Loader2, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { cn, focusRing } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ export function SettingsProfileHeader({
   accept = 'image/jpeg,image/png,image/webp',
 }: SettingsProfileHeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation('settings');
 
   return (
     <div className="flex items-center gap-4 py-4 border-b border-[var(--border-subtle)]">
@@ -42,7 +44,7 @@ export function SettingsProfileHeader({
               'transition-colors duration-150 disabled:opacity-50 opacity-0 group-hover:opacity-100 max-lg:opacity-100',
               focusRing,
             )}
-            aria-label="Remove avatar"
+            aria-label={t('profileHeader.removeAvatar', { defaultValue: 'Remove avatar' })}
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -55,7 +57,7 @@ export function SettingsProfileHeader({
             'relative cursor-pointer hover:opacity-85 transition-opacity duration-150 disabled:opacity-50 rounded-full',
             focusRing,
           )}
-          aria-label="Change avatar"
+          aria-label={t('profileHeader.changeAvatar', { defaultValue: 'Change avatar' })}
         >
           <UserAvatar avatarUrl={avatarUrl} displayName={displayName} size="lg" />
           <div

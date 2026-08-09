@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 /** Briefly flashes `saved = true` after calling `flash()`, auto-clears after 1.5 s. */
@@ -20,6 +21,7 @@ export function useSavedFlash() {
 
 /** Inline "Saved" badge that fades in/out. */
 export function SavedBadge({ visible }: { visible: boolean }) {
+  const { t } = useTranslation('settings');
   return (
     <span
       aria-live="polite"
@@ -29,7 +31,7 @@ export function SavedBadge({ visible }: { visible: boolean }) {
       )}
     >
       <Check className="h-3 w-3" />
-      {visible ? 'Saved' : ''}
+      {visible ? t('savedBadge', { defaultValue: 'Saved' }) : ''}
     </span>
   );
 }

@@ -8,15 +8,16 @@ import { defineConfig } from 'i18next-cli';
 // until their own follow-up PR adds a namespace for them. Each follow-up PR
 // should widen this glob to include the folder(s) it migrates.
 //
-// Note: src/features/settings/sections/PreferencesSection.tsx and
-// src/components/LanguageSync.tsx were also touched by this PR (the language
-// selector row / server-sync component), but deliberately excluded here —
-// they're `settings` namespace territory (deferred, see docs/i18n.md's
-// Roadmap), and PreferencesSection.tsx has plenty of *other* pre-existing
-// hardcoded strings unrelated to language selection that aren't this PR's
-// job to migrate. Including them would make the linter demand a full-file
-// migration neither this PR nor its scope calls for.
+// `src/features/settings/` is split across multiple PRs (see docs/i18n.md's
+// Roadmap): this one covers the settings shell + general prefs (the files
+// listed explicitly below). `AccountSection.tsx`, `DataSection.tsx`,
+// `AiSection.tsx`, `dialogs/*`, `useApiKeys.ts`, `useDataSectionActions.ts`,
+// and `exportImport.ts` are denser/riskier (account/security/danger-zone
+// copy, AI provider config) and deferred to their own follow-up PR(s) — a
+// blanket `src/features/settings/**` glob would prematurely demand their
+// migration too, so files are listed individually instead of by folder.
 //
+
 // CAUTION running `npx i18next-cli extract` locally: `common.json`'s
 // `actions.*`/`itemCount_*` keys were added pre-emptively (see docs/i18n.md)
 // for future namespace PRs to reuse, ahead of having call sites in the
@@ -36,15 +37,36 @@ export default defineConfig({
       'src/features/layout/**/*.{ts,tsx}',
       'src/features/onboarding/**/*.{ts,tsx}',
       'src/features/tour/**/*.{ts,tsx}',
+      'src/features/settings/SettingsPageHeader.tsx',
+      'src/features/settings/SettingsListRow.tsx',
+      'src/features/settings/SettingsCategoryList.tsx',
+      'src/features/settings/SettingsRow.tsx',
+      'src/features/settings/SettingsRadioCard.tsx',
+      'src/features/settings/SettingsSidebar.tsx',
+      'src/features/settings/SettingsSection.tsx',
+      'src/features/settings/SettingsLayout.tsx',
+      'src/features/settings/SettingsProfileHeader.tsx',
+      'src/features/settings/settingsCategories.ts',
+      'src/features/settings/useSettingsCategories.ts',
+      'src/features/settings/useSavedFlash.tsx',
+      'src/features/settings/sections/AboutSection.tsx',
+      'src/features/settings/sections/PersonalizationSection.tsx',
+      'src/features/settings/sections/PreferencesSection.tsx',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
     primaryLanguage: 'en',
     secondaryLanguages: ['nb'],
-    // TourLauncher.tsx resolves TourDefinition.title/.summary via a dynamic
-    // key (`picker.${tourId}.title`) built from tourRegistry data at
-    // runtime, not a literal string — the static extractor can't see this
-    // usage and would otherwise flag/delete these keys as unused.
-    preservePatterns: ['tour:picker.*.title', 'tour:picker.*.summary'],
+    // Dynamic keys the static extractor can't resolve (both build a key from
+    // a runtime id, not a literal string) — see docs/i18n.md for the pattern.
+    // TourLauncher.tsx: `picker.${tourId}.title` from tourRegistry data.
+    // useSettingsCategories.ts / SettingsLayout.tsx: `categories.${cat.id}.label`
+    // from SETTINGS_CATEGORIES.
+    preservePatterns: [
+      'tour:picker.*.title',
+      'tour:picker.*.summary',
+      'settings:categories.*.label',
+      'settings:categories.*.description',
+    ],
   },
 });

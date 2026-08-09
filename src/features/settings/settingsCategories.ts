@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import type { LucideIcon } from 'lucide-react';
 import {
   CreditCard,
@@ -102,4 +103,14 @@ export function filterCategories(options: FilterOptions): SettingsCategory[] {
     if (cat.gate === 'siteAdmin') return isSiteAdmin;
     return false;
   });
+}
+
+// The extractor can't see this dynamic key (`categories.${cat.id}.label`) —
+// preserved via i18next.config.ts's preservePatterns.
+export function localizeCategory(cat: SettingsCategory, t: TFunction<'settings'>): SettingsCategory {
+  return {
+    ...cat,
+    label: t(`settings:categories.${cat.id}.label`, { defaultValue: cat.label }),
+    description: t(`settings:categories.${cat.id}.description`, { defaultValue: cat.description }),
+  };
 }

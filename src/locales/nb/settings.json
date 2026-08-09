@@ -1,0 +1,124 @@
+{
+  "about": {
+    "appSection": "App",
+    "description": "Versjonsinfo og ressurser.",
+    "github": "GitHub",
+    "githubDesc": "Kildekode, saker og utgivelser",
+    "resetTours": "Tilbakestill alle omvisninger",
+    "resetToursDesc": "Marker hver omvisning som usett, slik at de vises igjen",
+    "resourcesSection": "Ressurser",
+    "title": "Om",
+    "toursSection": "Guidede omvisninger"
+  },
+  "categories": {
+    "about": {
+      "description": "Versjon og info",
+      "label": "Om"
+    },
+    "account": {
+      "description": "Profil, sikkerhet, API-nøkler",
+      "label": "Konto"
+    },
+    "admin": {
+      "description": "Administrer brukere og system",
+      "label": "Adminpanel"
+    },
+    "ai": {
+      "description": "Leverandør, modeller, prompter",
+      "label": "AI"
+    },
+    "data": {
+      "description": "Eksport, import, aktivitet",
+      "label": "Data"
+    },
+    "personalization": {
+      "description": "Appnavn og terminologi",
+      "label": "Personalisering"
+    },
+    "preferences": {
+      "description": "Tema, snarveier, oversikt",
+      "label": "Preferanser"
+    },
+    "subscription": {
+      "description": "Plan og fakturering",
+      "label": "Abonnement"
+    }
+  },
+  "layout": {
+    "activityLog": "Aktivitetslogg",
+    "backToSettings": "Tilbake til innstillinger",
+    "trash": "Papirkurv"
+  },
+  "nav": {
+    "adminHeading": "Admin",
+    "heading": "Innstillinger"
+  },
+  "pageSize": {
+    "allOnOnePage": "Alt på én side",
+    "perPageSuffix": "per side"
+  },
+  "personalization": {
+    "appNameSection": "Appnavn",
+    "description": "Tilpass navngiving og merkevare for arbeidsområdet ditt.",
+    "pluralNameSuffix": "flertallsnavn",
+    "resetToDefaults": "Tilbakestill til standard",
+    "singularNameSuffix": "entallsnavn",
+    "terminologyDescription": "Gi nytt navn til kjernebegreper som passer arbeidsflyten din. Entall og flertall brukes gjennom hele appen.",
+    "terminologySection": "Egendefinert terminologi",
+    "terms": {
+      "area": {
+        "hint": "En del av et sted",
+        "plural": "Områder",
+        "singular": "Område"
+      },
+      "bin": {
+        "hint": "En beholder med gjenstander",
+        "plural": "Bokser",
+        "singular": "Boks"
+      },
+      "location": {
+        "hint": "Det øverste arbeidsområdet",
+        "plural": "Steder",
+        "singular": "Sted"
+      }
+    },
+    "title": "Personalisering",
+    "workspaceNameHint": "Vises i toppteksten og nettleserfanen.",
+    "workspaceNameLabel": "Arbeidsområdenavn",
+    "workspaceNamePlaceholder": "OpenBin"
+  },
+  "preferences": {
+    "appearanceSection": "Utseende",
+    "description": "Tilpass opplevelsen din.",
+    "displaySection": "Visning",
+    "granularityDay": "Dag",
+    "granularityDesc": "Innledende zoomnivå for bruksvarmekartet",
+    "granularityLabel": "Standard detaljnivå",
+    "granularityMonth": "Måned",
+    "granularityWeek": "Uke",
+    "itemsDescription": "Antall gjenstander som vises før paginering. Velg «Alt på én side» for å slå av.",
+    "itemsPerPagePrefix": "Gjenstander per",
+    "itemsPerPageSuffix": "side",
+    "keyboardSection": "Tastatur",
+    "keyboardShortcutsDesc": "Trykk <kbd>?</kbd> for å se alle snarveier",
+    "keyboardShortcutsLabel": "Tastatursnarveier",
+    "languageLabel": "Språk",
+    "languageSaveFailed": "Kunne ikke lagre språkinnstilling",
+    "manualLookupDesc": "Registrer når du slår opp en {{bin}} ved å skrive inn koden",
+    "manualLookupLabel": "Manuelt kodeoppslag",
+    "modifyBinDesc": "Registrer når du redigerer innholdet eller metadataene til en {{bin}}",
+    "modifyBinLabel": "Endre {{bin}}",
+    "scanQrDesc": "Registrer et bruksmerke når du skanner en QR-kode",
+    "scanQrLabel": "Skann QR-kode",
+    "themeLabel": "Tema",
+    "title": "Preferanser",
+    "usageSection": "Bruksregistrering",
+    "viewBinDesc": "Registrer hver gang du åpner en {{bin}}-detaljside",
+    "viewBinLabel": "Vis {{bin}}"
+  },
+  "profileHeader": {
+    "changeAvatar": "Endre profilbilde",
+    "removeAvatar": "Fjern profilbilde"
+  },
+  "savedBadge": "Lagret"
+}

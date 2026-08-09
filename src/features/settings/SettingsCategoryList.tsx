@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { categoryHeader, cn, focusRing } from '@/lib/utils';
 import type { SettingsCategory } from './settingsCategories';
@@ -29,10 +30,13 @@ function CategoryRow({ cat, onClick }: { cat: SettingsCategory; onClick: () => v
 
 export function SettingsCategoryList({ mainCategories, adminCategories }: SettingsCategoryListProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
 
   return (
     <div className="page-content">
-      <h1 className="mb-4 text-[var(--text-2xl)] font-bold text-[var(--text-primary)]">Settings</h1>
+      <h1 className="mb-4 text-[var(--text-2xl)] font-bold text-[var(--text-primary)]">
+        {t('nav.heading', { defaultValue: 'Settings' })}
+      </h1>
 
       <div className="flex flex-col">
         {mainCategories.map((cat) => (
@@ -46,7 +50,9 @@ export function SettingsCategoryList({ mainCategories, adminCategories }: Settin
 
       {adminCategories.length > 0 && (
         <div className="mt-6">
-          <span className={cn(categoryHeader, 'mb-2 block')}>Admin</span>
+          <span className={cn(categoryHeader, 'mb-2 block')}>
+            {t('nav.adminHeading', { defaultValue: 'Admin' })}
+          </span>
           <div className="flex flex-col">
             {adminCategories.map((cat) => (
               <CategoryRow

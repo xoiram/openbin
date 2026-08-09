@@ -1,0 +1,124 @@
+{
+  "about": {
+    "appSection": "App",
+    "description": "Version info and resources.",
+    "github": "GitHub",
+    "githubDesc": "Source code, issues, and releases",
+    "resetTours": "Reset all tours",
+    "resetToursDesc": "Mark every tour unseen so they show up again",
+    "resourcesSection": "Resources",
+    "title": "About",
+    "toursSection": "Guided tours"
+  },
+  "categories": {
+    "about": {
+      "description": "Version and info",
+      "label": "About"
+    },
+    "account": {
+      "description": "Profile, security, API keys",
+      "label": "Account"
+    },
+    "admin": {
+      "description": "Manage users and system",
+      "label": "Admin Dashboard"
+    },
+    "ai": {
+      "description": "Provider, models, prompts",
+      "label": "AI"
+    },
+    "data": {
+      "description": "Export, import, activity",
+      "label": "Data"
+    },
+    "personalization": {
+      "description": "App name and terminology",
+      "label": "Personalization"
+    },
+    "preferences": {
+      "description": "Theme, shortcuts, dashboard",
+      "label": "Preferences"
+    },
+    "subscription": {
+      "description": "Plan and billing",
+      "label": "Subscription"
+    }
+  },
+  "layout": {
+    "activityLog": "Activity Log",
+    "backToSettings": "Back to settings",
+    "trash": "Trash"
+  },
+  "nav": {
+    "adminHeading": "Admin",
+    "heading": "Settings"
+  },
+  "pageSize": {
+    "allOnOnePage": "All on one page",
+    "perPageSuffix": "per page"
+  },
+  "personalization": {
+    "appNameSection": "App Name",
+    "description": "Customize naming and branding for your workspace.",
+    "pluralNameSuffix": "plural name",
+    "resetToDefaults": "Reset to defaults",
+    "singularNameSuffix": "singular name",
+    "terminologyDescription": "Rename core concepts to match your workflow. Singular and plural are used throughout the UI.",
+    "terminologySection": "Custom Terminology",
+    "terms": {
+      "area": {
+        "hint": "A section within a location",
+        "plural": "Areas",
+        "singular": "Area"
+      },
+      "bin": {
+        "hint": "A container of items",
+        "plural": "Bins",
+        "singular": "Bin"
+      },
+      "location": {
+        "hint": "The top-level workspace",
+        "plural": "Locations",
+        "singular": "Location"
+      }
+    },
+    "title": "Personalization",
+    "workspaceNameHint": "Shown in the header and browser tab.",
+    "workspaceNameLabel": "Workspace name",
+    "workspaceNamePlaceholder": "OpenBin"
+  },
+  "preferences": {
+    "appearanceSection": "Appearance",
+    "description": "Customize your experience.",
+    "displaySection": "Display",
+    "granularityDay": "Day",
+    "granularityDesc": "Initial zoom level for the usage heatmap",
+    "granularityLabel": "Default granularity",
+    "granularityMonth": "Month",
+    "granularityWeek": "Week",
+    "itemsDescription": "Number of items shown before pagination. Select \"All on one page\" to disable.",
+    "itemsPerPagePrefix": "Items per",
+    "itemsPerPageSuffix": "page",
+    "keyboardSection": "Keyboard",
+    "keyboardShortcutsDesc": "Press <kbd>?</kbd> to view all shortcuts",
+    "keyboardShortcutsLabel": "Keyboard Shortcuts",
+    "languageLabel": "Language",
+    "languageSaveFailed": "Failed to save language preference",
+    "manualLookupDesc": "Record when you look up a {{bin}} by typing its code",
+    "manualLookupLabel": "Manual code lookup",
+    "modifyBinDesc": "Record when you edit a {{bin}}'s contents or metadata",
+    "modifyBinLabel": "Modify {{bin}}",
+    "scanQrDesc": "Record a usage dot when you scan a QR code",
+    "scanQrLabel": "Scan QR code",
+    "themeLabel": "Theme",
+    "title": "Preferences",
+    "usageSection": "Usage Tracking",
+    "viewBinDesc": "Record every time you open a {{bin}} detail page",
+    "viewBinLabel": "View {{bin}}"
+  },
+  "profileHeader": {
+    "changeAvatar": "Change avatar",
+    "removeAvatar": "Remove avatar"
+  },
+  "savedBadge": "Saved"
+}
