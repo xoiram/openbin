@@ -25,6 +25,8 @@ router.get('/status', async (_req, res) => {
     selfHosted: config.selfHosted,
     attachmentsEnabled: config.attachmentsEnabled,
     oauthProviders: getOAuthProviders(),
+    oidcDisplayName: config.oidcDisplayName,
+    passwordLoginEnabled: !config.requireOidcLogin,
     tosVersion: config.selfHosted ? null : CURRENT_TOS_VERSION,
     privacyVersion: config.selfHosted ? null : CURRENT_PRIVACY_VERSION,
     marketingOptInVisible: config.selfHosted ? false : config.marketingOptInVisible,

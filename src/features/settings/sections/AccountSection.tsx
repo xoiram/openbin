@@ -79,6 +79,8 @@ export function AccountSection() {
   const oauthProviders = authStatus.oauthProviders;
   const [unlinking, setUnlinking] = useState<string | null>(null);
   const hasPassword = user?.hasPassword !== false;
+  const passwordLoginEnabled = authStatus.passwordLoginEnabled;
+  const hasUsablePasswordFallback = hasPassword && passwordLoginEnabled;
 
   // API keys
   const { isGated, isSelfHosted, planInfo } = usePlan();
@@ -343,7 +345,7 @@ export function AccountSection() {
         </form>
       </SettingsSection>
 
-      {hasPassword && (
+      {hasPassword && passwordLoginEnabled && (
         <SettingsSection label="Password" dividerAbove>
           <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
             <FormField
@@ -430,8 +432,12 @@ export function AccountSection() {
         <SettingsSection label="Connected Accounts" dividerAbove>
           {oauthProviders.map((provider) => {
             const link = oauthLinks.find((l) => l.provider === provider);
-            const providerLabel = provider === 'google' ? 'Google' : 'Apple';
-            const canUnlink = oauthLinks.length > 1 || hasPassword;
+            const providerLabel = provider === 'google'
+              ? 'Google'
+              : provider === 'apple'
+                ? 'Apple'
+                : authStatus.oidcDisplayName || 'Single Sign-On';
+            const canUnlink = oauthLinks.length > 1 || hasUsablePasswordFallback;
             const hintId = `${provider}-unlink-hint`;
 
             return (
@@ -443,7 +449,9 @@ export function AccountSection() {
                   <>
                     {link ? (link.email || 'Connected') : 'Not connected'}
                     {link && !canUnlink && (
-                      <span id={hintId} className="block mt-0.5">Set a password to disconnect</span>
+                      <span id={hintId} className="block mt-0.5">
+                        {passwordLoginEnabled ? 'Set a password to disconnect' : 'Connect another sign-in method first'}
+                      </span>
                     )}
                   </>
                 }
