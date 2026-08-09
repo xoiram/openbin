@@ -1,12 +1,17 @@
 name: Publish image (fork)
 
-# Manual, on-demand build+push of this fork's image to GHCR under this repo
-# owner's namespace. Not part of upstream's release process (docker-publish.yml
-# pushes to akifbayram's own registry + DockerHub, and its deploy job depends
-# on secrets that don't exist on a fork) — this is fork-only infra and
-# shouldn't be carried into an eventual upstream PR.
+# Fork-only infra: builds this fork's image and publishes it to GHCR under
+# this repo owner's namespace. Pushes to main auto-build the selfhosted
+# edition as ghcr.io/<owner>/openbin:edge; workflow_dispatch remains for
+# on-demand builds (custom tag, or the cloud/EE edition). Not part of
+# upstream's release process (docker-publish.yml pushes to akifbayram's own
+# registry + DockerHub, and its deploy job depends on secrets that don't
+# exist on a fork) — this is fork-only infra and shouldn't be carried into
+# an eventual upstream PR.
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       tag:
@@ -24,6 +29,7 @@ on:
 
 jobs:
   docker-build:
+    if: github.repository != 'akifbayram/openbin'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,11 +50,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute version
-        id: version
+      - name: Compute build params
+        id: params
         run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            edition="${{ inputs.edition }}"
+            tag="${{ inputs.tag }}"
+          else
+            edition="selfhosted"
+            tag="edge"
+          fi
           pkg_version=$(node -p "require('./package.json').version")
-          echo "version=${pkg_version}-${{ inputs.edition }}.${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "edition=${edition}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${pkg_version}-${edition}.${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -56,10 +71,10 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ env.OWNER_LC }}/openbin:${{ inputs.tag }}
+          tags: ghcr.io/${{ env.OWNER_LC }}/openbin:${{ steps.params.outputs.tag }}
           build-args: |
-            BUILD_EDITION=${{ inputs.edition }}
-            BUILD_VERSION=${{ steps.version.outputs.version }}
+            BUILD_EDITION=${{ steps.params.outputs.edition }}
+            BUILD_VERSION=${{ steps.params.outputs.version }}
             APK_UPGRADE_BUST=${{ github.run_id }}
-          cache-from: type=gha,scope=fork-${{ inputs.edition }}
-          cache-to: type=gha,mode=max,scope=fork-${{ inputs.edition }}
+          cache-from: type=gha,scope=fork-${{ steps.params.outputs.edition }}
+          cache-to: type=gha,mode=max,scope=fork-${{ steps.params.outputs.edition }}
