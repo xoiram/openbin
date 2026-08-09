@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BinPreviewCard } from '@/features/bins/BinPreviewCard';
 import { QRCodeDisplay } from '@/features/qrcode/QRCodeDisplay';
@@ -13,13 +14,16 @@ const demoBinContainerStyle = demoBinBgCss ? { background: demoBinBgCss } : unde
 const demoBinShortCodeStyle = { color: demoBinTextColor } as const;
 
 export function DemoBrowseStep({ onNext }: { onNext: () => void }) {
+  const { t } = useTranslation('onboarding');
   return (
     <div className="flex flex-col items-center text-center">
       <h2 className="text-[22px] font-bold text-[var(--text-primary)] mb-2">
-        Your bin, organized
+        {t('browseStep.title', { defaultValue: 'Your bin, organized' })}
       </h2>
       <p className="text-[14px] text-[var(--text-tertiary)] mb-5 leading-relaxed">
-        Each bin gets a card with its contents, tags, and a QR code you can print and stick on the container.
+        {t('browseStep.body', {
+          defaultValue: 'Each bin gets a card with its contents, tags, and a QR code you can print and stick on the container.',
+        })}
       </p>
       <BinPreviewCard
         name={DEMO_BIN.name}
@@ -45,7 +49,7 @@ export function DemoBrowseStep({ onNext }: { onNext: () => void }) {
         onClick={onNext}
         className="w-full rounded-[var(--radius-md)] h-11 text-[15px]"
       >
-        Finish Tour
+        {t('browseStep.finishTour', { defaultValue: 'Finish Tour' })}
       </Button>
     </div>
   );

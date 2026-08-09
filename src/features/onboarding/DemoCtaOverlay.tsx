@@ -1,8 +1,10 @@
 import '@/components/ui/animations.css';
 import { Cloud, Server, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BrandIcon } from '@/components/BrandIcon';
 import { Button } from '@/components/ui/button';
+import { useAppSettings } from '@/lib/appSettings';
 import { useOverlayAnimation } from '@/lib/useOverlayAnimation';
 import { closeButton, cn, focusRing, overlayBackdrop } from '@/lib/utils';
 import { DEMO_TOUR_DONE_EVENT, getDemoTourDoneAt } from './onboardingConstants';
@@ -10,13 +12,25 @@ import { DEMO_TOUR_DONE_EVENT, getDemoTourDoneAt } from './onboardingConstants';
 const DEMO_CTA_DELAY_MS = 3 * 60 * 1000;
 const LS_KEY_DISMISSED = 'openbin-demo-cta-dismissed';
 
-const CTA_ACTIONS = [
-  { icon: Cloud, label: 'Sign up for Cloud', description: 'Managed hosting, automatic updates', url: 'https://cloud.openbin.app/register' },
-  { icon: Server, label: 'Self-host with Docker', description: 'Free, open source, full control', url: 'https://github.com/akifbayram/openbin' },
-] as const;
-
 export function DemoCtaOverlay() {
+  const { t } = useTranslation('onboarding');
+  const { settings } = useAppSettings();
   const [open, setOpen] = useState(false);
+
+  const ctaActions = [
+    {
+      icon: Cloud,
+      label: t('demoCta.cloud.label', { defaultValue: 'Sign up for Cloud' }),
+      description: t('demoCta.cloud.description', { defaultValue: 'Managed hosting, automatic updates' }),
+      url: 'https://cloud.openbin.app/register',
+    },
+    {
+      icon: Server,
+      label: t('demoCta.selfHost.label', { defaultValue: 'Self-host with Docker' }),
+      description: t('demoCta.selfHost.description', { defaultValue: 'Free, open source, full control' }),
+      url: 'https://github.com/akifbayram/openbin',
+    },
+  ] as const;
 
   const dismiss = useCallback(() => {
     localStorage.setItem(LS_KEY_DISMISSED, '1');
@@ -69,7 +83,7 @@ export function DemoCtaOverlay() {
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Dismiss"
+          aria-label={t('demoCta.dismiss', { defaultValue: 'Dismiss' })}
           className={cn(closeButton, focusRing)}
         >
           <X className="h-4 w-4" />
@@ -80,14 +94,14 @@ export function DemoCtaOverlay() {
             <BrandIcon className="h-16 w-16 text-[var(--accent)] mb-5" />
           </div>
           <h2 id="demo-cta-title" className="text-[22px] font-bold text-[var(--text-primary)] mb-2">
-            Ready to get started?
+            {t('demoCta.title', { defaultValue: 'Ready to get started?' })}
           </h2>
           <p className="text-[14px] text-[var(--text-tertiary)] mb-5 leading-relaxed">
-            Take OpenBin home with you.
+            {t('demoCta.subtitle', { defaultValue: 'Take {{appName}} home with you.', appName: settings.appName })}
           </p>
 
           <div className="w-full space-y-2 mb-6">
-            {CTA_ACTIONS.map(({ icon: Icon, label, description, url }, i) => (
+            {ctaActions.map(({ icon: Icon, label, description, url }, i) => (
               <a
                 key={url}
                 href={url}
@@ -115,7 +129,7 @@ export function DemoCtaOverlay() {
             onClick={dismiss}
             className="w-full rounded-[var(--radius-md)] h-11 text-[15px]"
           >
-            Continue Exploring
+            {t('demoCta.continueExploring', { defaultValue: 'Continue Exploring' })}
           </Button>
         </div>
       </div>

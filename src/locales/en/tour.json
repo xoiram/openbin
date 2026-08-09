@@ -1,0 +1,186 @@
+{
+  "askAi": {
+    "openPalette": {
+      "body": "Open Ask AI with {{shortcut}} from anywhere.",
+      "bodyMobile": "Ask where something is, or tell AI what to do.",
+      "title": "Ask anything"
+    },
+    "photoToBin": {
+      "body": "Attach a photo and AI creates a {{bin}} from it — items, tags, notes included.",
+      "title": "Drop a photo into the chat"
+    },
+    "tryQuery": {
+      "body": "Ask \"where are the batteries?\" or \"create a kitchen utensils {{bin}}\".",
+      "title": "Try a query"
+    },
+    "voiceInput": {
+      "body": "Tap the mic to dictate — great for hands-busy capture.",
+      "title": "Talk instead of type"
+    }
+  },
+  "banner": {
+    "dismissAriaLabel": "Dismiss tour prompt",
+    "seeWhatCanDo": "See what {{appName}} can do",
+    "showMe": "Show me"
+  },
+  "binAnatomy": {
+    "binAppearance": {
+      "body": "Tags filter across {{bins}}, {{areas}} group them, and appearance themes printed labels.",
+      "title": "Tags, area, and appearance"
+    },
+    "binQr": {
+      "body": "The 6-character code is a printable QR. Stick it on the {{bin}} — anyone in this {{location}} can scan or type it.",
+      "title": "Every {{bin}} has a code"
+    },
+    "binTabs": {
+      "body": "Switch tabs for files, a usage heatmap, and activity — see when this {{bin}} was last opened and what changed.",
+      "title": "See what's happening"
+    },
+    "binToolbar": {
+      "body": "The toolbar has every action you need: edit contents, pin for quick access, print a label, duplicate, or move.",
+      "title": "Edit, pin, print, duplicate"
+    },
+    "quickAdd": {
+      "bodyAi": "Type \"3 screwdrivers, a tape measure\" and tap the spark — AI parses it into items with quantities.",
+      "bodyNoAi": "Type an item name and press Enter. Paste a comma-separated list for multiple.",
+      "title": "Add items fast"
+    }
+  },
+  "bulkEdit": {
+    "bulkActionBar": {
+      "body": "Tick one or more {{bins}} and this bar floats up with every bulk action: tags, {{areas}}, appearance, checkout status, or delete.",
+      "title": "The action bar unlocks bulk edits"
+    },
+    "selectToggle": {
+      "body": "Tap any row's checkbox to start selecting {{bins}}.",
+      "title": "Pick {{bins}} to bulk edit"
+    },
+    "undoToast": {
+      "body": "Bulk deletes can be reversed from a single coalesced undo toast — no per-item confirmation needed.",
+      "title": "One toast, one undo"
+    }
+  },
+  "createAi": {
+    "bulkAddConfirm": {
+      "body": "AI suggestions are editable. Confirm to create every {{bin}} in one go.",
+      "title": "Create them all at once"
+    },
+    "captureCamera": {
+      "body": "Point your camera at a shelf, drawer, or room — AI names the {{bin}} and lists what's inside.",
+      "title": "Snap a photo"
+    },
+    "captureGrouping": {
+      "body": "Toggle grouping to turn multiple photos into multiple {{bins}} in one pass.",
+      "title": "Group as you go"
+    },
+    "groupReview": {
+      "body": "Drag photos between groups, rename, or merge before the AI runs.",
+      "title": "Review before confirming"
+    }
+  },
+  "highlights": {
+    "askAi": {
+      "body": "Ask where something is, or tell it what to do — AI can create, edit, and find {{bins}}. Try {{shortcut}}.",
+      "bodyDisabled": "Use the search bar to find {{bins}} by name, tag, or contents.",
+      "titleDisabled": "Find your {{bins}}",
+      "titleEnabled": "Ask AI anything"
+    },
+    "cta": {
+      "bodyReadonly": "More tours are available from the \"?\" button on each page, or from Settings.",
+      "bodyWrite": "Create your next {{bin}} to get going. More tours are available from the \"?\" button on each page, or from Settings.",
+      "bodyWriteAi": "Try \"create a {{bin}} for kitchen utensils\" to get started. More tours are available from the \"?\" button on each page, or from Settings.",
+      "buttonNewBin": "New {{bin}}",
+      "buttonTryIt": "Try it",
+      "title": "That was the highlights"
+    },
+    "dashboardOverview": {
+      "body": "Your dashboard surfaces pinned {{bins}}, recent scans, checkouts, and an activity heatmap so you can see what's moving.",
+      "title": "Welcome home"
+    },
+    "navSidebar": {
+      "body": "Open Items, Tags, or {{areas}} for cross-{{bin}} views and bulk edits — plus the trash and activity log.",
+      "title": "Cross-bin views"
+    },
+    "scanQr": {
+      "body": "Point your camera at a label to jump straight to that {{bin}}, or type its 6-character code.",
+      "title": "Scan or search"
+    }
+  },
+  "launcher": {
+    "stepCount_one": "{{count}} step",
+    "stepCount_other": "{{count}} steps",
+    "tourAriaLabel": "Tour:"
+  },
+  "overlay": {
+    "ariaLabel": "Guided tour",
+    "back": "Back",
+    "done": "Done",
+    "next": "Next",
+    "skipTour": "Skip tour"
+  },
+  "picker": {
+    "ask-ai": {
+      "summary": "Palette, voice dictation, photo-to-bin",
+      "title": "Ask AI & voice"
+    },
+    "bin-anatomy": {
+      "summary": "Items, tags, QR, tabs, toolbar",
+      "title": "Inside a bin"
+    },
+    "bulk-edit": {
+      "summary": "Select, action bar, and coalesced undo",
+      "title": "Bulk edit"
+    },
+    "create-ai": {
+      "summary": "Capture, group, and review AI-generated bins",
+      "title": "Create bins from photos"
+    },
+    "highlights": {
+      "summary": "Dashboard, Ask AI, scan, and cross-bin views",
+      "title": "Highlights"
+    },
+    "print-scan": {
+      "summary": "Label formats, presets, and QR scanning",
+      "title": "Print & scan"
+    },
+    "reorganize": {
+      "summary": "Regroup bins or consolidate tags",
+      "title": "Reorganize with AI"
+    }
+  },
+  "printScan": {
+    "printBinSelector": {
+      "body": "Print labels for a handful of {{bins}} or for everything. Deep-link here from any list.",
+      "title": "Pick which {{bins}} to print"
+    },
+    "printMode": {
+      "body": "Pick a format: QR labels for scanning, name cards, or a full item checklist for inventory counts.",
+      "title": "Labels, names, or item lists"
+    },
+    "printPreset": {
+      "body": "Turn on Customize dimensions to tweak any margin, then save your tweaks as a reusable preset — next print job is one click.",
+      "title": "Customize and save presets"
+    },
+    "scanQr": {
+      "body": "Point your camera at any printed label to jump to its bin — no typing needed.",
+      "title": "Scan the printed label"
+    }
+  },
+  "reorganize": {
+    "reorganizeMode": {
+      "body": "Pick bins mode to split or merge overstuffed {{bins}}; pick tags mode to consolidate tag vocabulary across {{bins}}.",
+      "title": "Regroup bins or tags"
+    },
+    "reorganizeSelector": {
+      "body": "Pick a handful of {{bins}} or tags. The AI does better with focused input than the whole {{location}}.",
+      "title": "Focus the AI"
+    },
+    "reorganizeSubmit": {
+      "body": "Preview every change before committing. Nothing moves until you say go.",
+      "title": "Preview, then apply"
+    }
+  },
+  "shared": {
+    "gotIt": "Got it"
+  }
+}

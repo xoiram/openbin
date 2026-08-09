@@ -15,6 +15,7 @@ function makeContext(overrides: Partial<TourContext> = {}): TourContext {
     isMobile: false,
     openCommandInput: () => {},
     closeCommandInput: () => {},
+    t: ((key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? key) as TourContext['t'],
     ...overrides,
   };
 }

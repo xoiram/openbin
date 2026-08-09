@@ -61,6 +61,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function AppLayout() {
   const { t } = useTranslation('common');
+  const { t: tTour } = useTranslation('tour');
   useTheme();
   useOAuthReturn();
   const { isCollapsed: sidebarCollapsed } = useSidebarCollapsed();
@@ -115,7 +116,8 @@ export function AppLayout() {
     isMobile,
     openCommandInput: () => getCommandInputRef().current?.open(),
     closeCommandInput: () => getCommandInputRef().current?.close(),
-  }), [canWrite, aiSettings, firstBinId, binIds, terminology, isMobile]);
+    t: tTour,
+  }), [canWrite, aiSettings, firstBinId, binIds, terminology, isMobile, tTour]);
 
   const { showToast } = useToast();
   const onTourUnavailable = useCallback((tourId: TourId) => {

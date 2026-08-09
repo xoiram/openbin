@@ -10,9 +10,13 @@ const steps: TourStep[] = [
     id: 'bin-qr',
     selector: '[data-tour="bin-qr"]',
     placement: 'top',
-    title: (ctx) => `Every ${ctx.terminology.bin} has a code`,
+    title: (ctx) => ctx.t('tour:binAnatomy.binQr.title', { defaultValue: 'Every {{bin}} has a code', bin: ctx.terminology.bin }),
     body: (ctx) =>
-      `The 6-character code is a printable QR. Stick it on the ${ctx.terminology.bin} — anyone in this ${ctx.terminology.location} can scan or type it.`,
+      ctx.t('tour:binAnatomy.binQr.body', {
+        defaultValue: 'The 6-character code is a printable QR. Stick it on the {{bin}} — anyone in this {{location}} can scan or type it.',
+        bin: ctx.terminology.bin,
+        location: ctx.terminology.location,
+      }),
     route,
     condition: (ctx) => ctx.firstBinId !== null,
     mobilePlacement: 'top',
@@ -21,11 +25,15 @@ const steps: TourStep[] = [
     id: 'quick-add',
     selector: '[data-tour="quick-add"]',
     placement: 'top',
-    title: 'Add items fast',
+    title: (ctx) => ctx.t('tour:binAnatomy.quickAdd.title', { defaultValue: 'Add items fast' }),
     body: (ctx) =>
       ctx.aiEnabled
-        ? 'Type "3 screwdrivers, a tape measure" and tap the spark — AI parses it into items with quantities.'
-        : 'Type an item name and press Enter. Paste a comma-separated list for multiple.',
+        ? ctx.t('tour:binAnatomy.quickAdd.bodyAi', {
+            defaultValue: 'Type "3 screwdrivers, a tape measure" and tap the spark — AI parses it into items with quantities.',
+          })
+        : ctx.t('tour:binAnatomy.quickAdd.bodyNoAi', {
+            defaultValue: 'Type an item name and press Enter. Paste a comma-separated list for multiple.',
+          }),
     route,
     condition: (ctx) => ctx.canWrite && ctx.firstBinId !== null,
     mobilePlacement: 'top',
@@ -34,9 +42,12 @@ const steps: TourStep[] = [
     id: 'bin-tabs',
     selector: '[data-tour="bin-tabs"]',
     placement: 'bottom',
-    title: "See what's happening",
+    title: (ctx) => ctx.t('tour:binAnatomy.binTabs.title', { defaultValue: "See what's happening" }),
     body: (ctx) =>
-      `Switch tabs for files, a usage heatmap, and activity — see when this ${ctx.terminology.bin} was last opened and what changed.`,
+      ctx.t('tour:binAnatomy.binTabs.body', {
+        defaultValue: 'Switch tabs for files, a usage heatmap, and activity — see when this {{bin}} was last opened and what changed.',
+        bin: ctx.terminology.bin,
+      }),
     route,
     condition: (ctx) => ctx.firstBinId !== null,
     mobilePlacement: 'bottom',
@@ -45,9 +56,13 @@ const steps: TourStep[] = [
     id: 'bin-appearance',
     selector: '[data-tour="bin-appearance"]',
     placement: 'top',
-    title: 'Tags, area, and appearance',
+    title: (ctx) => ctx.t('tour:binAnatomy.binAppearance.title', { defaultValue: 'Tags, area, and appearance' }),
     body: (ctx) =>
-      `Tags filter across ${ctx.terminology.bins}, ${ctx.terminology.areas} group them, and appearance themes printed labels.`,
+      ctx.t('tour:binAnatomy.binAppearance.body', {
+        defaultValue: 'Tags filter across {{bins}}, {{areas}} group them, and appearance themes printed labels.',
+        bins: ctx.terminology.bins,
+        areas: ctx.terminology.areas,
+      }),
     route,
     condition: (ctx) => ctx.firstBinId !== null,
     mobilePlacement: 'top',
@@ -56,12 +71,15 @@ const steps: TourStep[] = [
     id: 'bin-toolbar',
     selector: '[data-tour="bin-toolbar"]',
     placement: 'bottom',
-    title: 'Edit, pin, print, duplicate',
-    body: 'The toolbar has every action you need: edit contents, pin for quick access, print a label, duplicate, or move.',
+    title: (ctx) => ctx.t('tour:binAnatomy.binToolbar.title', { defaultValue: 'Edit, pin, print, duplicate' }),
+    body: (ctx) =>
+      ctx.t('tour:binAnatomy.binToolbar.body', {
+        defaultValue: 'The toolbar has every action you need: edit contents, pin for quick access, print a label, duplicate, or move.',
+      }),
     route,
     condition: (ctx) => ctx.firstBinId !== null,
     mobilePlacement: 'bottom',
-    buttonLabel: 'Got it',
+    buttonLabel: (ctx) => ctx.t('tour:shared.gotIt', { defaultValue: 'Got it' }),
   },
 ];
 

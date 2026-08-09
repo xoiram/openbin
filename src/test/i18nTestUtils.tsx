@@ -4,8 +4,12 @@ import type { ReactElement } from 'react';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
 import enAuth from '@/locales/en/auth.json';
 import enCommon from '@/locales/en/common.json';
+import enOnboarding from '@/locales/en/onboarding.json';
+import enTour from '@/locales/en/tour.json';
 import nbAuth from '@/locales/nb/auth.json';
 import nbCommon from '@/locales/nb/common.json';
+import nbOnboarding from '@/locales/nb/onboarding.json';
+import nbTour from '@/locales/nb/tour.json';
 
 /**
  * A dedicated i18next instance (via createInstance(), not the shared default
@@ -19,11 +23,11 @@ function createTestI18n() {
   instance.use(initReactI18next).init({
     lng: 'en',
     fallbackLng: 'en',
-    ns: ['common', 'auth'],
+    ns: ['common', 'auth', 'onboarding', 'tour'],
     defaultNS: 'common',
     resources: {
-      en: { common: enCommon, auth: enAuth },
-      nb: { common: nbCommon, auth: nbAuth },
+      en: { common: enCommon, auth: enAuth, onboarding: enOnboarding, tour: enTour },
+      nb: { common: nbCommon, auth: nbAuth, onboarding: nbOnboarding, tour: nbTour },
     },
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
