@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,7 @@ export function ItemRow({
   onToggleSelect,
   externallyRemoved = false,
 }: ItemRowProps) {
+  const { t } = useTranslation(['ai', 'common']);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -85,7 +87,7 @@ export function ItemRow({
   async function handleCheckout() {
     const result = await checkoutItemSafe(binId, item.id);
     if (result.ok) {
-      showToast({ message: `Checked out "${displayName}"` });
+      showToast({ message: t('itemQuery.checkedOutToast', { defaultValue: 'Checked out "{{name}}"', name: displayName }) });
     } else {
       showToast({ message: result.error, variant: 'error' });
     }
@@ -100,7 +102,7 @@ export function ItemRow({
     const r = await renameItemSafe(binId, item.id, trimmed);
     if (r.ok) {
       setDisplayName(trimmed);
-      showToast({ message: `Renamed to "${trimmed}"` });
+      showToast({ message: t('itemQuery.renamedToast', { defaultValue: 'Renamed to "{{name}}"', name: trimmed }) });
     } else {
       showToast({ message: r.error, variant: 'error' });
     }
@@ -118,7 +120,7 @@ export function ItemRow({
       if (r.removed) {
         // Server deletes the item when quantity <= 0. Mirror that in the UI.
         setRemoved(true);
-        showToast({ message: `Removed "${displayName}"` });
+        showToast({ message: t('itemQuery.removedToast', { defaultValue: 'Removed "{{name}}"', name: displayName }) });
       } else {
         setDisplayQuantity(r.quantity);
       }
@@ -132,7 +134,7 @@ export function ItemRow({
     const r = await removeItemSafe(binId, item.id);
     if (r.ok) {
       setRemoved(true);
-      showToast({ message: `Removed "${displayName}"` });
+      showToast({ message: t('itemQuery.removedToast', { defaultValue: 'Removed "{{name}}"', name: displayName }) });
     } else {
       showToast({ message: r.error, variant: 'error' });
     }
@@ -142,10 +144,13 @@ export function ItemRow({
   async function handleRestoreBin() {
     try {
       await restoreBinFromTrash(binId);
-      showToast({ message: 'Bin restored' });
+      showToast({ message: t('itemQuery.binRestoredToast', { defaultValue: 'Bin restored' }) });
       navigate(`/bin/${binId}`);
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Restore failed'), variant: 'error' });
+      showToast({
+        message: getErrorMessage(err, t('itemQuery.restoreFailed', { defaultValue: 'Restore failed' })),
+        variant: 'error',
+      });
     }
   }
 
@@ -158,13 +163,13 @@ export function ItemRow({
           <SelectionCheckbox
             checked={!!selected}
             onToggle={onToggleSelect}
-            label={`Select ${displayName}`}
+            label={t('itemQuery.selectItemAriaLabel', { defaultValue: 'Select {{name}}', name: displayName })}
           />
         )}
         {editingName ? (
           <input
             ref={nameInputRef}
-            aria-label="Item name"
+            aria-label={t('itemQuery.itemNameAriaLabel', { defaultValue: 'Item name' })}
             value={draftName}
             onChange={(e) => setDraftName(e.target.value)}
             onKeyDown={(e) => {
@@ -190,7 +195,7 @@ export function ItemRow({
           <div className="flex items-center gap-0.5 bg-[var(--bg-input)] border border-[var(--border-flat)] rounded-[var(--radius-xs)]">
             <button
               type="button"
-              aria-label="Decrement"
+              aria-label={t('itemQuery.decrementAriaLabel', { defaultValue: 'Decrement' })}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setQtyDraft((q) => Math.max(0, q - 1))}
               className="inline-flex items-center justify-center h-7 w-7 rounded-[var(--radius-xs)] text-[var(--text-secondary)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)] transition-colors"
@@ -199,7 +204,7 @@ export function ItemRow({
             </button>
             <input
               ref={qtyInputRef}
-              aria-label="Quantity"
+              aria-label={t('itemQuery.quantityAriaLabel', { defaultValue: 'Quantity' })}
               type="number"
               min={0}
               value={qtyDraft}
@@ -213,7 +218,7 @@ export function ItemRow({
             />
             <button
               type="button"
-              aria-label="Increment"
+              aria-label={t('itemQuery.incrementAriaLabel', { defaultValue: 'Increment' })}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setQtyDraft((q) => q + 1)}
               className="inline-flex items-center justify-center h-7 w-7 rounded-[var(--radius-xs)] text-[var(--text-secondary)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)] transition-colors"
@@ -256,17 +261,20 @@ export function ItemRow({
       <Dialog open={confirmRemove} onOpenChange={setConfirmRemove}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove item?</DialogTitle>
+            <DialogTitle>{t('itemQuery.removeItemTitle', { defaultValue: 'Remove item?' })}</DialogTitle>
             <DialogDescription>
-              This will permanently remove &quot;{displayName}&quot; from the bin.
+              {t('itemQuery.removeItemDescription', {
+                defaultValue: 'This will permanently remove "{{name}}" from the bin.',
+                name: displayName,
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmRemove(false)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button variant="destructive" onClick={handleRemove}>
-              Remove
+              {t('itemQuery.remove', { defaultValue: 'Remove' })}
             </Button>
           </DialogFooter>
         </DialogContent>

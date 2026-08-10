@@ -1,5 +1,7 @@
-import { pluralize } from '@/lib/utils';
+import { plural, pluralize } from '@/lib/utils';
 import type { QueryMatch } from './useInventoryQuery';
+
+type Translate = (key: string, options?: Record<string, unknown>) => string;
 
 export type DisplayMode = 'header-only' | 'inline-disclosure' | 'nav-disclosure';
 export type RelevanceKind = 'item' | 'name' | 'tag' | 'metadata' | 'fuzzy' | 'unknown';
@@ -34,7 +36,19 @@ export function parseRelevanceKind(relevance: string): RelevanceKind {
   return 'unknown';
 }
 
-export function getMatchDisplay(match: QueryMatch): MatchDisplay {
+/** Optional `t` (from useTranslation('ai')) — falls back to plain English pluralize when omitted. */
+function itemCountLabel(count: number, t?: unknown): string {
+  if (!t) return pluralize(count, 'item');
+  const translate = t as Translate;
+  const word = plural(
+    count,
+    translate('itemQuery.item', { defaultValue: 'item' }),
+    translate('itemQuery.items', { defaultValue: 'items' }),
+  );
+  return `${count} ${word}`;
+}
+
+export function getMatchDisplay(match: QueryMatch, t?: unknown): MatchDisplay {
   const itemsCount = match.items.length;
   const totalCount = match.total_item_count;
 
@@ -45,7 +59,7 @@ export function getMatchDisplay(match: QueryMatch): MatchDisplay {
     return {
       mode: 'nav-disclosure',
       defaultExpanded: false,
-      countLabel: pluralize(totalCount, 'item'),
+      countLabel: itemCountLabel(totalCount, t),
     };
   }
   const kind = parseRelevanceKind(match.relevance);
@@ -53,6 +67,6 @@ export function getMatchDisplay(match: QueryMatch): MatchDisplay {
     mode: 'inline-disclosure',
     defaultExpanded: kind === 'item' && itemsCount === 1,
     // Pill shows MATCHED item count; BinItemGroup's "+N more" footer covers the delta to total.
-    countLabel: pluralize(itemsCount, 'item'),
+    countLabel: itemCountLabel(itemsCount, t),
   };
 }

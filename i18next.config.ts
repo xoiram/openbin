@@ -29,9 +29,15 @@ import { defineConfig } from 'i18next-cli';
 // takes `t` as a parameter for the same reason describeAction() does — it's a plain
 // function, not a hook, and is also called from useAskFlow.ts), and useAskFlow.ts.
 // StreamingText.tsx, useCommand.ts, useInventoryQuery.ts, and conversationTurns.ts have
-// no strings of their own and are omitted; AiStreamingPreview.tsx belongs to chat 5. The
-// planned remaining sequence: bin/item display in query
-// results (chat 4), photo-analysis + AI suggestions (chat 5), aiErrors.ts's
+// no strings of their own and are omitted; AiStreamingPreview.tsx belongs to chat 5. "Chat 4"
+// covers bin/item display in query results: BinDisclosurePill.tsx, BinGroupHeader.tsx,
+// BinItemGroup.tsx, ItemActionMenu.tsx, ItemRow.tsx, ItemQueryResults.tsx,
+// ItemSelectionBar.tsx, and matchDisplay.ts (getMatchDisplay() takes an optional `t` —
+// omitted, it falls back to the pre-existing plain `pluralize()` behavior verbatim,
+// which keeps matchDisplay.test.ts's exact-string assertions untouched; its one call
+// site, BinItemGroup.tsx, always passes the real `t`). SelectionCheckbox.tsx and
+// useItemQuerySelection.ts have no strings of their own and are omitted. The planned
+// remaining sequence: photo-analysis + AI suggestions (chat 5), aiErrors.ts's
 // mapAiError() across its 8 callers once most already have useTranslation('ai')
 // wired up (chat 6), and finally AiSettingsSection.tsx (chat 7, standalone,
 // 523 lines, also retires the legacy PROMPT_HELP_TEXT export once it's the
@@ -104,6 +110,14 @@ export default defineConfig({
       'src/features/ai/useAiStream.ts',
       'src/features/ai/useStreamingAsk.ts',
       'src/features/ai/useAskFlow.ts',
+      'src/features/ai/BinDisclosurePill.tsx',
+      'src/features/ai/BinGroupHeader.tsx',
+      'src/features/ai/BinItemGroup.tsx',
+      'src/features/ai/ItemActionMenu.tsx',
+      'src/features/ai/ItemRow.tsx',
+      'src/features/ai/ItemQueryResults.tsx',
+      'src/features/ai/ItemSelectionBar.tsx',
+      'src/features/ai/matchDisplay.ts',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',

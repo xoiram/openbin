@@ -1,5 +1,6 @@
 import { ChevronRight, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
@@ -33,8 +34,10 @@ export function BinGroupHeader({
   trailing,
   interactive = false,
 }: BinGroupHeaderProps) {
+  const { t } = useTranslation('ai');
   const BinIcon = resolveIcon(icon);
   const colorPreset = resolveColor(color);
+  const openLabel = `${t('itemQuery.openPrefix', { defaultValue: 'Open' })} ${name}`;
 
   const iconNode = isTrashed ? (
     <Trash2 className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
@@ -66,7 +69,7 @@ export function BinGroupHeader({
         <button
           type="button"
           onClick={onOpen}
-          aria-label={`Open ${name}`}
+          aria-label={openLabel}
           data-trashed={isTrashed ? 'true' : undefined}
           className="flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left hover:bg-[var(--bg-active)] transition-colors rounded-tl-[var(--radius-sm)]"
         >
