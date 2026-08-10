@@ -1,4 +1,7 @@
 {
+  "askFlow": {
+    "requestFailed": "Request failed"
+  },
   "chat": {
     "dialogTitle": "Ask AI",
     "newChat": "New chat"
@@ -119,6 +122,14 @@
     "testing": "Testing...",
     "viewDescription": "Connect a provider in Settings to enable AI features",
     "viewTitle": "Set up an AI provider to get started"
+  },
+  "stream": {
+    "emptyResponse": "{{fallback}} — empty response from AI",
+    "unexpectedFormat": "{{fallback}} — unexpected response format"
+  },
+  "streamingAsk": {
+    "noRelevantInfo": "I couldn't find relevant information for that.",
+    "processError": "Couldn't process that request"
   },
   "taskGroups": {
     "deepText": {

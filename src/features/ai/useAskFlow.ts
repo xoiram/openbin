@@ -1,5 +1,6 @@
 import { type MutableRefObject, useCallback, useRef } from 'react';
 import { flushSync } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import type { useToast } from '@/components/ui/toast';
 import { useUserPreferences } from '@/lib/userPreferences';
 import { mapAiError } from './aiErrors';
@@ -39,6 +40,7 @@ export function useAskFlow({
   locationId,
   showToast,
 }: UseAskFlowOptions) {
+  const { t } = useTranslation('ai');
   const { ask: streamAsk, isStreaming, cancel: cancelAsk, clear: clearAsk } = useStreamingAsk();
   const askInFlightRef = useRef(false);
   const { preferences, updatePreferences } = useUserPreferences();
@@ -82,13 +84,13 @@ export function useAskFlow({
             replaceTurn(curr, thinkingTurn.id, {
               kind: 'ai-error',
               id: thinkingTurn.id,
-              error: 'Request failed',
+              error: t('askFlow.requestFailed', { defaultValue: 'Request failed' }),
               canRetry: true,
             }),
           );
           return;
         }
-        const classified = classifyResult(result as never);
+        const classified = classifyResult(result as never, t);
         const aiTurn = askClassifiedToTurn(thinkingTurn.id, classified, binMapRef.current);
         setTurns((curr) => replaceTurn(curr, thinkingTurn.id, aiTurn));
         if (!preferences.ai_asked_at) {
@@ -98,7 +100,7 @@ export function useAskFlow({
         // Aborted requests (from cancelStreaming) are user-initiated — don't show an error.
         if (err instanceof DOMException && err.name === 'AbortError') return;
         if (err instanceof Error && err.name === 'AbortError') return;
-        const message = mapAiError(err, 'Request failed');
+        const message = mapAiError(err, t('askFlow.requestFailed', { defaultValue: 'Request failed' }));
         showToast({ message });
         setTurns((curr) =>
           replaceTurn(curr, thinkingTurn.id, {
@@ -112,7 +114,7 @@ export function useAskFlow({
         askInFlightRef.current = false;
       }
     },
-    [locationId, effectiveBinIds, streamAsk, showToast, turnsRef, setTurns, binMapRef, preferences.ai_asked_at, updatePreferences],
+    [locationId, effectiveBinIds, streamAsk, showToast, turnsRef, setTurns, binMapRef, preferences.ai_asked_at, updatePreferences, t],
   );
 
   const cancelStreaming = useCallback(() => {

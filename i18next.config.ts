@@ -24,8 +24,13 @@ import { defineConfig } from 'i18next-cli';
 // covers turn rendering + commandActionUtils.ts's describeAction() (AiTurnThinking,
 // AiTurnError, AiTurnCommandPreview, AiTurnExecutionResult, QueryAnswerBody,
 // CommandActionList, commandActionUtils.ts — AiTurnQueryResult.tsx, QueryIntroText.tsx,
-// and commandSelectedBins.ts have no strings of their own and are omitted). The planned
-// remaining sequence: streaming/ask-flow hooks (chat 3), bin/item display in query
+// and commandSelectedBins.ts have no strings of their own and are omitted). "Chat 3"
+// covers streaming/ask-flow hooks: useAiStream.ts, useStreamingAsk.ts (classifyResult()
+// takes `t` as a parameter for the same reason describeAction() does — it's a plain
+// function, not a hook, and is also called from useAskFlow.ts), and useAskFlow.ts.
+// StreamingText.tsx, useCommand.ts, useInventoryQuery.ts, and conversationTurns.ts have
+// no strings of their own and are omitted; AiStreamingPreview.tsx belongs to chat 5. The
+// planned remaining sequence: bin/item display in query
 // results (chat 4), photo-analysis + AI suggestions (chat 5), aiErrors.ts's
 // mapAiError() across its 8 callers once most already have useTranslation('ai')
 // wired up (chat 6), and finally AiSettingsSection.tsx (chat 7, standalone,
@@ -96,6 +101,9 @@ export default defineConfig({
       'src/features/ai/QueryAnswerBody.tsx',
       'src/features/ai/CommandActionList.tsx',
       'src/features/ai/commandActionUtils.ts',
+      'src/features/ai/useAiStream.ts',
+      'src/features/ai/useStreamingAsk.ts',
+      'src/features/ai/useAskFlow.ts',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
@@ -113,7 +121,10 @@ export default defineConfig({
     // the extractor only recognizes calls named `t`/`i18n.t`, so it can't see
     // these literal-key calls at all and treats every `commandActions.*` key as
     // unused. `ai:commandActions.*` preserves them the same way `ai:providers.*`
-    // does for aiConstants.ts's identical `translate` pattern.
+    // does for aiConstants.ts's identical `translate` pattern. useStreamingAsk.ts's
+    // classifyResult() has the same issue for its one `translate`-aliased call
+    // (`ai:streamingAsk.*` covers it; its sibling key used via the hook's own
+    // `t` doesn't need preserving but shares the block for locality).
     preservePatterns: [
       'tour:picker.*.title',
       'tour:picker.*.summary',
@@ -123,6 +134,7 @@ export default defineConfig({
       'ai:taskGroups.*.label',
       'ai:taskGroups.*.description',
       'ai:commandActions.*',
+      'ai:streamingAsk.*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
     ],

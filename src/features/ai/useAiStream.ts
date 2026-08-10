@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiStream } from '@/lib/apiStream';
 import { Events, notify } from '@/lib/eventBus';
 import { mapAiError } from './aiErrors';
@@ -14,6 +15,7 @@ export function useAiStream<T>(
   endpoint: string,
   errorFallback: string
 ) {
+  const { t } = useTranslation('ai');
   const [result, setResult] = useState<T | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,10 @@ export function useAiStream<T>(
           try {
             const text = event.text.trim();
             if (!text) {
-              setError(`${errorFallback} — empty response from AI`);
+              setError(t('stream.emptyResponse', {
+                defaultValue: '{{fallback}} — empty response from AI',
+                fallback: errorFallback,
+              }));
               return null;
             }
             const parsed = JSON.parse(text) as T;
@@ -51,7 +56,10 @@ export function useAiStream<T>(
             notify(Events.PLAN);
             return parsed;
           } catch {
-            setError(`${errorFallback} — unexpected response format`);
+            setError(t('stream.unexpectedFormat', {
+              defaultValue: '{{fallback}} — unexpected response format',
+              fallback: errorFallback,
+            }));
           }
         } else if (event.type === 'retry') {
           setPartialText('');
@@ -69,7 +77,7 @@ export function useAiStream<T>(
       abortRef.current = null;
     }
     return null;
-  }, [endpoint, errorFallback]);
+  }, [endpoint, errorFallback, t]);
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 

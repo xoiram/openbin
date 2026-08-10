@@ -1,4 +1,7 @@
 {
+  "askFlow": {
+    "requestFailed": "Forespørsel mislyktes"
+  },
   "chat": {
     "dialogTitle": "Spør AI",
     "newChat": "Ny samtale"
@@ -119,6 +122,14 @@
     "testing": "Tester...",
     "viewDescription": "Koble til en leverandør i Innstillinger for å aktivere AI-funksjoner",
     "viewTitle": "Sett opp en AI-leverandør for å komme i gang"
+  },
+  "stream": {
+    "emptyResponse": "{{fallback}} — tomt svar fra AI",
+    "unexpectedFormat": "{{fallback}} — uventet svarformat"
+  },
+  "streamingAsk": {
+    "noRelevantInfo": "Fant ingen relevant informasjon om det.",
+    "processError": "Kunne ikke behandle forespørselen"
   },
   "taskGroups": {
     "deepText": {
