@@ -42,9 +42,16 @@ import { defineConfig } from 'i18next-cli';
 // own exact-string test calls it with no `t`), AiSuggestionsPanel.tsx, AiStreamingPreview.tsx
 // (both its exports, AiStreamingPreview and AiAnalyzeError), and useTextStructuring.ts.
 // parsePartialAnalysis.ts and AiCreditDisplay.tsx have no strings of their own and are
-// omitted. The planned remaining sequence: aiErrors.ts's
-// mapAiError() across its 8 callers once most already have useTranslation('ai')
-// wired up (chat 6), and finally AiSettingsSection.tsx (chat 7, standalone,
+// omitted. "Chat 6" covers aiErrors.ts's mapAiError() (same optional-`t` pattern as
+// describeAction()/getMatchDisplay()/computeAnalyzeLabel() — useCommand.test.ts and
+// useTextStructuring.test.ts call it directly with no `t`) across its 7 real call
+// sites: useAiStream.ts, useAskFlow.ts, useTextStructuring.ts (already had `t` in
+// scope from earlier chats — just added as the 3rd arg), useCommandExecution.ts,
+// useGroupReviewAi.ts (src/features/bulk-add/ — reaches into the `ai` namespace since
+// its two mapAiError calls are the reason it's touched at all, not a bulk-add
+// migration), and src/lib/useTranscription.ts (same reasoning — only its mapAiError
+// fallback is translated, not its other unrelated hardcoded strings). The planned
+// remaining step: finally AiSettingsSection.tsx (chat 7, standalone,
 // 523 lines, also retires the legacy PROMPT_HELP_TEXT export once it's the
 // only remaining consumer). `useDefaultPrompts.ts` has no user-facing
 // strings, so it's omitted. `exportImport.ts`'s own thrown Error messages
@@ -128,6 +135,10 @@ export default defineConfig({
       'src/features/ai/AiSuggestionsPanel.tsx',
       'src/features/ai/AiStreamingPreview.tsx',
       'src/features/ai/useTextStructuring.ts',
+      'src/features/ai/aiErrors.ts',
+      'src/features/ai/useCommandExecution.ts',
+      'src/features/bulk-add/useGroupReviewAi.ts',
+      'src/lib/useTranscription.ts',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
@@ -153,6 +164,8 @@ export default defineConfig({
     // issue (`ai:analyzeLabel.*`). AiStreamingPreview.tsx's AiAnalyzeError looks
     // up its title via `t(variantTitleKey(variant), ...)` — a computed key, not
     // a literal — so `ai:analyzeError.title*` preserves those four variants.
+    // aiErrors.ts's mapAiError() has the same aliased-`translate` issue for its
+    // four internal messages (`ai:aiErrors.*`).
     preservePatterns: [
       'tour:picker.*.title',
       'tour:picker.*.summary',
@@ -165,6 +178,7 @@ export default defineConfig({
       'ai:streamingAsk.*',
       'ai:analyzeLabel.*',
       'ai:analyzeError.title*',
+      'ai:aiErrors.*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
     ],

@@ -100,7 +100,7 @@ export function useAskFlow({
         // Aborted requests (from cancelStreaming) are user-initiated — don't show an error.
         if (err instanceof DOMException && err.name === 'AbortError') return;
         if (err instanceof Error && err.name === 'AbortError') return;
-        const message = mapAiError(err, t('askFlow.requestFailed', { defaultValue: 'Request failed' }));
+        const message = mapAiError(err, t('askFlow.requestFailed', { defaultValue: 'Request failed' }), t);
         showToast({ message });
         setTurns((curr) =>
           replaceTurn(curr, thinkingTurn.id, {

@@ -70,7 +70,7 @@ export function useAiStream<T>(
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError(mapAiError(err, errorFallback));
+        setError(mapAiError(err, errorFallback, t));
       }
     } finally {
       setIsStreaming(false);

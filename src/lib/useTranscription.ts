@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
 import { mapAiError } from '@/features/ai/aiErrors';
 import { apiFetch } from '@/lib/api';
@@ -17,6 +18,7 @@ interface UseTranscriptionOptions {
 }
 
 export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
+  const { t } = useTranslation('ai');
   const { showToast } = useToast();
 
   const [state, setState] = useState<TranscriptionState>('idle');
@@ -93,7 +95,7 @@ export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
       onTranscribedRef.current(text);
     } catch (err) {
       if (cancelledRef.current) return;
-      const message = mapAiError(err, 'Transcription failed. Try again.');
+      const message = mapAiError(err, t('transcription.failed', { defaultValue: 'Transcription failed. Try again.' }), t);
       setError(message);
       showToast({
         message,
@@ -102,7 +104,7 @@ export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
       });
       setState('idle');
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const start = useCallback(async () => {
     if (state !== 'idle') return;

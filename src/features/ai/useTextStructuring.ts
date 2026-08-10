@@ -51,7 +51,7 @@ export function useTextStructuring() {
     } catch (err) {
       setError(mapAiError(err, t('structureText.fallbackError', {
         defaultValue: "Couldn't extract items — try describing them differently",
-      })));
+      }), t));
       return null;
     } finally {
       setIsStructuring(false);

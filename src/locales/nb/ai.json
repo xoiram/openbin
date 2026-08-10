@@ -1,4 +1,10 @@
 {
+  "aiErrors": {
+    "invalidApiKey": "Ugyldig API-nøkkel eller modell — sjekk Innstillinger > AI",
+    "providerError": "AI-leverandøren returnerte en feil — verifiser innstillingene dine",
+    "providerRateLimited": "AI-leverandøren har hastighetsbegrensning — vent litt og prøv igjen",
+    "rateLimited": "For mange AI-forespørsler — prøv igjen om et øyeblikk"
+  },
   "analyzeError": {
     "checkAiSettings": "Sjekk AI-innstillinger",
     "details": "Detaljer",
@@ -64,6 +70,9 @@
     "unpinBin": "Løsne \"{{bin}}\"",
     "updateBin": "Oppdater \"{{bin}}\": {{fields}}"
   },
+  "commandExecution": {
+    "executionFailed": "Utførelse mislyktes"
+  },
   "commandList": {
     "action": "handling",
     "actions": "handlinger",
@@ -97,6 +106,9 @@
     "unscopedExample5": "Opprett en {{bin}} kalt Bassengflottører i Garasjen",
     "unscopedExample6": "Dupliser {{bin}} Elektroverktøy",
     "unscopedExample7": "Hva er i papirkurven min?"
+  },
+  "groupReviewAi": {
+    "analyzeFailed": "Kunne ikke analysere bildet — prøv igjen"
   },
   "itemQuery": {
     "actionsAriaLabel": "Gjenstandshandlinger",
@@ -234,6 +246,9 @@
     "modelLabel": "Modell",
     "providerLabel": "Leverandør",
     "resetToDefault": "Tilbakestill til standard"
+  },
+  "transcription": {
+    "failed": "Transkribering mislyktes. Prøv igjen."
   },
   "turnError": {
     "retry": "Prøv igjen"

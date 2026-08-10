@@ -1,4 +1,10 @@
 {
+  "aiErrors": {
+    "invalidApiKey": "Invalid API key or model — check Settings > AI",
+    "providerError": "Your AI provider returned an error — verify your settings",
+    "providerRateLimited": "AI provider rate limited — wait a moment and try again",
+    "rateLimited": "Too many AI requests — try again in a moment"
+  },
   "analyzeError": {
     "checkAiSettings": "Check AI Settings",
     "details": "Details",
@@ -64,6 +70,9 @@
     "unpinBin": "Unpin \"{{bin}}\"",
     "updateBin": "Update \"{{bin}}\": {{fields}}"
   },
+  "commandExecution": {
+    "executionFailed": "Execution failed"
+  },
   "commandList": {
     "action": "action",
     "actions": "actions",
@@ -97,6 +106,9 @@
     "unscopedExample5": "Create a {{bin}} called Pool Floats in the Garage",
     "unscopedExample6": "Duplicate the Power Tools {{bin}}",
     "unscopedExample7": "What's in my trash?"
+  },
+  "groupReviewAi": {
+    "analyzeFailed": "Couldn't analyze the photo — try again"
   },
   "itemQuery": {
     "actionsAriaLabel": "Item actions",
@@ -234,6 +246,9 @@
     "modelLabel": "Model",
     "providerLabel": "Provider",
     "resetToDefault": "Reset to default"
+  },
+  "transcription": {
+    "failed": "Transcription failed. Try again."
   },
   "turnError": {
     "retry": "Retry"
