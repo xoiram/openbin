@@ -1,4 +1,24 @@
 {
+  "analyzeError": {
+    "checkAiSettings": "Check AI Settings",
+    "details": "Details",
+    "titleGeneric": "Analysis failed",
+    "titleInvalidConfig": "AI configuration issue",
+    "titleProviderDown": "Provider unavailable",
+    "titleRateLimit": "Rate limit reached"
+  },
+  "analyzeLabel": {
+    "applyingCorrection": "Applying correction",
+    "done": "Done",
+    "foundPrefix": "Found",
+    "foundSuffix": "found",
+    "noItemsFound": "No items found",
+    "reanalyzing": "Reanalyzing",
+    "scanning": "Scanning"
+  },
+  "analyzeProgress": {
+    "cancelScanAriaLabel": "Cancel scan"
+  },
   "askFlow": {
     "requestFailed": "Request failed"
   },
@@ -172,6 +192,26 @@
   "streamingAsk": {
     "noRelevantInfo": "I couldn't find relevant information for that.",
     "processError": "Couldn't process that request"
+  },
+  "streamingPreview": {
+    "findingMore": "Finding more items...",
+    "previewAlt": "Preview {{n}}"
+  },
+  "structureText": {
+    "fallbackError": "Couldn't extract items — try describing them differently"
+  },
+  "suggestions": {
+    "applySelected": "Apply Selected",
+    "changedBadge": "Changed",
+    "currentPrefix": "Current",
+    "dismiss": "Dismiss",
+    "itemsLabel": "Items",
+    "nameLabel": "Name",
+    "reanalysisComplete": "Reanalysis complete — compare with previous results",
+    "selectPrompt": "Select which suggestions to apply to this bin.",
+    "title": "AI Suggestions",
+    "willReplace_one": "Will replace current {{count}} item",
+    "willReplace_other": "Will replace current {{count}} items"
   },
   "taskGroups": {
     "deepText": {

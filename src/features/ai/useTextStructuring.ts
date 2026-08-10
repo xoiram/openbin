@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '@/lib/api';
 import { Events, notify } from '@/lib/eventBus';
 import type { AiSuggestedItem } from '@/types';
@@ -34,6 +35,7 @@ export async function structureTextItems(options: StructureTextOptions): Promise
 }
 
 export function useTextStructuring() {
+  const { t } = useTranslation('ai');
   const [structuredItems, setAiSuggestedItems] = useState<AiSuggestedItem[] | null>(null);
   const [isStructuring, setIsStructuring] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,12 +49,14 @@ export function useTextStructuring() {
       setAiSuggestedItems(items);
       return items;
     } catch (err) {
-      setError(mapAiError(err, 'Couldn\'t extract items — try describing them differently'));
+      setError(mapAiError(err, t('structureText.fallbackError', {
+        defaultValue: "Couldn't extract items — try describing them differently",
+      })));
       return null;
     } finally {
       setIsStructuring(false);
     }
-  }, []);
+  }, [t]);
 
   const clearStructured = useCallback(() => {
     setAiSuggestedItems(null);

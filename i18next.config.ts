@@ -36,8 +36,13 @@ import { defineConfig } from 'i18next-cli';
 // omitted, it falls back to the pre-existing plain `pluralize()` behavior verbatim,
 // which keeps matchDisplay.test.ts's exact-string assertions untouched; its one call
 // site, BinItemGroup.tsx, always passes the real `t`). SelectionCheckbox.tsx and
-// useItemQuerySelection.ts have no strings of their own and are omitted. The planned
-// remaining sequence: photo-analysis + AI suggestions (chat 5), aiErrors.ts's
+// useItemQuerySelection.ts have no strings of their own and are omitted. "Chat 5" covers
+// photo-analysis + AI suggestions: AiAnalyzeProgress.tsx, analyzeLabel.ts
+// (computeAnalyzeLabel() takes the same optional-`t` pattern as getMatchDisplay() — its
+// own exact-string test calls it with no `t`), AiSuggestionsPanel.tsx, AiStreamingPreview.tsx
+// (both its exports, AiStreamingPreview and AiAnalyzeError), and useTextStructuring.ts.
+// parsePartialAnalysis.ts and AiCreditDisplay.tsx have no strings of their own and are
+// omitted. The planned remaining sequence: aiErrors.ts's
 // mapAiError() across its 8 callers once most already have useTranslation('ai')
 // wired up (chat 6), and finally AiSettingsSection.tsx (chat 7, standalone,
 // 523 lines, also retires the legacy PROMPT_HELP_TEXT export once it's the
@@ -118,6 +123,11 @@ export default defineConfig({
       'src/features/ai/ItemQueryResults.tsx',
       'src/features/ai/ItemSelectionBar.tsx',
       'src/features/ai/matchDisplay.ts',
+      'src/features/ai/AiAnalyzeProgress.tsx',
+      'src/features/ai/analyzeLabel.ts',
+      'src/features/ai/AiSuggestionsPanel.tsx',
+      'src/features/ai/AiStreamingPreview.tsx',
+      'src/features/ai/useTextStructuring.ts',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
@@ -139,6 +149,10 @@ export default defineConfig({
     // classifyResult() has the same issue for its one `translate`-aliased call
     // (`ai:streamingAsk.*` covers it; its sibling key used via the hook's own
     // `t` doesn't need preserving but shares the block for locality).
+    // analyzeLabel.ts's computeAnalyzeLabel() has the same aliased-`translate`
+    // issue (`ai:analyzeLabel.*`). AiStreamingPreview.tsx's AiAnalyzeError looks
+    // up its title via `t(variantTitleKey(variant), ...)` — a computed key, not
+    // a literal — so `ai:analyzeError.title*` preserves those four variants.
     preservePatterns: [
       'tour:picker.*.title',
       'tour:picker.*.summary',
@@ -149,6 +163,8 @@ export default defineConfig({
       'ai:taskGroups.*.description',
       'ai:commandActions.*',
       'ai:streamingAsk.*',
+      'ai:analyzeLabel.*',
+      'ai:analyzeError.title*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
     ],

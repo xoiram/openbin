@@ -1,4 +1,24 @@
 {
+  "analyzeError": {
+    "checkAiSettings": "Sjekk AI-innstillinger",
+    "details": "Detaljer",
+    "titleGeneric": "Analyse mislyktes",
+    "titleInvalidConfig": "AI-konfigurasjonsproblem",
+    "titleProviderDown": "Leverandør utilgjengelig",
+    "titleRateLimit": "Hastighetsgrense nådd"
+  },
+  "analyzeLabel": {
+    "applyingCorrection": "Bruker korrigering",
+    "done": "Ferdig",
+    "foundPrefix": "Fant",
+    "foundSuffix": "funnet",
+    "noItemsFound": "Ingen gjenstander funnet",
+    "reanalyzing": "Analyserer på nytt",
+    "scanning": "Skanner"
+  },
+  "analyzeProgress": {
+    "cancelScanAriaLabel": "Avbryt skanning"
+  },
   "askFlow": {
     "requestFailed": "Forespørsel mislyktes"
   },
@@ -172,6 +192,26 @@
   "streamingAsk": {
     "noRelevantInfo": "Fant ingen relevant informasjon om det.",
     "processError": "Kunne ikke behandle forespørselen"
+  },
+  "streamingPreview": {
+    "findingMore": "Finner flere gjenstander …",
+    "previewAlt": "Forhåndsvisning {{n}}"
+  },
+  "structureText": {
+    "fallbackError": "Kunne ikke hente ut gjenstander — prøv å beskrive dem annerledes"
+  },
+  "suggestions": {
+    "applySelected": "Bruk valgte",
+    "changedBadge": "Endret",
+    "currentPrefix": "Nåværende",
+    "dismiss": "Avvis",
+    "itemsLabel": "Gjenstander",
+    "nameLabel": "Navn",
+    "reanalysisComplete": "Ny analyse fullført — sammenlign med tidligere resultater",
+    "selectPrompt": "Velg hvilke forslag som skal brukes på denne boksen.",
+    "title": "AI-forslag",
+    "willReplace_one": "Vil erstatte nåværende {{count}} gjenstand",
+    "willReplace_other": "Vil erstatte nåværende {{count}} gjenstander"
   },
   "taskGroups": {
     "deepText": {
