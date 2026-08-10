@@ -9,13 +9,13 @@ import { defineConfig } from 'i18next-cli';
 // should widen this glob to include the folder(s) it migrates.
 //
 // `src/features/settings/` is split across multiple PRs (see docs/i18n.md's
-// Roadmap): this one covers the settings shell + general prefs (the files
-// listed explicitly below). `AccountSection.tsx`, `DataSection.tsx`,
-// `AiSection.tsx`, `dialogs/*`, `useApiKeys.ts`, `useDataSectionActions.ts`,
-// and `exportImport.ts` are denser/riskier (account/security/danger-zone
-// copy, AI provider config) and deferred to their own follow-up PR(s) — a
-// blanket `src/features/settings/**` glob would prematurely demand their
-// migration too, so files are listed individually instead of by folder.
+// Roadmap): the first covers the settings shell + general prefs, this one
+// adds the account/security surface (AccountSection.tsx + its two dialogs).
+// `DataSection.tsx`, `AiSection.tsx`, `useDataSectionActions.ts`, and
+// `exportImport.ts` are their own follow-up PR(s) — a blanket
+// `src/features/settings/**` glob would prematurely demand their migration
+// too, so files are listed individually instead of by folder.
+// `useApiKeys.ts` has no user-facing strings, so it's omitted here.
 //
 
 // CAUTION running `npx i18next-cli extract` locally: `common.json`'s
@@ -52,6 +52,9 @@ export default defineConfig({
       'src/features/settings/sections/AboutSection.tsx',
       'src/features/settings/sections/PersonalizationSection.tsx',
       'src/features/settings/sections/PreferencesSection.tsx',
+      'src/features/settings/sections/AccountSection.tsx',
+      'src/features/settings/dialogs/DeleteAccountDialog.tsx',
+      'src/features/settings/dialogs/RecoverAccountDialog.tsx',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
