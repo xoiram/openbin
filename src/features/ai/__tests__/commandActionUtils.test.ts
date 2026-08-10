@@ -3,11 +3,22 @@ import type { Terminology } from '@/lib/terminology';
 import { describeAction, enrichActionsWithNames } from '../commandActionUtils';
 import type { CommandAction } from '../useCommand';
 
-const t: Terminology = {
+const term: Terminology = {
   bin: 'bin', bins: 'bins', Bin: 'Bin', Bins: 'Bins',
   area: 'area', areas: 'areas', Area: 'Area', Areas: 'Areas',
   location: 'location', locations: 'locations', Location: 'Location', Locations: 'Locations',
 } as Terminology;
+
+/** Minimal real-interpolating `t` mock — unlike the global test-setup mock, this
+ * substitutes `{{vars}}` so describeAction's interpolated output can be asserted on. */
+function t(key: string, options?: Record<string, unknown> & { defaultValue?: string }): string {
+  let result = options?.defaultValue ?? key;
+  for (const [k, v] of Object.entries(options ?? {})) {
+    if (k === 'defaultValue') continue;
+    result = result.split(`{{${k}}}`).join(String(v));
+  }
+  return result;
+}
 
 describe('enrichActionsWithNames', () => {
   it('fills missing bin_name from the bin map using bin_id', () => {
@@ -79,7 +90,7 @@ describe('enrichActionsWithNames', () => {
 describe('describeAction fallback for missing bin_name', () => {
   it('does NOT render the string "undefined" when bin_name is missing on duplicate_bin', () => {
     const action = { type: 'duplicate_bin', bin_id: 'b1', new_name: 'Copy of Car Supplies' } as unknown as CommandAction;
-    const description = describeAction(action, t);
+    const description = describeAction(action, term, t);
     expect(description).not.toMatch(/undefined/i);
     // The copy's new name should still appear
     expect(description).toContain('Copy of Car Supplies');
@@ -87,7 +98,7 @@ describe('describeAction fallback for missing bin_name', () => {
 
   it('does NOT render the string "undefined" when bin_name is missing on delete_bin', () => {
     const action = { type: 'delete_bin', bin_id: 'b1' } as unknown as CommandAction;
-    const description = describeAction(action, t);
+    const description = describeAction(action, term, t);
     expect(description).not.toMatch(/undefined/i);
   });
 });

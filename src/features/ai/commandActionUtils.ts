@@ -5,8 +5,7 @@ import {ArrowUpDown, CircleHelp,
 import type { Terminology } from '@/lib/terminology';
 import type { CommandAction } from './useCommand';
 
-/** Visible placeholder shown when an action's bin_name is missing AND no map entry resolves it. */
-const UNKNOWN_BIN_LABEL = 'a bin';
+type Translate = (key: string, options?: Record<string, unknown>) => string;
 
 export function isBinCreatingAction(action: CommandAction): boolean {
   return action.type === 'create_bin' || action.type === 'duplicate_bin';
@@ -41,9 +40,10 @@ export function enrichActionsWithNames(
 }
 
 /** Read bin_name from action, falling back to a readable placeholder. */
-function resolveBinName(action: CommandAction): string {
+function resolveBinName(action: CommandAction, translate: Translate): string {
   const name = (action as { bin_name?: unknown }).bin_name;
-  return typeof name === 'string' && name.length > 0 ? name : UNKNOWN_BIN_LABEL;
+  if (typeof name === 'string' && name.length > 0) return name;
+  return translate('commandActions.unknownBin', { defaultValue: 'a bin' });
 }
 
 export function isDestructiveAction(action: CommandAction): boolean {
@@ -81,70 +81,176 @@ export function getActionIcon(action: CommandAction) {
   }
 }
 
-export function describeAction(action: CommandAction, t: Terminology): string {
-  const binName = resolveBinName(action);
+export function describeAction(action: CommandAction, term: Terminology, t: unknown): string {
+  const translate = t as Translate;
+  const binName = resolveBinName(action, translate);
   switch (action.type) {
-    case 'add_items':
-      return `Add ${action.items.map((i) => typeof i === 'string' ? i : (i.quantity ? `${i.name} (×${i.quantity})` : i.name)).join(', ')} to "${binName}"`;
+    case 'add_items': {
+      const items = action.items
+        .map((i) => (typeof i === 'string' ? i : i.quantity ? `${i.name} (×${i.quantity})` : i.name))
+        .join(', ');
+      return translate('commandActions.addItems', { defaultValue: 'Add {{items}} to "{{bin}}"', items, bin: binName });
+    }
     case 'remove_items':
-      return `Remove ${action.items.join(', ')} from "${binName}"`;
+      return translate('commandActions.removeItems', {
+        defaultValue: 'Remove {{items}} from "{{bin}}"',
+        items: action.items.join(', '),
+        bin: binName,
+      });
     case 'modify_item':
-      return `Rename "${action.old_item}" to "${action.new_item}" in "${binName}"`;
+      return translate('commandActions.modifyItem', {
+        defaultValue: 'Rename "{{oldItem}}" to "{{newItem}}" in "{{bin}}"',
+        oldItem: action.old_item,
+        newItem: action.new_item,
+        bin: binName,
+      });
     case 'set_item_quantity':
       return action.quantity <= 0
-        ? `Remove "${action.item_name}" from "${binName}"`
-        : `Set quantity of "${action.item_name}" to ${action.quantity} in "${binName}"`;
+        ? translate('commandActions.removeItemZeroQuantity', {
+            defaultValue: 'Remove "{{item}}" from "{{bin}}"',
+            item: action.item_name,
+            bin: binName,
+          })
+        : translate('commandActions.setItemQuantity', {
+            defaultValue: 'Set quantity of "{{item}}" to {{quantity}} in "{{bin}}"',
+            item: action.item_name,
+            quantity: action.quantity,
+            bin: binName,
+          });
     case 'create_bin': {
-      let desc = `Create ${t.bin} "${action.name}"`;
-      if (action.area_name) desc += ` in ${action.area_name}`;
-      if (action.items?.length) desc += ` with ${action.items.length} item${action.items.length !== 1 ? 's' : ''}`;
+      let desc = translate('commandActions.createBin', {
+        defaultValue: 'Create {{binTerm}} "{{name}}"',
+        binTerm: term.bin,
+        name: action.name,
+      });
+      if (action.area_name) {
+        desc += translate('commandActions.createBinInArea', { defaultValue: ' in {{area}}', area: action.area_name });
+      }
+      if (action.items?.length) {
+        desc += translate('commandActions.createBinWithItems', {
+          defaultValue: ' with {{count}} item',
+          count: action.items.length,
+        });
+      }
       return desc;
     }
     case 'delete_bin':
-      return `Delete "${binName}"`;
+      return translate('commandActions.deleteBin', { defaultValue: 'Delete "{{bin}}"', bin: binName });
     case 'add_tags':
-      return `Add tag${action.tags.length !== 1 ? 's' : ''} ${action.tags.join(', ')} to "${binName}"`;
+      return translate('commandActions.addTags', {
+        defaultValue: 'Add tag {{tags}} to "{{bin}}"',
+        count: action.tags.length,
+        tags: action.tags.join(', '),
+        bin: binName,
+      });
     case 'remove_tags':
-      return `Remove tag${action.tags.length !== 1 ? 's' : ''} ${action.tags.join(', ')} from "${binName}"`;
+      return translate('commandActions.removeTags', {
+        defaultValue: 'Remove tag {{tags}} from "{{bin}}"',
+        count: action.tags.length,
+        tags: action.tags.join(', '),
+        bin: binName,
+      });
     case 'modify_tag':
-      return `Rename tag "${action.old_tag}" to "${action.new_tag}" on "${binName}"`;
+      return translate('commandActions.modifyTag', {
+        defaultValue: 'Rename tag "{{oldTag}}" to "{{newTag}}" on "{{bin}}"',
+        oldTag: action.old_tag,
+        newTag: action.new_tag,
+        bin: binName,
+      });
     case 'set_area':
-      return `Move "${binName}" to ${t.area} "${action.area_name}"`;
+      return translate('commandActions.setArea', {
+        defaultValue: 'Move "{{bin}}" to {{areaTerm}} "{{area}}"',
+        bin: binName,
+        areaTerm: term.area,
+        area: action.area_name,
+      });
     case 'set_notes':
-      if (action.mode === 'clear') return `Clear notes on "${binName}"`;
-      if (action.mode === 'append') return `Append to notes on "${binName}"`;
-      return `Set notes on "${binName}"`;
+      if (action.mode === 'clear') {
+        return translate('commandActions.clearNotes', { defaultValue: 'Clear notes on "{{bin}}"', bin: binName });
+      }
+      if (action.mode === 'append') {
+        return translate('commandActions.appendNotes', { defaultValue: 'Append to notes on "{{bin}}"', bin: binName });
+      }
+      return translate('commandActions.setNotes', { defaultValue: 'Set notes on "{{bin}}"', bin: binName });
     case 'set_icon':
-      return `Set icon on "${binName}" to ${action.icon}`;
+      return translate('commandActions.setIcon', {
+        defaultValue: 'Set icon on "{{bin}}" to {{icon}}',
+        bin: binName,
+        icon: action.icon,
+      });
     case 'set_color':
-      return `Set color on "${binName}" to ${action.color}`;
+      return translate('commandActions.setColor', {
+        defaultValue: 'Set color on "{{bin}}" to {{color}}',
+        bin: binName,
+        color: action.color,
+      });
     case 'update_bin': {
-      const fields = ['name', 'notes', 'tags', 'area_name', 'icon', 'color', 'visibility'].filter((f) => (action as Record<string, unknown>)[f] !== undefined);
-      return `Update "${binName}": ${fields.join(', ')}`;
+      const fields = ['name', 'notes', 'tags', 'area_name', 'icon', 'color', 'visibility'].filter(
+        (f) => (action as Record<string, unknown>)[f] !== undefined,
+      );
+      return translate('commandActions.updateBin', {
+        defaultValue: 'Update "{{bin}}": {{fields}}',
+        bin: binName,
+        fields: fields.join(', '),
+      });
     }
     case 'restore_bin':
-      return `Restore "${binName}" from trash`;
+      return translate('commandActions.restoreBin', { defaultValue: 'Restore "{{bin}}" from trash', bin: binName });
     case 'duplicate_bin':
-      return action.new_name ? `Duplicate "${binName}" as "${action.new_name}"` : `Duplicate "${binName}"`;
+      return action.new_name
+        ? translate('commandActions.duplicateBinAs', {
+            defaultValue: 'Duplicate "{{bin}}" as "{{newName}}"',
+            bin: binName,
+            newName: action.new_name,
+          })
+        : translate('commandActions.duplicateBin', { defaultValue: 'Duplicate "{{bin}}"', bin: binName });
     case 'pin_bin':
-      return `Pin "${binName}"`;
+      return translate('commandActions.pinBin', { defaultValue: 'Pin "{{bin}}"', bin: binName });
     case 'unpin_bin':
-      return `Unpin "${binName}"`;
+      return translate('commandActions.unpinBin', { defaultValue: 'Unpin "{{bin}}"', bin: binName });
     case 'rename_area':
-      return `Rename ${t.area} "${action.area_name}" to "${action.new_name}"`;
+      return translate('commandActions.renameArea', {
+        defaultValue: 'Rename {{areaTerm}} "{{area}}" to "{{newName}}"',
+        areaTerm: term.area,
+        area: action.area_name,
+        newName: action.new_name,
+      });
     case 'delete_area':
-      return `Delete ${t.area} "${action.area_name}"`;
+      return translate('commandActions.deleteArea', {
+        defaultValue: 'Delete {{areaTerm}} "{{area}}"',
+        areaTerm: term.area,
+        area: action.area_name,
+      });
     case 'set_tag_color':
-      return `Set color of tag "${action.tag}" to ${action.color}`;
+      return translate('commandActions.setTagColor', {
+        defaultValue: 'Set color of tag "{{tag}}" to {{color}}',
+        tag: action.tag,
+        color: action.color,
+      });
     case 'reorder_items':
-      return `Reorder items in "${binName}"`;
+      return translate('commandActions.reorderItems', { defaultValue: 'Reorder items in "{{bin}}"', bin: binName });
     case 'checkout_item':
-      return `Check out "${action.item_name}" from "${binName}"`;
+      return translate('commandActions.checkoutItem', {
+        defaultValue: 'Check out "{{item}}" from "{{bin}}"',
+        item: action.item_name,
+        bin: binName,
+      });
     case 'return_item':
       return action.target_bin_name
-        ? `Return "${action.item_name}" to "${action.target_bin_name}"`
-        : `Return "${action.item_name}" to "${binName}"`;
+        ? translate('commandActions.returnItemTo', {
+            defaultValue: 'Return "{{item}}" to "{{bin}}"',
+            item: action.item_name,
+            bin: action.target_bin_name,
+          })
+        : translate('commandActions.returnItem', {
+            defaultValue: 'Return "{{item}}" to "{{bin}}"',
+            item: action.item_name,
+            bin: binName,
+          });
     default:
-      return `Unknown action: ${(action as Record<string, unknown>).type}`;
+      return translate('commandActions.unknownAction', {
+        defaultValue: 'Unknown action: {{type}}',
+        type: (action as Record<string, unknown>).type,
+      });
   }
 }

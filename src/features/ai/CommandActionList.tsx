@@ -1,4 +1,5 @@
 import { AlertTriangle, Check, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTerminology } from '@/lib/terminology';
 import { cn, plural } from '@/lib/utils';
 import { describeAction, getActionIcon, isDestructiveAction } from './commandActionUtils';
@@ -21,7 +22,8 @@ export function CommandActionList({
   confirmDestructive,
   destructiveCount,
 }: CommandActionListProps) {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('ai');
 
   return (
     <div className="space-y-3">
@@ -34,7 +36,11 @@ export function CommandActionList({
 
       {actions.length === 0 ? (
         <p className="text-[14px] text-[var(--text-tertiary)] py-4 text-center">
-          No matching {t.bins} found, or the command was ambiguous. Try using exact {t.bin} names.
+          {t('commandList.noMatches', {
+            defaultValue: 'No matching {{bins}} found, or the command was ambiguous. Try using exact {{bin}} names.',
+            bins: term.bins,
+            bin: term.bin,
+          })}
         </p>
       ) : (
         <ul className="space-y-1.5">
@@ -73,7 +79,7 @@ export function CommandActionList({
                     !checked ? 'text-[var(--text-tertiary)] line-through'
                       : destructive ? 'text-[var(--destructive)]' : 'text-[var(--text-primary)]',
                   )}>
-                    {describeAction(action, t)}
+                    {describeAction(action, term, t)}
                   </span>
                 </button>
               </li>
@@ -86,7 +92,13 @@ export function CommandActionList({
         <div className="flex items-start gap-2 rounded-[var(--radius-sm)] bg-[var(--destructive)]/10 px-3 py-2">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-[var(--destructive)]" />
           <p className="text-[13px] text-[var(--destructive)]">
-            {destructiveCount} destructive {plural(destructiveCount, 'action')} selected. Click apply again to confirm.
+            {destructiveCount} {t('commandList.destructive', { defaultValue: 'destructive' })}{' '}
+            {plural(
+              destructiveCount,
+              t('commandList.action', { defaultValue: 'action' }),
+              t('commandList.actions', { defaultValue: 'actions' }),
+            )}{' '}
+            {t('commandList.selectedConfirmSuffix', { defaultValue: 'selected. Click apply again to confirm.' })}
           </p>
         </div>
       )}

@@ -20,9 +20,12 @@ import { defineConfig } from 'i18next-cli';
 // ConversationUI.tsx (fixes a useTerminology()-as-`t` naming collision in
 // useBinNavigate — no translatable strings of its own) and a small fix to
 // useAiProviderSetup.ts's two toasts, which were missed when
-// InlineAiSetup.tsx (its only real caller) was migrated earlier. The planned
-// remaining sequence: turn rendering + commandActionUtils.ts's describeAction()
-// (chat 2), streaming/ask-flow hooks (chat 3), bin/item display in query
+// InlineAiSetup.tsx (its only real caller) was migrated earlier. "Chat 2"
+// covers turn rendering + commandActionUtils.ts's describeAction() (AiTurnThinking,
+// AiTurnError, AiTurnCommandPreview, AiTurnExecutionResult, QueryAnswerBody,
+// CommandActionList, commandActionUtils.ts — AiTurnQueryResult.tsx, QueryIntroText.tsx,
+// and commandSelectedBins.ts have no strings of their own and are omitted). The planned
+// remaining sequence: streaming/ask-flow hooks (chat 3), bin/item display in query
 // results (chat 4), photo-analysis + AI suggestions (chat 5), aiErrors.ts's
 // mapAiError() across its 8 callers once most already have useTranslation('ai')
 // wired up (chat 6), and finally AiSettingsSection.tsx (chat 7, standalone,
@@ -86,6 +89,13 @@ export default defineConfig({
       'src/features/ai/TranscriptionMicButton.tsx',
       'src/features/ai/ConversationUI.tsx',
       'src/features/ai/useAiProviderSetup.ts',
+      'src/features/ai/AiTurnThinking.tsx',
+      'src/features/ai/AiTurnError.tsx',
+      'src/features/ai/AiTurnCommandPreview.tsx',
+      'src/features/ai/AiTurnExecutionResult.tsx',
+      'src/features/ai/QueryAnswerBody.tsx',
+      'src/features/ai/CommandActionList.tsx',
+      'src/features/ai/commandActionUtils.ts',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
@@ -98,6 +108,12 @@ export default defineConfig({
     // from SETTINGS_CATEGORIES. aiConstants.ts's aiProviderLabel()/
     // aiTaskGroupLabel() helpers and their call sites in AiSection.tsx/
     // TaskRoutingSection.tsx: `ai:providers.${key}` / `ai:taskGroups.${key}.*`.
+    // commandActionUtils.ts's describeAction() calls a locally-cast `translate`
+    // (not `t`) to work around the TFunction cross-namespace branding issue —
+    // the extractor only recognizes calls named `t`/`i18n.t`, so it can't see
+    // these literal-key calls at all and treats every `commandActions.*` key as
+    // unused. `ai:commandActions.*` preserves them the same way `ai:providers.*`
+    // does for aiConstants.ts's identical `translate` pattern.
     preservePatterns: [
       'tour:picker.*.title',
       'tour:picker.*.summary',
@@ -106,6 +122,7 @@ export default defineConfig({
       'ai:providers.*',
       'ai:taskGroups.*.label',
       'ai:taskGroups.*.description',
+      'ai:commandActions.*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
     ],

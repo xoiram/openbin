@@ -3,6 +3,51 @@
     "dialogTitle": "Spør AI",
     "newChat": "Ny samtale"
   },
+  "commandActions": {
+    "addItems": "Legg til {{items}} i \"{{bin}}\"",
+    "addTags_one": "Legg til stikkord {{tags}} på \"{{bin}}\"",
+    "addTags_other": "Legg til stikkord {{tags}} på \"{{bin}}\"",
+    "appendNotes": "Legg til i notater på \"{{bin}}\"",
+    "checkoutItem": "Sjekk ut \"{{item}}\" fra \"{{bin}}\"",
+    "clearNotes": "Fjern notater på \"{{bin}}\"",
+    "createBin": "Opprett {{binTerm}} \"{{name}}\"",
+    "createBinInArea": " i {{area}}",
+    "createBinWithItems_one": " med {{count}} gjenstand",
+    "createBinWithItems_other": " med {{count}} gjenstander",
+    "deleteArea": "Slett {{areaTerm}} \"{{area}}\"",
+    "deleteBin": "Slett \"{{bin}}\"",
+    "duplicateBin": "Dupliser \"{{bin}}\"",
+    "duplicateBinAs": "Dupliser \"{{bin}}\" som \"{{newName}}\"",
+    "modifyItem": "Endre navn på \"{{oldItem}}\" til \"{{newItem}}\" i \"{{bin}}\"",
+    "modifyTag": "Endre navn på stikkord \"{{oldTag}}\" til \"{{newTag}}\" på \"{{bin}}\"",
+    "pinBin": "Fest \"{{bin}}\"",
+    "removeItems": "Fjern {{items}} fra \"{{bin}}\"",
+    "removeItemZeroQuantity": "Fjern \"{{item}}\" fra \"{{bin}}\"",
+    "removeTags_one": "Fjern stikkord {{tags}} fra \"{{bin}}\"",
+    "removeTags_other": "Fjern stikkord {{tags}} fra \"{{bin}}\"",
+    "renameArea": "Endre navn på {{areaTerm}} \"{{area}}\" til \"{{newName}}\"",
+    "reorderItems": "Endre rekkefølge på gjenstander i \"{{bin}}\"",
+    "restoreBin": "Gjenopprett \"{{bin}}\" fra papirkurven",
+    "returnItem": "Returner \"{{item}}\" til \"{{bin}}\"",
+    "returnItemTo": "Returner \"{{item}}\" til \"{{bin}}\"",
+    "setArea": "Flytt \"{{bin}}\" til {{areaTerm}} \"{{area}}\"",
+    "setColor": "Sett farge på \"{{bin}}\" til {{color}}",
+    "setIcon": "Sett ikon på \"{{bin}}\" til {{icon}}",
+    "setItemQuantity": "Sett antall for \"{{item}}\" til {{quantity}} i \"{{bin}}\"",
+    "setNotes": "Sett notater på \"{{bin}}\"",
+    "setTagColor": "Sett farge på stikkord \"{{tag}}\" til {{color}}",
+    "unknownAction": "Ukjent handling: {{type}}",
+    "unknownBin": "en boks",
+    "unpinBin": "Løsne \"{{bin}}\"",
+    "updateBin": "Oppdater \"{{bin}}\": {{fields}}"
+  },
+  "commandList": {
+    "action": "handling",
+    "actions": "handlinger",
+    "destructive": "ødeleggende",
+    "noMatches": "Fant ingen samsvarende {{bins}}, eller kommandoen var tvetydig. Prøv å bruke eksakte {{bin}}-navn.",
+    "selectedConfirmSuffix": "valgt. Klikk bruk igjen for å bekrefte."
+  },
   "composer": {
     "addAttachment": "Legg til vedlegg",
     "placeholder": "Spør om hva som helst…",
@@ -43,6 +88,9 @@
     "gemini": "Gemini",
     "openai": "OpenAI",
     "openai-compatible": "Selvhostet"
+  },
+  "queryAnswer": {
+    "noMatches": "Fant ingen samsvarende bokser. Prøv andre søkeord eller sjekk papirkurven."
   },
   "scopePill": {
     "clearScope": "Fjern fokus",
@@ -93,5 +141,26 @@
     "modelLabel": "Modell",
     "providerLabel": "Leverandør",
     "resetToDefault": "Tilbakestill til standard"
+  },
+  "turnError": {
+    "retry": "Prøv igjen"
+  },
+  "turnPreview": {
+    "applying": "Utfører…",
+    "applyPrefix": "Bruk",
+    "confirmPrefix": "Bekreft",
+    "selectedOfTotal": "{{selected}} av {{total}} valgt"
+  },
+  "turnResult": {
+    "applied": "Utførte",
+    "change": "endring",
+    "changes": "endringer",
+    "failed": "feilet"
+  },
+  "turnThinking": {
+    "ariaLabel": "AI tenker",
+    "executing": "Utfører",
+    "parsing": "Tenker",
+    "querying": "Søker"
   }
 }

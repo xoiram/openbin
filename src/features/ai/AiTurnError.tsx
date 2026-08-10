@@ -1,4 +1,5 @@
 import { AlertTriangle, RotateCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn, flatCard } from '@/lib/utils';
 
@@ -9,6 +10,7 @@ interface AiTurnErrorProps {
 }
 
 export function AiTurnError({ error, canRetry, onRetry }: AiTurnErrorProps) {
+  const { t } = useTranslation('ai');
   return (
     <div className={cn(flatCard, 'ai-turn-enter p-3 border-[var(--destructive)]/40')}>
       <div className="flex items-start gap-2">
@@ -18,7 +20,7 @@ export function AiTurnError({ error, canRetry, onRetry }: AiTurnErrorProps) {
           {canRetry && (
             <Button type="button" size="sm" variant="ghost" onClick={onRetry}>
               <RotateCw className="h-3.5 w-3.5 mr-1" />
-              Retry
+              {t('turnError.retry', { defaultValue: 'Retry' })}
             </Button>
           )}
         </div>

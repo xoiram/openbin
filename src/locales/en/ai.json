@@ -3,6 +3,51 @@
     "dialogTitle": "Ask AI",
     "newChat": "New chat"
   },
+  "commandActions": {
+    "addItems": "Add {{items}} to \"{{bin}}\"",
+    "addTags_one": "Add tag {{tags}} to \"{{bin}}\"",
+    "addTags_other": "Add tags {{tags}} to \"{{bin}}\"",
+    "appendNotes": "Append to notes on \"{{bin}}\"",
+    "checkoutItem": "Check out \"{{item}}\" from \"{{bin}}\"",
+    "clearNotes": "Clear notes on \"{{bin}}\"",
+    "createBin": "Create {{binTerm}} \"{{name}}\"",
+    "createBinInArea": " in {{area}}",
+    "createBinWithItems_one": " with {{count}} item",
+    "createBinWithItems_other": " with {{count}} items",
+    "deleteArea": "Delete {{areaTerm}} \"{{area}}\"",
+    "deleteBin": "Delete \"{{bin}}\"",
+    "duplicateBin": "Duplicate \"{{bin}}\"",
+    "duplicateBinAs": "Duplicate \"{{bin}}\" as \"{{newName}}\"",
+    "modifyItem": "Rename \"{{oldItem}}\" to \"{{newItem}}\" in \"{{bin}}\"",
+    "modifyTag": "Rename tag \"{{oldTag}}\" to \"{{newTag}}\" on \"{{bin}}\"",
+    "pinBin": "Pin \"{{bin}}\"",
+    "removeItems": "Remove {{items}} from \"{{bin}}\"",
+    "removeItemZeroQuantity": "Remove \"{{item}}\" from \"{{bin}}\"",
+    "removeTags_one": "Remove tag {{tags}} from \"{{bin}}\"",
+    "removeTags_other": "Remove tags {{tags}} from \"{{bin}}\"",
+    "renameArea": "Rename {{areaTerm}} \"{{area}}\" to \"{{newName}}\"",
+    "reorderItems": "Reorder items in \"{{bin}}\"",
+    "restoreBin": "Restore \"{{bin}}\" from trash",
+    "returnItem": "Return \"{{item}}\" to \"{{bin}}\"",
+    "returnItemTo": "Return \"{{item}}\" to \"{{bin}}\"",
+    "setArea": "Move \"{{bin}}\" to {{areaTerm}} \"{{area}}\"",
+    "setColor": "Set color on \"{{bin}}\" to {{color}}",
+    "setIcon": "Set icon on \"{{bin}}\" to {{icon}}",
+    "setItemQuantity": "Set quantity of \"{{item}}\" to {{quantity}} in \"{{bin}}\"",
+    "setNotes": "Set notes on \"{{bin}}\"",
+    "setTagColor": "Set color of tag \"{{tag}}\" to {{color}}",
+    "unknownAction": "Unknown action: {{type}}",
+    "unknownBin": "a bin",
+    "unpinBin": "Unpin \"{{bin}}\"",
+    "updateBin": "Update \"{{bin}}\": {{fields}}"
+  },
+  "commandList": {
+    "action": "action",
+    "actions": "actions",
+    "destructive": "destructive",
+    "noMatches": "No matching {{bins}} found, or the command was ambiguous. Try using exact {{bin}} names.",
+    "selectedConfirmSuffix": "selected. Click apply again to confirm."
+  },
   "composer": {
     "addAttachment": "Add attachment",
     "placeholder": "Ask anything…",
@@ -43,6 +88,9 @@
     "gemini": "Gemini",
     "openai": "OpenAI",
     "openai-compatible": "Self-Hosted"
+  },
+  "queryAnswer": {
+    "noMatches": "No matching bins found. Try different terms or check trash."
   },
   "scopePill": {
     "clearScope": "Clear scope",
@@ -93,5 +141,26 @@
     "modelLabel": "Model",
     "providerLabel": "Provider",
     "resetToDefault": "Reset to default"
+  },
+  "turnError": {
+    "retry": "Retry"
+  },
+  "turnPreview": {
+    "applying": "Applying…",
+    "applyPrefix": "Apply",
+    "confirmPrefix": "Confirm",
+    "selectedOfTotal": "{{selected}} of {{total}} selected"
+  },
+  "turnResult": {
+    "applied": "Applied",
+    "change": "change",
+    "changes": "changes",
+    "failed": "failed"
+  },
+  "turnThinking": {
+    "ariaLabel": "AI is thinking",
+    "executing": "Applying",
+    "parsing": "Thinking",
+    "querying": "Searching"
   }
 }
