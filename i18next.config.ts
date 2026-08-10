@@ -50,15 +50,28 @@ import { defineConfig } from 'i18next-cli';
 // useGroupReviewAi.ts (src/features/bulk-add/ — reaches into the `ai` namespace since
 // its two mapAiError calls are the reason it's touched at all, not a bulk-add
 // migration), and src/lib/useTranscription.ts (same reasoning — only its mapAiError
-// fallback is translated, not its other unrelated hardcoded strings). The planned
-// remaining step: finally AiSettingsSection.tsx (chat 7, standalone,
-// 523 lines, also retires the legacy PROMPT_HELP_TEXT export once it's the
-// only remaining consumer). `useDefaultPrompts.ts` has no user-facing
+// fallback is translated, not its other unrelated hardcoded strings). "Chat 7" — the
+// last in the Ask AI chat sequence — covers AiSettingsSection.tsx (the bulk-add inline
+// AI settings surface, distinct from settings/sections/AiSection.tsx migrated earlier;
+// no dedicated test — GroupReviewStep.test.tsx mocks the whole component). Its prompt
+// tab labels reuse `settings:ai.promptTabs.*` (the same keys AiSection.tsx's identical
+// PROMPT_TAB_DEFAULTS already populates) rather than duplicating them under `ai`, and
+// its prompt help text now renders via promptHelpText.tsx's `<PromptHelpText>`
+// component instead of the plain-English `PROMPT_HELP_TEXT` map, which is deleted here
+// as its only remaining consumer. `useDefaultPrompts.ts` has no user-facing
 // strings, so it's omitted. `exportImport.ts`'s own thrown Error messages
 // are never surfaced to users as-is (callers either discard them for a
 // generic message or re-derive their own from the error `code`),
 // so it's omitted too. `useApiKeys.ts` has no user-facing strings either.
 //
+// This closes out the originally-sketched 7-PR Ask AI chat sequence, but NOT all of
+// src/features/ai/ — a few files turned up during chat 7's scoping that weren't in the
+// original breakdown and still need a future PR: ConversationThread.tsx, UserMessage.tsx,
+// useActionExecutor.ts, useAiSettings.ts, useConversation.ts, and useScopeInfo.ts.
+// (AiCreditDisplay.tsx, AiTurnQueryResult.tsx, QueryIntroText.tsx, SelectionCheckbox.tsx,
+// StreamingText.tsx, commandSelectedBins.ts, conversationTurns.ts, parsePartialAnalysis.ts,
+// useCommand.ts, useInventoryQuery.ts, and useItemQuerySelection.ts were already confirmed
+// string-free in earlier chats and are omitted for that reason, not because they're unscanned.)
 
 // CAUTION running `npx i18next-cli extract` locally: `common.json`'s
 // `actions.*`/`itemCount_*` keys were added pre-emptively (see docs/i18n.md)
@@ -139,6 +152,7 @@ export default defineConfig({
       'src/features/ai/useCommandExecution.ts',
       'src/features/bulk-add/useGroupReviewAi.ts',
       'src/lib/useTranscription.ts',
+      'src/features/ai/AiSettingsSection.tsx',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
