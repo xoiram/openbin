@@ -2,11 +2,13 @@ import { type RenderResult, render } from '@testing-library/react';
 import i18next from 'i18next';
 import type { ReactElement } from 'react';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
+import enAi from '@/locales/en/ai.json';
 import enAuth from '@/locales/en/auth.json';
 import enCommon from '@/locales/en/common.json';
 import enOnboarding from '@/locales/en/onboarding.json';
 import enSettings from '@/locales/en/settings.json';
 import enTour from '@/locales/en/tour.json';
+import nbAi from '@/locales/nb/ai.json';
 import nbAuth from '@/locales/nb/auth.json';
 import nbCommon from '@/locales/nb/common.json';
 import nbOnboarding from '@/locales/nb/onboarding.json';
@@ -25,11 +27,11 @@ function createTestI18n() {
   instance.use(initReactI18next).init({
     lng: 'en',
     fallbackLng: 'en',
-    ns: ['common', 'auth', 'onboarding', 'tour', 'settings'],
+    ns: ['common', 'auth', 'onboarding', 'tour', 'settings', 'ai'],
     defaultNS: 'common',
     resources: {
-      en: { common: enCommon, auth: enAuth, onboarding: enOnboarding, tour: enTour, settings: enSettings },
-      nb: { common: nbCommon, auth: nbAuth, onboarding: nbOnboarding, tour: nbTour, settings: nbSettings },
+      en: { common: enCommon, auth: enAuth, onboarding: enOnboarding, tour: enTour, settings: enSettings, ai: enAi },
+      nb: { common: nbCommon, auth: nbAuth, onboarding: nbOnboarding, tour: nbTour, settings: nbSettings, ai: nbAi },
     },
     interpolation: { escapeValue: false },
     react: { useSuspense: false },

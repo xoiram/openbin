@@ -94,6 +94,80 @@
     "updatePassword": "Oppdater passord",
     "updatingPassword": "Oppdaterer..."
   },
+  "ai": {
+    "advancedSection": "Avansert",
+    "apiKeyHint": "Lagres kryptert. Sendes aldri til OpenBin.",
+    "apiKeyLabel": "API-nøkkel",
+    "connectionFailedDefault": "Tilkobling mislyktes",
+    "connectionFailedWithModel": "{{base}} (modell: {{model}})",
+    "connectionSuccess": "Koblet til {{model}} uten problemer",
+    "connectProviderDesc": "Koble til en AI-leverandør for å låse opp bildeanalyse, uthenting av gjenstander fra tekst og tale, og naturlig-språk-kommandoer for å administrere boksene dine.",
+    "customPromptsSection": "Egendefinerte prompter",
+    "defaultPlaceholder": "Standard",
+    "demoPromptsDisabled": "Egendefinerte prompter er deaktivert for demokontoer.",
+    "description": "Konfigurer AI-leverandør, modeller og prompter.",
+    "endpointHint": "For Ollama, LM Studio og OpenAI-kompatible servere.",
+    "endpointLabel": "Endepunkt-URL",
+    "envConfiguredMessage": "AI er konfigurert av serveren. Lagre dine egne innstillinger for å overstyre.",
+    "featuresDesc": "Bildeanalyse, uthenting av gjenstander og AI-kommandoer",
+    "featuresLabel": "AI-funksjoner",
+    "featuresSection": "AI-funksjoner",
+    "hideApiKey": "Skjul API-nøkkel",
+    "maxTokensHint": "Maksimal lengde på hvert svar. (100–16 000)",
+    "maxTokensLabel": "Maks tokens",
+    "modelHint": "Nøyaktig modell-ID fra leverandøren din.",
+    "modelLabel": "Modell",
+    "promptTabs": {
+      "analysis": {
+        "label": "Bildeanalyse",
+        "shortLabel": "Bilder"
+      },
+      "command": {
+        "label": "Kommandoer",
+        "shortLabel": "Kmd"
+      },
+      "query": {
+        "label": "Spørringer",
+        "shortLabel": "Spørring"
+      },
+      "reorganization": {
+        "label": "Reorganiser",
+        "shortLabel": "Reorg"
+      },
+      "structure": {
+        "label": "Uthenting",
+        "shortLabel": "Uthent"
+      },
+      "tagSuggestion": {
+        "label": "Stikkordforslag",
+        "shortLabel": "Stikkord"
+      }
+    },
+    "providerSection": "Leverandør",
+    "removeFailed": "Kunne ikke fjerne innstillingene",
+    "removeSettings": "Fjern AI-innstillinger",
+    "requestTimeoutHint": "Avbryt trege forespørsler etter N sekunder. Standard 30.",
+    "requestTimeoutLabel": "Forespørselstidsavbrudd",
+    "requestTimeoutPlaceholder": "Standard (30)",
+    "requiredFieldsAlert": "API-nøkkel og modell er påkrevd.",
+    "resetFieldAriaLabel": "Tilbakestill {{label}}",
+    "resetToDefault": "Tilbakestill til standard",
+    "save": "Lagre",
+    "saveFailed": "Kunne ikke lagre",
+    "saving": "Lagrer...",
+    "settingsRemoved": "AI-innstillinger fjernet",
+    "settingsSaved": "AI-innstillinger lagret",
+    "showApiKey": "Vis API-nøkkel",
+    "taskRoutingSection": "Oppgaveruting",
+    "temperatureHint": "Høyere = mer kreativ. (0,0–2,0)",
+    "temperatureLabel": "Temperatur",
+    "testConnection": "Test tilkobling",
+    "title": "AI",
+    "topPHint": "Nucleus sampling — la stå tom hvis usikker. (0,0–1,0)",
+    "topPLabel": "Top P",
+    "upgradeDescription": "Aktiver AI-drevne forslag og kommandoer.",
+    "upgradeFeature": "AI-funksjoner"
+  },
   "categories": {
     "about": {
       "description": "Versjon og info",

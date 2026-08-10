@@ -1,4 +1,5 @@
 import 'i18next';
+import type ai from './locales/en/ai.json';
 import type auth from './locales/en/auth.json';
 import type common from './locales/en/common.json';
 import type onboarding from './locales/en/onboarding.json';
@@ -14,6 +15,7 @@ declare module 'i18next' {
       onboarding: typeof onboarding;
       tour: typeof tour;
       settings: typeof settings;
+      ai: typeof ai;
     };
   }
 }

@@ -1,0 +1,38 @@
+{
+  "promptHelp": {
+    "analysis": "Existing tags and custom fields are passed automatically in the user message. This prompt defines the instructions only.",
+    "command": "Inventory context (bins, items, areas, tags, colors, icons) is passed automatically. This prompt defines the instructions only.",
+    "query": "Inventory context (bins, items, areas, tags) is passed automatically. This prompt defines the instructions only.",
+    "reorganization": "Available variables: <v>{max_bins_instruction}</v> <v>{area_instruction}</v> <v>{strictness_instruction}</v> <v>{granularity_instruction}</v> <v>{duplicates_instruction}</v> <v>{ambiguous_instruction}</v> <v>{outliers_instruction}</v> <v>{items_per_bin_instruction}</v> <v>{notes_instruction}</v>. Existing tags are passed automatically in the user message.",
+    "structure": "Bin name and existing items are appended automatically. This prompt defines the extraction rules.",
+    "tagSuggestion": "Governs AI tag suggestions (Tags mode on the Reorganize page). The model sees the full tag vocabulary of the location plus a list of bins with items/area/existing tags, and proposes a cleaner taxonomy and per-bin assignments. Available variables: <v>{change_level_instruction}</v> <v>{granularity_instruction}</v> <v>{tag_count_instruction}</v> <v>{notes_instruction}</v>."
+  },
+  "providers": {
+    "anthropic": "Anthropic",
+    "gemini": "Gemini",
+    "openai": "OpenAI",
+    "openai-compatible": "Self-Hosted"
+  },
+  "taskGroups": {
+    "deepText": {
+      "description": "Reorganize, Tag Suggestions",
+      "label": "Deep Text"
+    },
+    "quickText": {
+      "description": "Commands, Queries, Text Extraction",
+      "label": "Quick Text"
+    },
+    "vision": {
+      "description": "Photo Scan",
+      "label": "Vision"
+    }
+  },
+  "taskRouting": {
+    "configuredByServer": "Configured by server",
+    "defaultProviderOption": "Default ({{provider}})",
+    "endpointLabel": "Endpoint URL",
+    "modelLabel": "Model",
+    "providerLabel": "Provider",
+    "resetToDefault": "Reset to default"
+  }
+}

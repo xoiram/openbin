@@ -1,0 +1,38 @@
+{
+  "promptHelp": {
+    "analysis": "Eksisterende stikkord og egendefinerte felt sendes automatisk i brukermeldingen. Denne prompten definerer kun instruksjonene.",
+    "command": "Inventarkontekst (bokser, gjenstander, områder, stikkord, farger, ikoner) sendes automatisk. Denne prompten definerer kun instruksjonene.",
+    "query": "Inventarkontekst (bokser, gjenstander, områder, stikkord) sendes automatisk. Denne prompten definerer kun instruksjonene.",
+    "reorganization": "Tilgjengelige variabler: <v>{max_bins_instruction}</v> <v>{area_instruction}</v> <v>{strictness_instruction}</v> <v>{granularity_instruction}</v> <v>{duplicates_instruction}</v> <v>{ambiguous_instruction}</v> <v>{outliers_instruction}</v> <v>{items_per_bin_instruction}</v> <v>{notes_instruction}</v>. Eksisterende stikkord sendes automatisk i brukermeldingen.",
+    "structure": "Boksnavn og eksisterende gjenstander legges til automatisk. Denne prompten definerer uthentingsreglene.",
+    "tagSuggestion": "Styrer AI-stikkordforslag (Stikkord-modus på Reorganiser-siden). Modellen ser hele stikkordvokabularet til stedet pluss en liste over bokser med gjenstander/område/eksisterende stikkord, og foreslår en ryddigere taksonomi og tilordninger per boks. Tilgjengelige variabler: <v>{change_level_instruction}</v> <v>{granularity_instruction}</v> <v>{tag_count_instruction}</v> <v>{notes_instruction}</v>."
+  },
+  "providers": {
+    "anthropic": "Anthropic",
+    "gemini": "Gemini",
+    "openai": "OpenAI",
+    "openai-compatible": "Selvhostet"
+  },
+  "taskGroups": {
+    "deepText": {
+      "description": "Reorganiser, stikkordforslag",
+      "label": "Dyp tekst"
+    },
+    "quickText": {
+      "description": "Kommandoer, spørringer, tekstuthenting",
+      "label": "Rask tekst"
+    },
+    "vision": {
+      "description": "Bildeskanning",
+      "label": "Syn"
+    }
+  },
+  "taskRouting": {
+    "configuredByServer": "Konfigurert av serveren",
+    "defaultProviderOption": "Standard ({{provider}})",
+    "endpointLabel": "Endepunkt-URL",
+    "modelLabel": "Modell",
+    "providerLabel": "Leverandør",
+    "resetToDefault": "Tilbakestill til standard"
+  }
+}

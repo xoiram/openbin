@@ -94,6 +94,80 @@
     "updatePassword": "Update Password",
     "updatingPassword": "Updating..."
   },
+  "ai": {
+    "advancedSection": "Advanced",
+    "apiKeyHint": "Stored encrypted. Never sent to OpenBin.",
+    "apiKeyLabel": "API Key",
+    "connectionFailedDefault": "Connection failed",
+    "connectionFailedWithModel": "{{base}} (model: {{model}})",
+    "connectionSuccess": "Connected to {{model}} successfully",
+    "connectProviderDesc": "Connect an AI provider to unlock photo analysis, item extraction from text and voice, and natural language commands for managing your bins.",
+    "customPromptsSection": "Custom Prompts",
+    "defaultPlaceholder": "Default",
+    "demoPromptsDisabled": "Custom prompts are disabled for demo accounts.",
+    "description": "Configure AI provider, models, and prompts.",
+    "endpointHint": "For Ollama, LM Studio, and OpenAI-compatible servers.",
+    "endpointLabel": "Endpoint URL",
+    "envConfiguredMessage": "AI is configured by the server. Save your own settings to override.",
+    "featuresDesc": "Photo analysis, item extraction, and AI commands",
+    "featuresLabel": "AI Features",
+    "featuresSection": "AI Features",
+    "hideApiKey": "Hide API key",
+    "maxTokensHint": "Maximum length of each response. (100–16,000)",
+    "maxTokensLabel": "Max Tokens",
+    "modelHint": "Exact model ID from your provider.",
+    "modelLabel": "Model",
+    "promptTabs": {
+      "analysis": {
+        "label": "Photo Analysis",
+        "shortLabel": "Photos"
+      },
+      "command": {
+        "label": "Commands",
+        "shortLabel": "Cmds"
+      },
+      "query": {
+        "label": "Queries",
+        "shortLabel": "Queries"
+      },
+      "reorganization": {
+        "label": "Reorganize",
+        "shortLabel": "Reorg"
+      },
+      "structure": {
+        "label": "Extraction",
+        "shortLabel": "Extract"
+      },
+      "tagSuggestion": {
+        "label": "Tag Suggestion",
+        "shortLabel": "Tags"
+      }
+    },
+    "providerSection": "Provider",
+    "removeFailed": "Failed to remove settings",
+    "removeSettings": "Remove AI Settings",
+    "requestTimeoutHint": "Cancel slow requests after N seconds. Default 30.",
+    "requestTimeoutLabel": "Request Timeout",
+    "requestTimeoutPlaceholder": "Default (30)",
+    "requiredFieldsAlert": "API key and model are required.",
+    "resetFieldAriaLabel": "Reset {{label}}",
+    "resetToDefault": "Reset to Default",
+    "save": "Save",
+    "saveFailed": "Failed to save",
+    "saving": "Saving...",
+    "settingsRemoved": "AI settings removed",
+    "settingsSaved": "AI settings saved",
+    "showApiKey": "Show API key",
+    "taskRoutingSection": "Task Routing",
+    "temperatureHint": "Higher = more creative. (0.0–2.0)",
+    "temperatureLabel": "Temperature",
+    "testConnection": "Test Connection",
+    "title": "AI",
+    "topPHint": "Nucleus sampling — leave blank if unsure. (0.0–1.0)",
+    "topPLabel": "Top P",
+    "upgradeDescription": "Enable AI-powered suggestions and commands.",
+    "upgradeFeature": "AI Features"
+  },
   "categories": {
     "about": {
       "description": "Version and info",
