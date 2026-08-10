@@ -11,15 +11,21 @@ import { defineConfig } from 'i18next-cli';
 // `src/features/settings/` is split across multiple PRs (see docs/i18n.md's
 // Roadmap): shell + general prefs, then account/security, then data
 // export/import, then settings/sections/AiSection.tsx (the AI provider-
-// config page) + its direct dependencies under the new `ai` namespace.
-// This one adds InlineAiSetup.tsx (the inline "connect a provider" prompt
-// reused in bulk-add/bin-create/the Ask AI empty state) + AiSetupDialog.tsx
-// (which has no strings of its own, just wires InlineAiSetup.tsx's
-// AiSetupView). The rest of src/features/ai/ (the Ask AI chat UI itself —
-// CommandInput, ConversationThread, streaming, turn rendering, ~50 more
-// files, including the still-unmigrated AiSettingsSection.tsx) remains its
-// own much larger future PR (or several). `useDefaultPrompts.ts` has no
-// user-facing strings, so it's omitted. `exportImport.ts`'s own thrown
+// config page) + its direct dependencies, then InlineAiSetup.tsx +
+// AiSetupDialog.tsx (the inline "connect a provider" prompt), all under the
+// `ai` namespace. This one starts on the Ask AI chat UI itself (the much
+// larger remaining scope — ConversationUI, CommandInput, streaming, turn
+// rendering, ~50 files total) with just its two smallest self-contained
+// pieces: EmptyConversationState.tsx (the example-prompts screen shown
+// before the first turn) and ConversationScopePill.tsx (the "Focused on N
+// bins" chip). aiErrors.ts's mapAiError() is deliberately deferred — it's
+// called from 8 files across multiple feature folders (useTranscription.ts,
+// useGroupReviewAi.ts, and six files inside ai/ itself), so translating it
+// now would cascade well beyond this slice; it'll get its own PR once
+// enough of its callers are already being touched. The rest of
+// src/features/ai/, including the still-unmigrated AiSettingsSection.tsx,
+// remains its own much larger set of future PRs. `useDefaultPrompts.ts` has
+// no user-facing strings, so it's omitted. `exportImport.ts`'s own thrown
 // Error messages are never surfaced to users as-is (callers either discard
 // them for a generic message or re-derive their own from the error `code`),
 // so it's omitted too. `useApiKeys.ts` has no user-facing strings either.
@@ -70,6 +76,8 @@ export default defineConfig({
       'src/features/ai/TaskRoutingSection.tsx',
       'src/features/ai/InlineAiSetup.tsx',
       'src/features/ai/AiSetupDialog.tsx',
+      'src/features/ai/EmptyConversationState.tsx',
+      'src/features/ai/ConversationScopePill.tsx',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',

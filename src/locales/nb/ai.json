@@ -1,4 +1,19 @@
 {
+  "emptyState": {
+    "scopedExample1": "Sett automatiske stikkord basert på innholdet",
+    "scopedExample2": "Hva har disse til felles?",
+    "scopedExample3": "Flytt alle disse til {{area}} Garasje",
+    "scopedExample4": "Foreslå bedre navn for disse",
+    "scopedExample5": "Hvilke av disse inneholder elektronikk?",
+    "tryAsking": "Prøv å spørre",
+    "unscopedExample1": "Hvor er drillen?",
+    "unscopedExample2": "Hva er i {{bin}} Campingutstyr?",
+    "unscopedExample3": "Hvilke {{bins}} har batterier?",
+    "unscopedExample4": "Legg strikkstropper til i {{bin}} Bildeler",
+    "unscopedExample5": "Opprett en {{bin}} kalt Bassengflottører i Garasjen",
+    "unscopedExample6": "Dupliser {{bin}} Elektroverktøy",
+    "unscopedExample7": "Hva er i papirkurven min?"
+  },
   "promptHelp": {
     "analysis": "Eksisterende stikkord og egendefinerte felt sendes automatisk i brukermeldingen. Denne prompten definerer kun instruksjonene.",
     "command": "Inventarkontekst (bokser, gjenstander, områder, stikkord, farger, ikoner) sendes automatisk. Denne prompten definerer kun instruksjonene.",
@@ -12,6 +27,10 @@
     "gemini": "Gemini",
     "openai": "OpenAI",
     "openai-compatible": "Selvhostet"
+  },
+  "scopePill": {
+    "clearScope": "Fjern fokus",
+    "focusedOn": "Fokusert på {{n}} {{unit}}"
   },
   "setup": {
     "apiKeyAriaLabel": "API-nøkkel",
