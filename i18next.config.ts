@@ -78,6 +78,7 @@ export default defineConfig({
       'src/features/ai/AiSetupDialog.tsx',
       'src/features/ai/EmptyConversationState.tsx',
       'src/features/ai/ConversationScopePill.tsx',
+      'src/features/ai/CommandInput.tsx',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',

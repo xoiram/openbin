@@ -1,4 +1,8 @@
 {
+  "chat": {
+    "dialogTitle": "Spør AI",
+    "newChat": "Ny samtale"
+  },
   "emptyState": {
     "scopedExample1": "Sett automatiske stikkord basert på innholdet",
     "scopedExample2": "Hva har disse til felles?",

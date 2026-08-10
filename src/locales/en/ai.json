@@ -1,4 +1,8 @@
 {
+  "chat": {
+    "dialogTitle": "Ask AI",
+    "newChat": "New chat"
+  },
   "emptyState": {
     "scopedExample1": "Auto-tag these based on their contents",
     "scopedExample2": "What do these have in common?",
