@@ -3,6 +3,18 @@
     "dialogTitle": "Spør AI",
     "newChat": "Ny samtale"
   },
+  "composer": {
+    "addAttachment": "Legg til vedlegg",
+    "placeholder": "Spør om hva som helst…",
+    "recording": "Tar opp: {{elapsed}}",
+    "send": "Send",
+    "stop": "Stopp",
+    "stopRecording": "Stopp opptak",
+    "takePhoto": "Ta bilde",
+    "transcribingAudio": "Transkriberer lyd",
+    "uploadFromGallery": "Last opp fra galleri",
+    "voiceInputLabel": "Taleinndata"
+  },
   "emptyState": {
     "scopedExample1": "Sett automatiske stikkord basert på innholdet",
     "scopedExample2": "Hva har disse til felles?",
@@ -51,7 +63,9 @@
     "modelAriaLabel": "Modellnavn",
     "modelPlaceholder": "Modellnavn",
     "save": "Lagre",
+    "saveFailed": "Kunne ikke lagre AI-innstillingene",
     "saving": "Lagrer...",
+    "settingsSaved": "AI-innstillinger lagret",
     "showApiKey": "Vis API-nøkkel",
     "test": "Test",
     "testing": "Tester...",

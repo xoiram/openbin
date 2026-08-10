@@ -12,22 +12,25 @@ import { defineConfig } from 'i18next-cli';
 // Roadmap): shell + general prefs, then account/security, then data
 // export/import, then settings/sections/AiSection.tsx (the AI provider-
 // config page) + its direct dependencies, then InlineAiSetup.tsx +
-// AiSetupDialog.tsx (the inline "connect a provider" prompt), all under the
-// `ai` namespace. This one starts on the Ask AI chat UI itself (the much
-// larger remaining scope — ConversationUI, CommandInput, streaming, turn
-// rendering, ~50 files total) with just its two smallest self-contained
-// pieces: EmptyConversationState.tsx (the example-prompts screen shown
-// before the first turn) and ConversationScopePill.tsx (the "Focused on N
-// bins" chip). aiErrors.ts's mapAiError() is deliberately deferred — it's
-// called from 8 files across multiple feature folders (useTranscription.ts,
-// useGroupReviewAi.ts, and six files inside ai/ itself), so translating it
-// now would cascade well beyond this slice; it'll get its own PR once
-// enough of its callers are already being touched. The rest of
-// src/features/ai/, including the still-unmigrated AiSettingsSection.tsx,
-// remains its own much larger set of future PRs. `useDefaultPrompts.ts` has
-// no user-facing strings, so it's omitted. `exportImport.ts`'s own thrown
-// Error messages are never surfaced to users as-is (callers either discard
-// them for a generic message or re-derive their own from the error `code`),
+// AiSetupDialog.tsx, then EmptyConversationState.tsx + ConversationScopePill.tsx,
+// then CommandInput.tsx's dialog chrome, all under the `ai` namespace — the
+// Ask AI chat UI is large enough (~50 files) that it's its own sequence of
+// PRs within the roadmap. This one is "chat PR 1 of 7": the composer itself
+// (ConversationComposer.tsx, TranscriptionMicButton.tsx) plus
+// ConversationUI.tsx (fixes a useTerminology()-as-`t` naming collision in
+// useBinNavigate — no translatable strings of its own) and a small fix to
+// useAiProviderSetup.ts's two toasts, which were missed when
+// InlineAiSetup.tsx (its only real caller) was migrated earlier. The planned
+// remaining sequence: turn rendering + commandActionUtils.ts's describeAction()
+// (chat 2), streaming/ask-flow hooks (chat 3), bin/item display in query
+// results (chat 4), photo-analysis + AI suggestions (chat 5), aiErrors.ts's
+// mapAiError() across its 8 callers once most already have useTranslation('ai')
+// wired up (chat 6), and finally AiSettingsSection.tsx (chat 7, standalone,
+// 523 lines, also retires the legacy PROMPT_HELP_TEXT export once it's the
+// only remaining consumer). `useDefaultPrompts.ts` has no user-facing
+// strings, so it's omitted. `exportImport.ts`'s own thrown Error messages
+// are never surfaced to users as-is (callers either discard them for a
+// generic message or re-derive their own from the error `code`),
 // so it's omitted too. `useApiKeys.ts` has no user-facing strings either.
 //
 
@@ -79,6 +82,10 @@ export default defineConfig({
       'src/features/ai/EmptyConversationState.tsx',
       'src/features/ai/ConversationScopePill.tsx',
       'src/features/ai/CommandInput.tsx',
+      'src/features/ai/ConversationComposer.tsx',
+      'src/features/ai/TranscriptionMicButton.tsx',
+      'src/features/ai/ConversationUI.tsx',
+      'src/features/ai/useAiProviderSetup.ts',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',

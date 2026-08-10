@@ -3,6 +3,18 @@
     "dialogTitle": "Ask AI",
     "newChat": "New chat"
   },
+  "composer": {
+    "addAttachment": "Add attachment",
+    "placeholder": "Ask anything…",
+    "recording": "Recording: {{elapsed}}",
+    "send": "Send",
+    "stop": "Stop",
+    "stopRecording": "Stop recording",
+    "takePhoto": "Take photo",
+    "transcribingAudio": "Transcribing audio",
+    "uploadFromGallery": "Upload from gallery",
+    "voiceInputLabel": "Voice input"
+  },
   "emptyState": {
     "scopedExample1": "Auto-tag these based on their contents",
     "scopedExample2": "What do these have in common?",
@@ -51,7 +63,9 @@
     "modelAriaLabel": "Model name",
     "modelPlaceholder": "Model name",
     "save": "Save",
+    "saveFailed": "Failed to save AI settings",
     "saving": "Saving...",
+    "settingsSaved": "AI settings saved",
     "showApiKey": "Show API key",
     "test": "Test",
     "testing": "Testing...",

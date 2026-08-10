@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
 import { getErrorMessage } from '@/lib/utils';
 import type { AiProvider, AiSettings } from '@/types';
@@ -34,6 +35,7 @@ interface UseAiProviderSetupOptions {
 
 export function useAiProviderSetup(opts?: UseAiProviderSetupOptions): AiProviderSetup {
   const { showToast } = useToast();
+  const { t } = useTranslation('ai');
 
   const [provider, setProvider] = useState<AiProvider>('openai');
   const [apiKey, setApiKey] = useState('');
@@ -90,10 +92,10 @@ export function useAiProviderSetup(opts?: UseAiProviderSetupOptions): AiProvider
         endpointUrl: provider === 'openai-compatible' ? endpointUrl : undefined,
       });
       setConfigured(true);
-      showToast({ message: 'AI settings saved' });
+      showToast({ message: t('setup.settingsSaved', { defaultValue: 'AI settings saved' }) });
       opts?.onSaveSuccess?.();
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to save AI settings') });
+      showToast({ message: getErrorMessage(err, t('setup.saveFailed', { defaultValue: 'Failed to save AI settings' })) });
     } finally {
       setSaving(false);
     }

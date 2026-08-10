@@ -136,13 +136,13 @@ export function ConversationUI({
  */
 export function useBinNavigate(afterNavigate?: () => void) {
   const navigate = useNavigate();
-  const t = useTerminology();
+  const term = useTerminology();
   return function handleBinClick(binId: string, isTrashed: boolean) {
     afterNavigate?.();
     if (isTrashed) {
       navigate('/trash');
     } else {
-      navigate(`/bin/${binId}`, { state: { backLabel: t.Bins, backPath: '/bins' } });
+      navigate(`/bin/${binId}`, { state: { backLabel: term.Bins, backPath: '/bins' } });
     }
   };
 }
