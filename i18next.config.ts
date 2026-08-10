@@ -10,16 +10,19 @@ import { defineConfig } from 'i18next-cli';
 //
 // `src/features/settings/` is split across multiple PRs (see docs/i18n.md's
 // Roadmap): shell + general prefs, then account/security, then data
-// export/import. This one finishes settings/sections/AiSection.tsx (the AI
-// provider-config page) plus its direct dependencies from src/features/ai/
-// (TaskRoutingSection.tsx, aiConstants.ts, promptHelpText.tsx) under a new
-// `ai` namespace — NOT the rest of ai/ (the Ask AI chat UI: CommandInput,
-// ConversationThread, streaming, ~50 more files), which is its own much
-// larger future PR (or several). `useDefaultPrompts.ts` has no user-facing
-// strings, so it's omitted. `exportImport.ts`'s own thrown Error messages
-// are never surfaced to users as-is (callers either discard them for a
-// generic message or re-derive their own from the error `code`), so it's
-// omitted too. `useApiKeys.ts` has no user-facing strings either.
+// export/import, then settings/sections/AiSection.tsx (the AI provider-
+// config page) + its direct dependencies under the new `ai` namespace.
+// This one adds InlineAiSetup.tsx (the inline "connect a provider" prompt
+// reused in bulk-add/bin-create/the Ask AI empty state) + AiSetupDialog.tsx
+// (which has no strings of its own, just wires InlineAiSetup.tsx's
+// AiSetupView). The rest of src/features/ai/ (the Ask AI chat UI itself —
+// CommandInput, ConversationThread, streaming, turn rendering, ~50 more
+// files, including the still-unmigrated AiSettingsSection.tsx) remains its
+// own much larger future PR (or several). `useDefaultPrompts.ts` has no
+// user-facing strings, so it's omitted. `exportImport.ts`'s own thrown
+// Error messages are never surfaced to users as-is (callers either discard
+// them for a generic message or re-derive their own from the error `code`),
+// so it's omitted too. `useApiKeys.ts` has no user-facing strings either.
 //
 
 // CAUTION running `npx i18next-cli extract` locally: `common.json`'s
@@ -65,6 +68,8 @@ export default defineConfig({
       'src/features/ai/aiConstants.ts',
       'src/features/ai/promptHelpText.tsx',
       'src/features/ai/TaskRoutingSection.tsx',
+      'src/features/ai/InlineAiSetup.tsx',
+      'src/features/ai/AiSetupDialog.tsx',
     ],
     ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',

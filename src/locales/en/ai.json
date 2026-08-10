@@ -13,6 +13,28 @@
     "openai": "OpenAI",
     "openai-compatible": "Self-Hosted"
   },
+  "setup": {
+    "apiKeyAriaLabel": "API key",
+    "apiKeyPlaceholder": "API key",
+    "configured": "AI configured",
+    "connectionFailed": "Connection failed — check settings",
+    "connectionSuccess": "Connection successful",
+    "defaultLabel": "Set up AI provider to get started",
+    "endpointAriaLabel": "Endpoint URL",
+    "endpointPlaceholder": "Endpoint URL",
+    "goToSettings": "Go to Settings",
+    "hideApiKey": "Hide API key",
+    "later": "Later",
+    "modelAriaLabel": "Model name",
+    "modelPlaceholder": "Model name",
+    "save": "Save",
+    "saving": "Saving...",
+    "showApiKey": "Show API key",
+    "test": "Test",
+    "testing": "Testing...",
+    "viewDescription": "Connect a provider in Settings to enable AI features",
+    "viewTitle": "Set up an AI provider to get started"
+  },
   "taskGroups": {
     "deepText": {
       "description": "Reorganize, Tag Suggestions",

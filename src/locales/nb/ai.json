@@ -13,6 +13,28 @@
     "openai": "OpenAI",
     "openai-compatible": "Selvhostet"
   },
+  "setup": {
+    "apiKeyAriaLabel": "API-nøkkel",
+    "apiKeyPlaceholder": "API-nøkkel",
+    "configured": "AI konfigurert",
+    "connectionFailed": "Tilkobling mislyktes — sjekk innstillingene",
+    "connectionSuccess": "Tilkobling vellykket",
+    "defaultLabel": "Sett opp AI-leverandør for å komme i gang",
+    "endpointAriaLabel": "Endepunkt-URL",
+    "endpointPlaceholder": "Endepunkt-URL",
+    "goToSettings": "Gå til innstillinger",
+    "hideApiKey": "Skjul API-nøkkel",
+    "later": "Senere",
+    "modelAriaLabel": "Modellnavn",
+    "modelPlaceholder": "Modellnavn",
+    "save": "Lagre",
+    "saving": "Lagrer...",
+    "showApiKey": "Vis API-nøkkel",
+    "test": "Test",
+    "testing": "Tester...",
+    "viewDescription": "Koble til en leverandør i Innstillinger for å aktivere AI-funksjoner",
+    "viewTitle": "Sett opp en AI-leverandør for å komme i gang"
+  },
   "taskGroups": {
     "deepText": {
       "description": "Reorganiser, stikkordforslag",
