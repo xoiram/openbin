@@ -1,0 +1,69 @@
+{
+  "aiShowcaseStep": {
+    "body": "Ta et bilde av en boks, så identifiserer AI gjenstandene inni.",
+    "photoAlt": "Boksens innhold",
+    "seeResult": "Se resultatet",
+    "title": "Fra bilde til innhold"
+  },
+  "browseStep": {
+    "body": "Hver boks får et kort med innhold, stikkord og en QR-kode du kan skrive ut og feste på beholderen.",
+    "finishTour": "Avslutt omvisning",
+    "title": "Boksen din, organisert"
+  },
+  "completion": {
+    "defaultSubtitle": "Hopp inn i en av disse for å komme i gang.",
+    "defaultTitle": "Alt er klart",
+    "goToDashboard": "Gå til oversikten",
+    "tourCompleteSubtitle": "Det var det viktigste. Bare kast deg utover og utforsk.",
+    "tourCompleteTitle": "Omvisning fullført"
+  },
+  "demoCompletion": {
+    "browseBins": {
+      "description": "Utforsk de 40+ ferdiglagde demoboksene",
+      "label": "Bla gjennom alle boksene"
+    },
+    "exploreSettings": {
+      "description": "Tilpass terminologi, AI og mer",
+      "label": "Utforsk innstillinger"
+    },
+    "printLabels": {
+      "description": "Lag QR-etiketter for boksene dine",
+      "label": "Skriv ut etiketter"
+    },
+    "scanQr": {
+      "description": "Prøv å skanne en etikett med kameraet",
+      "label": "Skann en QR-kode"
+    }
+  },
+  "demoCta": {
+    "cloud": {
+      "description": "Administrert hosting, automatiske oppdateringer",
+      "label": "Registrer deg for Cloud"
+    },
+    "continueExploring": "Fortsett å utforske",
+    "dismiss": "Lukk",
+    "selfHost": {
+      "description": "Gratis, åpen kildekode, full kontroll",
+      "label": "Selvhost med Docker"
+    },
+    "subtitle": "Ta med deg {{appName}} hjem.",
+    "title": "Klar til å komme i gang?"
+  },
+  "overlay": {
+    "closeSetup": "Lukk oppsett"
+  },
+  "thinGate": {
+    "createFailed": "Kunne ikke opprette stedet. Prøv igjen.",
+    "createPrefix": "Opprett",
+    "creating": "Oppretter…",
+    "nameLabel": "Navn",
+    "namePlaceholder": "Mitt hjem",
+    "namePrefix": "Navngi ditt første",
+    "subtitle": "Hjem, garasje, kontor — det som passer."
+  },
+  "welcomeStep": {
+    "body": "Denne demoen har et ferdigbygget hjem med bokser som allerede er organisert. Vi går gjennom nøkkelfunksjonene på under et minutt.",
+    "startTour": "Start omvisning",
+    "title": "Velkommen til {{appName}}"
+  }
+}

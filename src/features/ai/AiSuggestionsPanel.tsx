@@ -1,5 +1,6 @@
 import { Check, RefreshCw, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,6 +39,7 @@ export function AiSuggestionsPanel({
   onApply,
   onDismiss,
 }: AiSuggestionsPanelProps) {
+  const { t } = useTranslation('ai');
   const isReanalysis = !!previousResult;
   const nameDidChange = isReanalysis && nameChanged(previousResult, suggestions);
   const itemsDidChange = isReanalysis && itemsChanged(previousResult, suggestions);
@@ -62,16 +64,20 @@ export function AiSuggestionsPanel({
         <div>
           <Label className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" />
-            AI Suggestions
+            {t('suggestions.title', { defaultValue: 'AI Suggestions' })}
           </Label>
           {isReanalysis ? (
             <div className="flex items-center gap-1.5 mt-1 text-[13px] text-[var(--accent)]">
               <RefreshCw className="h-3 w-3" />
-              <span>Reanalysis complete — compare with previous results</span>
+              <span>
+                {t('suggestions.reanalysisComplete', {
+                  defaultValue: 'Reanalysis complete — compare with previous results',
+                })}
+              </span>
             </div>
           ) : (
             <p className="text-[13px] text-[var(--text-tertiary)] mt-0.5">
-              Select which suggestions to apply to this bin.
+              {t('suggestions.selectPrompt', { defaultValue: 'Select which suggestions to apply to this bin.' })}
             </p>
           )}
         </div>
@@ -87,13 +93,15 @@ export function AiSuggestionsPanel({
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="text-[13px] font-medium text-[var(--text-secondary)]">Name</p>
+                <p className="text-[13px] font-medium text-[var(--text-secondary)]">{t('suggestions.nameLabel', { defaultValue: 'Name' })}</p>
                 {nameDidChange && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Changed</Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('suggestions.changedBadge', { defaultValue: 'Changed' })}</Badge>
                 )}
               </div>
               <p className="text-[15px] text-[var(--text-primary)] font-semibold">{suggestions.name}</p>
-              <p className="text-[12px] text-[var(--text-tertiary)]">Current: {currentName}</p>
+              <p className="text-[12px] text-[var(--text-tertiary)]">
+                {t('suggestions.currentPrefix', { defaultValue: 'Current' })}: {currentName}
+              </p>
             </div>
           </button>
         )}
@@ -109,9 +117,9 @@ export function AiSuggestionsPanel({
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="text-[13px] font-medium text-[var(--text-secondary)]">Items</p>
+                <p className="text-[13px] font-medium text-[var(--text-secondary)]">{t('suggestions.itemsLabel', { defaultValue: 'Items' })}</p>
                 {itemsDidChange && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Changed</Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('suggestions.changedBadge', { defaultValue: 'Changed' })}</Badge>
                 )}
               </div>
               <ul className="mt-1 space-y-0.5">
@@ -125,7 +133,10 @@ export function AiSuggestionsPanel({
               </ul>
               {currentItems.length > 0 && (
                 <p className="text-[12px] text-[var(--text-tertiary)] mt-1">
-                  Will replace current {currentItems.length} item{currentItems.length !== 1 ? 's' : ''}
+                  {t('suggestions.willReplace', {
+                    defaultValue: 'Will replace current {{count}} item',
+                    count: currentItems.length,
+                  })}
                 </p>
               )}
             </div>
@@ -138,13 +149,13 @@ export function AiSuggestionsPanel({
             variant="ghost"
             onClick={onDismiss}
           >
-            Dismiss
+            {t('suggestions.dismiss', { defaultValue: 'Dismiss' })}
           </Button>
           <Button
             onClick={handleApply}
             disabled={!anySelected}
           >
-            Apply Selected
+            {t('suggestions.applySelected', { defaultValue: 'Apply Selected' })}
           </Button>
         </div>
       </CardContent>

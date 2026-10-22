@@ -1,5 +1,6 @@
 import { Clock, Download, Trash2, Upload } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +32,7 @@ function StepLabel({
   id?: string;
   children: ReactNode;
 }) {
+  const { t } = useTranslation('settings');
   return (
     <div className="flex items-center gap-2">
       <span
@@ -41,7 +43,7 @@ function StepLabel({
       </span>
       <span id={id} className="settings-subheading">
         {children}
-        <span className="sr-only"> (step {step} of {total})</span>
+        <span className="sr-only"> {t('data.stepOfSr', { defaultValue: '(step {{step}} of {{total}})', step, total })}</span>
       </span>
     </div>
   );
@@ -56,10 +58,11 @@ function LocationPickerSection({
   value: string | null;
   onChange: (id: string) => void;
 }) {
+  const { t } = useTranslation('settings');
   if (locations.length <= 1) return null;
   return (
     <div className="space-y-2">
-      <span className="settings-subheading">Location</span>
+      <span className="settings-subheading">{t('data.locationLabel', { defaultValue: 'Location' })}</span>
       <div className="max-h-40 overflow-y-auto">
         <LocationSelectList locations={locations} value={value} onChange={onChange} />
       </div>
@@ -70,6 +73,7 @@ function LocationPickerSection({
 export function DataSection() {
   const navigate = useNavigate();
   const { activeLocationId } = useAuth();
+  const { t } = useTranslation('settings');
 
   const actions = useDataSectionActions();
   const {
@@ -102,7 +106,7 @@ export function DataSection() {
 
   const activeLocation = locations.find((l) => l.id === activeLocationId);
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
-  const selectedLocationName = selectedLocation?.name ?? 'Current location';
+  const selectedLocationName = selectedLocation?.name ?? t('data.currentLocation', { defaultValue: 'Current location' });
 
   const hasImportFile =
     (importFormat === 'zip' && zipPending != null) ||
@@ -120,46 +124,56 @@ export function DataSection() {
     : importFormat === 'zip' && zipPending
       ? `${zipPending.file.name} (${formatFileSize(zipPending.file.size)})`
       : importFormat === 'json' && pendingData
-        ? `Found ${pendingData.bins.length} bin${pendingData.bins.length !== 1 ? 's' : ''}`
+        ? t('data.foundBins', { count: pendingData.bins.length, defaultValue: 'Found {{count}} bin' })
         : importFormat === 'csv' && csvPending
-          ? `Found ${csvPending.bins} bin${csvPending.bins !== 1 ? 's' : ''} with ${csvPending.items} item${csvPending.items !== 1 ? 's' : ''}`
+          ? t('data.foundBinsWithItems', {
+              defaultValue: 'Found {{bins}} with {{items}}',
+              bins: t('data.binsCount', { count: csvPending.bins, defaultValue: '{{count}} bin' }),
+              items: t('data.itemsCount', { count: csvPending.items, defaultValue: '{{count}} item' }),
+            })
           : null;
 
   return (
     <>
       <SettingsPageHeader
-        title="Data"
-        description="Export, import, and manage your workspace data."
+        title={t('data.title', { defaultValue: 'Data' })}
+        description={t('data.description', { defaultValue: 'Export, import, and manage your workspace data.' })}
       />
 
-      <SettingsSection label="Manage">
+      <SettingsSection label={t('data.manageSection', { defaultValue: 'Manage' })}>
         <SettingsRow
           icon={Clock}
-          label="Activity Log"
+          label={t('data.activityLogLabel', { defaultValue: 'Activity Log' })}
           description={
             activeLocation?.activity_retention_days
-              ? `Changes from the last ${activeLocation.activity_retention_days} days`
-              : 'Recent changes and actions'
+              ? t('data.activityLogDescWithDays', {
+                  defaultValue: 'Changes from the last {{days}} days',
+                  days: activeLocation.activity_retention_days,
+                })
+              : t('data.activityLogDescDefault', { defaultValue: 'Recent changes and actions' })
           }
           onClick={() => navigate('/settings/activity')}
         />
         <SettingsRow
           icon={Trash2}
-          label="Trash"
+          label={t('data.trashLabel', { defaultValue: 'Trash' })}
           description={
             activeLocation?.trash_retention_days
-              ? `Restore within ${activeLocation.trash_retention_days} days — then permanently deleted`
-              : 'Restore or permanently remove deleted bins'
+              ? t('data.trashDescWithDays', {
+                  defaultValue: 'Restore within {{days}} days — then permanently deleted',
+                  days: activeLocation.trash_retention_days,
+                })
+              : t('data.trashDescDefault', { defaultValue: 'Restore or permanently remove deleted bins' })
           }
           onClick={() => navigate('/settings/trash')}
         />
       </SettingsSection>
 
-      <SettingsSection label="Export & Import" dividerAbove>
+      <SettingsSection label={t('data.exportImportSection', { defaultValue: 'Export & Import' })} dividerAbove>
         <SettingsRow
           icon={Download}
-          label="Export"
-          description="Download a backup or spreadsheet of this workspace"
+          label={t('data.exportLabel', { defaultValue: 'Export' })}
+          description={t('data.exportDesc', { defaultValue: 'Download a backup or spreadsheet of this workspace' })}
           onClick={() => {
             setSelectedLocationId(activeLocationId ?? null);
             setExportDialogOpen(true);
@@ -168,8 +182,8 @@ export function DataSection() {
         />
         <SettingsRow
           icon={Upload}
-          label="Import"
-          description="Restore from a backup or load a spreadsheet"
+          label={t('data.importLabel', { defaultValue: 'Import' })}
+          description={t('data.importDesc', { defaultValue: 'Restore from a backup or load a spreadsheet' })}
           onClick={() => {
             resetImportState();
             setSelectedLocationId(activeLocationId ?? null);
@@ -195,7 +209,7 @@ export function DataSection() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Export</DialogTitle>
+            <DialogTitle>{t('data.exportDialogTitle', { defaultValue: 'Export' })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5">
             <LocationPickerSection
@@ -204,41 +218,45 @@ export function DataSection() {
               onChange={setSelectedLocationId}
             />
             <div className="space-y-2.5">
-              <span id="export-format-label" className="settings-subheading">Format</span>
+              <span id="export-format-label" className="settings-subheading">
+                {t('data.formatLabel', { defaultValue: 'Format' })}
+              </span>
               <div className="flex flex-col gap-2" role="radiogroup" aria-labelledby="export-format-label">
                 <SettingsRadioCard
                   name="export-format"
                   value="zip"
                   current={exportFormat}
                   onChange={setExportFormat}
-                  title="Backup (ZIP)"
-                  description="All data including photos"
+                  title={t('data.backupZipTitle', { defaultValue: 'Backup (ZIP)' })}
+                  description={t('data.backupZipDesc', { defaultValue: 'All data including photos' })}
                 />
                 <SettingsRadioCard
                   name="export-format"
                   value="json"
                   current={exportFormat}
                   onChange={setExportFormat}
-                  title="Backup (JSON)"
-                  description="Data and settings, no photos"
+                  title={t('data.backupJsonTitle', { defaultValue: 'Backup (JSON)' })}
+                  description={t('data.backupJsonDesc', { defaultValue: 'Data and settings, no photos' })}
                 />
                 <SettingsRadioCard
                   name="export-format"
                   value="csv"
                   current={exportFormat}
                   onChange={setExportFormat}
-                  title="Spreadsheet (CSV)"
-                  description="Open in Excel or Google Sheets"
+                  title={t('data.spreadsheetCsvTitle', { defaultValue: 'Spreadsheet (CSV)' })}
+                  description={t('data.spreadsheetCsvDescExport', { defaultValue: 'Open in Excel or Google Sheets' })}
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setExportDialogOpen(false)} disabled={exporting}>
-              Cancel
+              {t('data.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button onClick={() => handleExport(selectedLocationId)} disabled={exporting}>
-              {exporting ? 'Exporting...' : `Export ${selectedLocationName}`}
+              {exporting
+                ? t('data.exporting', { defaultValue: 'Exporting...' })
+                : t('data.exportButton', { defaultValue: 'Export {{location}}', location: selectedLocationName })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -255,7 +273,7 @@ export function DataSection() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import</DialogTitle>
+            <DialogTitle>{t('data.importDialogTitle', { defaultValue: 'Import' })}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-5">
@@ -266,62 +284,62 @@ export function DataSection() {
             />
 
             <div className="space-y-2.5">
-              <StepLabel step={1} total={3} id="import-format-label">Format</StepLabel>
+              <StepLabel step={1} total={3} id="import-format-label">{t('data.formatLabel', { defaultValue: 'Format' })}</StepLabel>
               <div className="flex flex-col gap-2" role="radiogroup" aria-labelledby="import-format-label">
                 <SettingsRadioCard
                   name="import-format"
                   value="zip"
                   current={importFormat}
                   onChange={setImportFormat}
-                  title="Backup (ZIP)"
-                  description="All data including photos"
+                  title={t('data.backupZipTitle', { defaultValue: 'Backup (ZIP)' })}
+                  description={t('data.backupZipDesc', { defaultValue: 'All data including photos' })}
                 />
                 <SettingsRadioCard
                   name="import-format"
                   value="json"
                   current={importFormat}
                   onChange={setImportFormat}
-                  title="Backup (JSON)"
-                  description="Data and settings, no photos"
+                  title={t('data.backupJsonTitle', { defaultValue: 'Backup (JSON)' })}
+                  description={t('data.backupJsonDesc', { defaultValue: 'Data and settings, no photos' })}
                 />
                 <SettingsRadioCard
                   name="import-format"
                   value="csv"
                   current={importFormat}
                   onChange={setImportFormat}
-                  title="Spreadsheet (CSV)"
-                  description="Bins and items from a spreadsheet"
+                  title={t('data.spreadsheetCsvTitle', { defaultValue: 'Spreadsheet (CSV)' })}
+                  description={t('data.spreadsheetCsvDescImport', { defaultValue: 'Bins and items from a spreadsheet' })}
                 />
               </div>
             </div>
 
             <div className="space-y-2.5">
-              <StepLabel step={2} total={3} id="import-mode-label">Mode</StepLabel>
+              <StepLabel step={2} total={3} id="import-mode-label">{t('data.modeLabel', { defaultValue: 'Mode' })}</StepLabel>
               <div className="flex flex-col gap-2" role="radiogroup" aria-labelledby="import-mode-label">
                 <SettingsRadioCard
                   name="import-mode"
                   value="merge"
                   current={importMode}
                   onChange={setImportMode}
-                  title="Merge"
-                  description="Add new data, skip existing"
+                  title={t('data.mergeTitle', { defaultValue: 'Merge' })}
+                  description={t('data.mergeDesc', { defaultValue: 'Add new data, skip existing' })}
                 />
                 <SettingsRadioCard
                   name="import-mode"
                   value="replace"
                   current={importMode}
                   onChange={setImportMode}
-                  title="Replace"
-                  description="Delete all existing data first"
+                  title={t('data.replaceTitle', { defaultValue: 'Replace' })}
+                  description={t('data.replaceDesc', { defaultValue: 'Delete all existing data first' })}
                   destructive
                 />
               </div>
             </div>
 
             <div className="space-y-2.5">
-              <StepLabel step={3} total={3}>File</StepLabel>
+              <StepLabel step={3} total={3}>{t('data.fileLabel', { defaultValue: 'File' })}</StepLabel>
               <Button variant="outline" onClick={handleImportFileClick} disabled={importing}>
-                {hasImportFile ? 'Change File' : 'Select File'}
+                {hasImportFile ? t('data.changeFile', { defaultValue: 'Change File' }) : t('data.selectFile', { defaultValue: 'Select File' })}
               </Button>
               {dryRunPreview && (
                 <div className="max-h-48 overflow-y-auto space-y-1 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-input)] p-2 text-[var(--text-sm)]">
@@ -332,7 +350,9 @@ export function DataSection() {
                     >
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-success)]" />
                       <span className="truncate flex-1">{b.name}</span>
-                      <span className="tabular-nums text-[var(--text-tertiary)]">{b.itemCount} items</span>
+                      <span className="tabular-nums text-[var(--text-tertiary)]">
+                        {t('data.itemsCount', { count: b.itemCount, defaultValue: '{{count}} items' })}
+                      </span>
                     </div>
                   ))}
                   {dryRunPreview.toSkip.map((b) => (
@@ -342,7 +362,7 @@ export function DataSection() {
                     >
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--text-tertiary)]" />
                       <span className="truncate flex-1">{b.name}</span>
-                      <span className="text-[var(--text-tertiary)]">skip</span>
+                      <span className="text-[var(--text-tertiary)]">{t('data.skip', { defaultValue: 'skip' })}</span>
                     </div>
                   ))}
                 </div>
@@ -362,14 +382,18 @@ export function DataSection() {
               }}
               disabled={importing}
             >
-              Cancel
+              {t('data.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button
               variant={importMode === 'replace' ? 'destructive' : 'default'}
               onClick={() => handleConfirmImport(selectedLocationId)}
               disabled={!hasImportFile || importing}
             >
-              {importing ? 'Importing...' : importMode === 'replace' ? 'Replace & Import' : `Import ${selectedLocationName}`}
+              {importing
+                ? t('data.importing', { defaultValue: 'Importing...' })
+                : importMode === 'replace'
+                  ? t('data.replaceAndImport', { defaultValue: 'Replace & Import' })
+                  : t('data.importButton', { defaultValue: 'Import {{location}}', location: selectedLocationName })}
             </Button>
           </DialogFooter>
         </DialogContent>

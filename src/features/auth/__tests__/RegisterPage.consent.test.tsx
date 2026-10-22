@@ -18,6 +18,8 @@ vi.mock('@/lib/qrConfig', () => ({
       registrationMode: 'open',
       registrationEnabled: true,
       oauthProviders: [],
+      oidcDisplayName: null,
+      passwordLoginEnabled: true,
       demoMode: false,
       tosVersion: '2026-03-31',
       privacyVersion: '2026-03-31',

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,8 @@ import { useTerminology } from '@/lib/terminology';
 import { useUserPreferences } from '@/lib/userPreferences';
 
 export function ThinLocationGate() {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('onboarding');
   const { setActiveLocationId } = useAuth();
   const { updatePreferences } = useUserPreferences();
   const [name, setName] = useState('');
@@ -29,7 +31,7 @@ export function ThinLocationGate() {
         onboarding_location_id: location.id,
       });
     } catch (_err) {
-      setError("Couldn't create the location. Try again.");
+      setError(t('thinGate.createFailed', { defaultValue: "Couldn't create the location. Try again." }));
       setLoading(false);
     }
   }
@@ -38,24 +40,30 @@ export function ThinLocationGate() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay-backdrop)]">
       <div className="flat-heavy rounded-[var(--radius-xl)] w-full max-w-sm mx-5 px-8 py-8">
         <h1 className="text-[20px] font-semibold text-[var(--text-primary)] mb-1">
-          Name your first {t.location}
+          {t('thinGate.namePrefix', { defaultValue: 'Name your first' })} {term.location}
         </h1>
         <p className="text-[14px] text-[var(--text-tertiary)] mb-5">
-          Home, garage, office — whatever fits.
+          {t('thinGate.subtitle', { defaultValue: 'Home, garage, office — whatever fits.' })}
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <FormField label="Name" htmlFor="thin-gate-name" error={error ?? undefined}>
+          <FormField
+            label={t('thinGate.nameLabel', { defaultValue: 'Name' })}
+            htmlFor="thin-gate-name"
+            error={error ?? undefined}
+          >
             <Input
               id="thin-gate-name"
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Home"
+              placeholder={t('thinGate.namePlaceholder', { defaultValue: 'My Home' })}
               disabled={loading}
             />
           </FormField>
           <Button type="submit" disabled={!name.trim() || loading}>
-            {loading ? 'Creating…' : `Create ${t.location}`}
+            {loading
+              ? t('thinGate.creating', { defaultValue: 'Creating…' })
+              : `${t('thinGate.createPrefix', { defaultValue: 'Create' })} ${term.location}`}
           </Button>
         </form>
       </div>

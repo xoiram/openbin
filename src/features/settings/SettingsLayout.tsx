@@ -1,10 +1,11 @@
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn, focusRing } from '@/lib/utils';
 import { SettingsCategoryList } from './SettingsCategoryList';
 import { SettingsSidebar } from './SettingsSidebar';
-import { SETTINGS_CATEGORIES } from './settingsCategories';
+import { localizeCategory, SETTINGS_CATEGORIES } from './settingsCategories';
 import { useSettingsCategories } from './useSettingsCategories';
 
 function useIsDesktop() {
@@ -26,6 +27,7 @@ export function SettingsLayout() {
   const { mainCategories, adminCategories } = useSettingsCategories();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
 
   const isIndex = pathname === '/settings' || pathname === '/settings/';
 
@@ -57,11 +59,11 @@ export function SettingsLayout() {
 
   // Sub-pages that live under a parent category (e.g. /settings/activity → Data)
   const SUB_PAGE_META: Record<string, { label: string; backTo: string }> = {
-    activity: { label: 'Activity Log', backTo: '/settings/data' },
-    trash: { label: 'Trash', backTo: '/settings/data' },
+    activity: { label: t('layout.activityLog', { defaultValue: 'Activity Log' }), backTo: '/settings/data' },
+    trash: { label: t('layout.trash', { defaultValue: 'Trash' }), backTo: '/settings/data' },
   };
   const subPage = lastSegment ? SUB_PAGE_META[lastSegment] : undefined;
-  const pageLabel = currentCategory?.label ?? subPage?.label;
+  const pageLabel = currentCategory ? localizeCategory(currentCategory, t).label : subPage?.label;
   const backTo = subPage?.backTo ?? '/settings';
 
   return (
@@ -71,7 +73,7 @@ export function SettingsLayout() {
           type="button"
           onClick={() => navigate(backTo)}
           className={cn('flex size-11 items-center justify-center rounded-[var(--radius-xs)] -ml-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]', focusRing)}
-          aria-label="Back to settings"
+          aria-label={t('layout.backToSettings', { defaultValue: 'Back to settings' })}
         >
           <ArrowLeft className="h-5 w-5" />
         </button>

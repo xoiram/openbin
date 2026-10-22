@@ -1,0 +1,304 @@
+{
+  "aiErrors": {
+    "invalidApiKey": "Ugyldig API-nøkkel eller modell — sjekk Innstillinger > AI",
+    "providerError": "AI-leverandøren returnerte en feil — verifiser innstillingene dine",
+    "providerRateLimited": "AI-leverandøren har hastighetsbegrensning — vent litt og prøv igjen",
+    "rateLimited": "For mange AI-forespørsler — prøv igjen om et øyeblikk"
+  },
+  "aiSettingsSection": {
+    "advancedLabel": "Avansert",
+    "apiKeyLabel": "API-nøkkel",
+    "connectedSuccess": "Koblet til {{model}} vellykket",
+    "connectionFailedBase": "Tilkobling mislyktes",
+    "connectPrompt": "Koble til en AI-leverandør for å låse opp bildeanalyse, gjenstandsuthenting fra tekst og tale, og naturlige språkkommandoer for å administrere boksene dine.",
+    "customPromptsLabel": "Egendefinerte prompter",
+    "defaultPlaceholder": "Standard",
+    "demoPromptsDisabled": "Egendefinerte prompter er deaktivert for demokontoer.",
+    "envConfigured": "AI konfigurert av serveren. Lagre dine egne innstillinger for å overstyre.",
+    "loadDefaultToCustomize": "Last standard for å tilpasse",
+    "maxTokensLabel": "Maks tokens",
+    "maxTokensRange": "100–16 000",
+    "modelLabel": "Modell",
+    "removeFailed": "Kunne ikke fjerne innstillingene",
+    "removeSettings": "Fjern AI-innstillinger",
+    "requestTimeoutLabel": "Forespørselstidsavbrudd",
+    "requestTimeoutPlaceholder": "Standard (30)",
+    "requestTimeoutRange": "10–300 sekunder",
+    "requiredFieldsHint": "API-nøkkel og modell er påkrevd.",
+    "resetToDefault": "Tilbakestill til standard",
+    "settingsRemoved": "AI-innstillinger fjernet",
+    "temperatureLabel": "Temperatur",
+    "temperatureRange": "0.0–2.0",
+    "testConnection": "Test tilkobling",
+    "title": "AI-funksjoner",
+    "toggleDescription": "Bildeanalyse, gjenstandsuthenting og AI-kommandoer",
+    "topPLabel": "Top P",
+    "topPRange": "0.0–1.0"
+  },
+  "analyzeError": {
+    "checkAiSettings": "Sjekk AI-innstillinger",
+    "details": "Detaljer",
+    "titleGeneric": "Analyse mislyktes",
+    "titleInvalidConfig": "AI-konfigurasjonsproblem",
+    "titleProviderDown": "Leverandør utilgjengelig",
+    "titleRateLimit": "Hastighetsgrense nådd"
+  },
+  "analyzeLabel": {
+    "applyingCorrection": "Bruker korrigering",
+    "done": "Ferdig",
+    "foundPrefix": "Fant",
+    "foundSuffix": "funnet",
+    "noItemsFound": "Ingen gjenstander funnet",
+    "reanalyzing": "Analyserer på nytt",
+    "scanning": "Skanner"
+  },
+  "analyzeProgress": {
+    "cancelScanAriaLabel": "Avbryt skanning"
+  },
+  "askFlow": {
+    "requestFailed": "Forespørsel mislyktes"
+  },
+  "chat": {
+    "dialogTitle": "Spør AI",
+    "newChat": "Ny samtale"
+  },
+  "commandActions": {
+    "addItems": "Legg til {{items}} i \"{{bin}}\"",
+    "addTags_one": "Legg til stikkord {{tags}} på \"{{bin}}\"",
+    "addTags_other": "Legg til stikkord {{tags}} på \"{{bin}}\"",
+    "appendNotes": "Legg til i notater på \"{{bin}}\"",
+    "checkoutItem": "Sjekk ut \"{{item}}\" fra \"{{bin}}\"",
+    "clearNotes": "Fjern notater på \"{{bin}}\"",
+    "createBin": "Opprett {{binTerm}} \"{{name}}\"",
+    "createBinInArea": " i {{area}}",
+    "createBinWithItems_one": " med {{count}} gjenstand",
+    "createBinWithItems_other": " med {{count}} gjenstander",
+    "deleteArea": "Slett {{areaTerm}} \"{{area}}\"",
+    "deleteBin": "Slett \"{{bin}}\"",
+    "duplicateBin": "Dupliser \"{{bin}}\"",
+    "duplicateBinAs": "Dupliser \"{{bin}}\" som \"{{newName}}\"",
+    "modifyItem": "Endre navn på \"{{oldItem}}\" til \"{{newItem}}\" i \"{{bin}}\"",
+    "modifyTag": "Endre navn på stikkord \"{{oldTag}}\" til \"{{newTag}}\" på \"{{bin}}\"",
+    "pinBin": "Fest \"{{bin}}\"",
+    "removeItems": "Fjern {{items}} fra \"{{bin}}\"",
+    "removeItemZeroQuantity": "Fjern \"{{item}}\" fra \"{{bin}}\"",
+    "removeTags_one": "Fjern stikkord {{tags}} fra \"{{bin}}\"",
+    "removeTags_other": "Fjern stikkord {{tags}} fra \"{{bin}}\"",
+    "renameArea": "Endre navn på {{areaTerm}} \"{{area}}\" til \"{{newName}}\"",
+    "reorderItems": "Endre rekkefølge på gjenstander i \"{{bin}}\"",
+    "restoreBin": "Gjenopprett \"{{bin}}\" fra papirkurven",
+    "returnItem": "Returner \"{{item}}\" til \"{{bin}}\"",
+    "returnItemTo": "Returner \"{{item}}\" til \"{{bin}}\"",
+    "setArea": "Flytt \"{{bin}}\" til {{areaTerm}} \"{{area}}\"",
+    "setColor": "Sett farge på \"{{bin}}\" til {{color}}",
+    "setIcon": "Sett ikon på \"{{bin}}\" til {{icon}}",
+    "setItemQuantity": "Sett antall for \"{{item}}\" til {{quantity}} i \"{{bin}}\"",
+    "setNotes": "Sett notater på \"{{bin}}\"",
+    "setTagColor": "Sett farge på stikkord \"{{tag}}\" til {{color}}",
+    "unknownAction": "Ukjent handling: {{type}}",
+    "unknownBin": "en boks",
+    "unpinBin": "Løsne \"{{bin}}\"",
+    "updateBin": "Oppdater \"{{bin}}\": {{fields}}"
+  },
+  "commandExecution": {
+    "executionFailed": "Utførelse mislyktes"
+  },
+  "commandList": {
+    "action": "handling",
+    "actions": "handlinger",
+    "destructive": "ødeleggende",
+    "noMatches": "Fant ingen samsvarende {{bins}}, eller kommandoen var tvetydig. Prøv å bruke eksakte {{bin}}-navn.",
+    "selectedConfirmSuffix": "valgt. Klikk bruk igjen for å bekrefte."
+  },
+  "composer": {
+    "addAttachment": "Legg til vedlegg",
+    "placeholder": "Spør om hva som helst…",
+    "recording": "Tar opp: {{elapsed}}",
+    "send": "Send",
+    "stop": "Stopp",
+    "stopRecording": "Stopp opptak",
+    "takePhoto": "Ta bilde",
+    "transcribingAudio": "Transkriberer lyd",
+    "uploadFromGallery": "Last opp fra galleri",
+    "voiceInputLabel": "Taleinndata"
+  },
+  "emptyState": {
+    "scopedExample1": "Sett automatiske stikkord basert på innholdet",
+    "scopedExample2": "Hva har disse til felles?",
+    "scopedExample3": "Flytt alle disse til {{area}} Garasje",
+    "scopedExample4": "Foreslå bedre navn for disse",
+    "scopedExample5": "Hvilke av disse inneholder elektronikk?",
+    "tryAsking": "Prøv å spørre",
+    "unscopedExample1": "Hvor er drillen?",
+    "unscopedExample2": "Hva er i {{bin}} Campingutstyr?",
+    "unscopedExample3": "Hvilke {{bins}} har batterier?",
+    "unscopedExample4": "Legg strikkstropper til i {{bin}} Bildeler",
+    "unscopedExample5": "Opprett en {{bin}} kalt Bassengflottører i Garasjen",
+    "unscopedExample6": "Dupliser {{bin}} Elektroverktøy",
+    "unscopedExample7": "Hva er i papirkurven min?"
+  },
+  "groupReviewAi": {
+    "analyzeFailed": "Kunne ikke analysere bildet — prøv igjen"
+  },
+  "itemQuery": {
+    "actionsAriaLabel": "Gjenstandshandlinger",
+    "adjustQuantity": "Juster antall",
+    "binRestoredToast": "Boks gjenopprettet",
+    "bulkActionFailed": "Massehandling mislyktes",
+    "bulkActionsAriaLabel": "Massehandlinger",
+    "bulkDone_one": "Ferdig — {{count}} {{word}} {{verb}}",
+    "bulkDone_other": "Ferdig — {{count}} {{word}} {{verb}}",
+    "checkedOutToast": "Sjekket ut \"{{name}}\"",
+    "checkedOutVerb": "sjekket ut",
+    "checkout": "Sjekk ut",
+    "clearSelectionAriaLabel": "Fjern valg",
+    "decrementAriaLabel": "Reduser",
+    "hide": "Skjul",
+    "incrementAriaLabel": "Øk",
+    "item": "gjenstand",
+    "itemNameAriaLabel": "Gjenstandsnavn",
+    "items": "gjenstander",
+    "itemsInBin": "Gjenstander i {{bin}}",
+    "moreItemsSuffix": "flere {{word}} — åpne boksen for å se alle",
+    "openBin": "Åpne boks",
+    "openPrefix": "Åpne",
+    "partialSuccess": "{{completed}} av {{total}} handlinger fullført",
+    "quantityAriaLabel": "Antall",
+    "remove": "Fjern",
+    "removeCountDescription": "Dette vil permanent fjerne de valgte {{word}} fra boksene deres.",
+    "removeCountTitle_one": "Fjern {{count}} {{word}}?",
+    "removeCountTitle_other": "Fjern {{count}} {{word}}?",
+    "removedToast": "Fjernet \"{{name}}\"",
+    "removedVerb": "fjernet",
+    "removeItemDescription": "Dette vil permanent fjerne \"{{name}}\" fra boksen.",
+    "removeItemTitle": "Fjerne gjenstand?",
+    "removingEllipsis": "Fjerner…",
+    "rename": "Endre navn",
+    "renamedToast": "Endret navn til \"{{name}}\"",
+    "restoreAndOpen": "Gjenopprett og åpne",
+    "restoreFailed": "Gjenoppretting mislyktes",
+    "selectAllPrefix": "Velg alle",
+    "selectedSuffix": "valgt",
+    "selectItemAriaLabel": "Velg {{name}}",
+    "show": "Vis"
+  },
+  "promptHelp": {
+    "analysis": "Eksisterende stikkord og egendefinerte felt sendes automatisk i brukermeldingen. Denne prompten definerer kun instruksjonene.",
+    "command": "Inventarkontekst (bokser, gjenstander, områder, stikkord, farger, ikoner) sendes automatisk. Denne prompten definerer kun instruksjonene.",
+    "query": "Inventarkontekst (bokser, gjenstander, områder, stikkord) sendes automatisk. Denne prompten definerer kun instruksjonene.",
+    "reorganization": "Tilgjengelige variabler: <v>{max_bins_instruction}</v> <v>{area_instruction}</v> <v>{strictness_instruction}</v> <v>{granularity_instruction}</v> <v>{duplicates_instruction}</v> <v>{ambiguous_instruction}</v> <v>{outliers_instruction}</v> <v>{items_per_bin_instruction}</v> <v>{notes_instruction}</v>. Eksisterende stikkord sendes automatisk i brukermeldingen.",
+    "structure": "Boksnavn og eksisterende gjenstander legges til automatisk. Denne prompten definerer uthentingsreglene.",
+    "tagSuggestion": "Styrer AI-stikkordforslag (Stikkord-modus på Reorganiser-siden). Modellen ser hele stikkordvokabularet til stedet pluss en liste over bokser med gjenstander/område/eksisterende stikkord, og foreslår en ryddigere taksonomi og tilordninger per boks. Tilgjengelige variabler: <v>{change_level_instruction}</v> <v>{granularity_instruction}</v> <v>{tag_count_instruction}</v> <v>{notes_instruction}</v>."
+  },
+  "providers": {
+    "anthropic": "Anthropic",
+    "gemini": "Gemini",
+    "openai": "OpenAI",
+    "openai-compatible": "Selvhostet"
+  },
+  "queryAnswer": {
+    "noMatches": "Fant ingen samsvarende bokser. Prøv andre søkeord eller sjekk papirkurven."
+  },
+  "scopePill": {
+    "clearScope": "Fjern fokus",
+    "focusedOn": "Fokusert på {{n}} {{unit}}"
+  },
+  "setup": {
+    "apiKeyAriaLabel": "API-nøkkel",
+    "apiKeyPlaceholder": "API-nøkkel",
+    "configured": "AI konfigurert",
+    "connectionFailed": "Tilkobling mislyktes — sjekk innstillingene",
+    "connectionSuccess": "Tilkobling vellykket",
+    "defaultLabel": "Sett opp AI-leverandør for å komme i gang",
+    "endpointAriaLabel": "Endepunkt-URL",
+    "endpointPlaceholder": "Endepunkt-URL",
+    "goToSettings": "Gå til innstillinger",
+    "hideApiKey": "Skjul API-nøkkel",
+    "later": "Senere",
+    "modelAriaLabel": "Modellnavn",
+    "modelPlaceholder": "Modellnavn",
+    "save": "Lagre",
+    "saveFailed": "Kunne ikke lagre AI-innstillingene",
+    "saving": "Lagrer...",
+    "settingsSaved": "AI-innstillinger lagret",
+    "showApiKey": "Vis API-nøkkel",
+    "test": "Test",
+    "testing": "Tester...",
+    "viewDescription": "Koble til en leverandør i Innstillinger for å aktivere AI-funksjoner",
+    "viewTitle": "Sett opp en AI-leverandør for å komme i gang"
+  },
+  "stream": {
+    "emptyResponse": "{{fallback}} — tomt svar fra AI",
+    "unexpectedFormat": "{{fallback}} — uventet svarformat"
+  },
+  "streamingAsk": {
+    "noRelevantInfo": "Fant ingen relevant informasjon om det.",
+    "processError": "Kunne ikke behandle forespørselen"
+  },
+  "streamingPreview": {
+    "findingMore": "Finner flere gjenstander …",
+    "previewAlt": "Forhåndsvisning {{n}}"
+  },
+  "structureText": {
+    "fallbackError": "Kunne ikke hente ut gjenstander — prøv å beskrive dem annerledes"
+  },
+  "suggestions": {
+    "applySelected": "Bruk valgte",
+    "changedBadge": "Endret",
+    "currentPrefix": "Nåværende",
+    "dismiss": "Avvis",
+    "itemsLabel": "Gjenstander",
+    "nameLabel": "Navn",
+    "reanalysisComplete": "Ny analyse fullført — sammenlign med tidligere resultater",
+    "selectPrompt": "Velg hvilke forslag som skal brukes på denne boksen.",
+    "title": "AI-forslag",
+    "willReplace_one": "Vil erstatte nåværende {{count}} gjenstand",
+    "willReplace_other": "Vil erstatte nåværende {{count}} gjenstander"
+  },
+  "taskGroups": {
+    "deepText": {
+      "description": "Reorganiser, stikkordforslag",
+      "label": "Dyp tekst"
+    },
+    "quickText": {
+      "description": "Kommandoer, spørringer, tekstuthenting",
+      "label": "Rask tekst"
+    },
+    "vision": {
+      "description": "Bildeskanning",
+      "label": "Syn"
+    }
+  },
+  "taskRouting": {
+    "configuredByServer": "Konfigurert av serveren",
+    "defaultProviderOption": "Standard ({{provider}})",
+    "endpointLabel": "Endepunkt-URL",
+    "modelLabel": "Modell",
+    "providerLabel": "Leverandør",
+    "resetToDefault": "Tilbakestill til standard"
+  },
+  "transcription": {
+    "failed": "Transkribering mislyktes. Prøv igjen."
+  },
+  "turnError": {
+    "retry": "Prøv igjen"
+  },
+  "turnPreview": {
+    "applying": "Utfører…",
+    "applyPrefix": "Bruk",
+    "confirmPrefix": "Bekreft",
+    "selectedOfTotal": "{{selected}} av {{total}} valgt"
+  },
+  "turnResult": {
+    "applied": "Utførte",
+    "change": "endring",
+    "changes": "endringer",
+    "failed": "feilet"
+  },
+  "turnThinking": {
+    "ariaLabel": "AI tenker",
+    "executing": "Utfører",
+    "parsing": "Tenker",
+    "querying": "Søker"
+  }
+}

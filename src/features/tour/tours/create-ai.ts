@@ -7,9 +7,12 @@ const steps: TourStep[] = [
     id: 'capture-camera',
     selector: '[data-tour="capture-camera"]',
     placement: 'bottom',
-    title: 'Snap a photo',
+    title: (ctx) => ctx.t('tour:createAi.captureCamera.title', { defaultValue: 'Snap a photo' }),
     body: (ctx) =>
-      `Point your camera at a shelf, drawer, or room — AI names the ${ctx.terminology.bin} and lists what's inside.`,
+      ctx.t('tour:createAi.captureCamera.body', {
+        defaultValue: "Point your camera at a shelf, drawer, or room — AI names the {{bin}} and lists what's inside.",
+        bin: ctx.terminology.bin,
+      }),
     route: '/capture',
     mobilePlacement: 'top',
   },
@@ -17,9 +20,12 @@ const steps: TourStep[] = [
     id: 'capture-grouping',
     selector: '[data-tour="capture-grouping"]',
     placement: 'top',
-    title: 'Group as you go',
+    title: (ctx) => ctx.t('tour:createAi.captureGrouping.title', { defaultValue: 'Group as you go' }),
     body: (ctx) =>
-      `Toggle grouping to turn multiple photos into multiple ${ctx.terminology.bins} in one pass.`,
+      ctx.t('tour:createAi.captureGrouping.body', {
+        defaultValue: 'Toggle grouping to turn multiple photos into multiple {{bins}} in one pass.',
+        bins: ctx.terminology.bins,
+      }),
     route: '/capture',
     mobilePlacement: 'top',
   },
@@ -27,8 +33,9 @@ const steps: TourStep[] = [
     id: 'group-review',
     selector: '[data-tour="group-review"]',
     placement: 'top',
-    title: 'Review before confirming',
-    body: 'Drag photos between groups, rename, or merge before the AI runs.',
+    title: (ctx) => ctx.t('tour:createAi.groupReview.title', { defaultValue: 'Review before confirming' }),
+    body: (ctx) =>
+      ctx.t('tour:createAi.groupReview.body', { defaultValue: 'Drag photos between groups, rename, or merge before the AI runs.' }),
     route: '/capture',
     condition: (ctx) => ctx.canWrite,
     mobilePlacement: 'top',
@@ -37,13 +44,16 @@ const steps: TourStep[] = [
     id: 'bulk-add-confirm',
     selector: '[data-tour="bulk-add-confirm"]',
     placement: 'top',
-    title: 'Create them all at once',
+    title: (ctx) => ctx.t('tour:createAi.bulkAddConfirm.title', { defaultValue: 'Create them all at once' }),
     body: (ctx) =>
-      `AI suggestions are editable. Confirm to create every ${ctx.terminology.bin} in one go.`,
+      ctx.t('tour:createAi.bulkAddConfirm.body', {
+        defaultValue: 'AI suggestions are editable. Confirm to create every {{bin}} in one go.',
+        bin: ctx.terminology.bin,
+      }),
     route: '/capture',
     condition: (ctx) => ctx.canWrite,
     mobilePlacement: 'top',
-    buttonLabel: 'Got it',
+    buttonLabel: (ctx) => ctx.t('tour:shared.gotIt', { defaultValue: 'Got it' }),
   },
 ];
 

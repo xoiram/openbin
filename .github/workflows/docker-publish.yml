@@ -11,6 +11,10 @@ env:
 
 jobs:
   build-selfhosted:
+    # Upstream-only: pushes to akifbayram's GHCR + DockerHub namespaces
+    # with secrets that don't exist on forks. See publish-fork.yml for
+    # the fork-local equivalent.
+    if: github.repository == 'akifbayram/openbin'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -86,6 +90,9 @@ jobs:
           sarif_file: trivy-selfhosted.sarif
 
   build-cloud:
+    # Upstream-only: builds the proprietary cloud/EE edition and pushes to
+    # akifbayram's GHCR namespace. Never build EE on the fork.
+    if: github.repository == 'akifbayram/openbin'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -146,7 +153,8 @@ jobs:
 
   deploy:
     needs: [build-selfhosted, build-cloud]
-    if: startsWith(github.ref, 'refs/tags/')
+    # Upstream-only: SSH-deploys to akifbayram's own cloud/demo infra.
+    if: github.repository == 'akifbayram/openbin' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH

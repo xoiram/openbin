@@ -1,5 +1,6 @@
 import { Check, Sparkles, X } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AiProgressBar } from '@/components/ui/ai-progress-bar';
 import { AnimatedEllipsis } from '@/components/ui/animated-ellipsis';
 import { cn } from '@/lib/utils';
@@ -42,9 +43,10 @@ export function AiAnalyzeProgress({
   onCancel,
   className,
 }: AiAnalyzeProgressProps) {
+  const { t } = useTranslation(['ai', 'common']);
   const labelState = useMemo(
-    () => computeAnalyzeLabel({ mode, partialText, complete: false }),
-    [mode, partialText],
+    () => computeAnalyzeLabel({ mode, partialText, complete: false }, t),
+    [mode, partialText, t],
   );
   const showCancel = !!onCancel && active && !complete;
 
@@ -75,12 +77,12 @@ export function AiAnalyzeProgress({
           {showCancel && (
             <button
               type="button"
-              aria-label="Cancel scan"
+              aria-label={t('analyzeProgress.cancelScanAriaLabel', { defaultValue: 'Cancel scan' })}
               onClick={onCancel}
               className="shrink-0 -my-1 inline-flex items-center gap-1 rounded-[var(--radius-sm)] px-1.5 py-1 text-[12px] font-medium text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)] transition-colors"
             >
               <X className="h-3 w-3" />
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </button>
           )}
         </output>

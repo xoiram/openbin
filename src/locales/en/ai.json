@@ -1,0 +1,304 @@
+{
+  "aiErrors": {
+    "invalidApiKey": "Invalid API key or model — check Settings > AI",
+    "providerError": "Your AI provider returned an error — verify your settings",
+    "providerRateLimited": "AI provider rate limited — wait a moment and try again",
+    "rateLimited": "Too many AI requests — try again in a moment"
+  },
+  "aiSettingsSection": {
+    "advancedLabel": "Advanced",
+    "apiKeyLabel": "API Key",
+    "connectedSuccess": "Connected to {{model}} successfully",
+    "connectionFailedBase": "Connection failed",
+    "connectPrompt": "Connect an AI provider to unlock photo analysis, item extraction from text and voice, and natural language commands for managing your bins.",
+    "customPromptsLabel": "Custom Prompts",
+    "defaultPlaceholder": "Default",
+    "demoPromptsDisabled": "Custom prompts are disabled for demo accounts.",
+    "envConfigured": "AI configured by server. Save your own settings to override.",
+    "loadDefaultToCustomize": "Load default to customize",
+    "maxTokensLabel": "Max Tokens",
+    "maxTokensRange": "100–16,000",
+    "modelLabel": "Model",
+    "removeFailed": "Failed to remove settings",
+    "removeSettings": "Remove AI Settings",
+    "requestTimeoutLabel": "Request Timeout",
+    "requestTimeoutPlaceholder": "Default (30)",
+    "requestTimeoutRange": "10–300 seconds",
+    "requiredFieldsHint": "API key and model are required.",
+    "resetToDefault": "Reset to Default",
+    "settingsRemoved": "AI settings removed",
+    "temperatureLabel": "Temperature",
+    "temperatureRange": "0.0–2.0",
+    "testConnection": "Test Connection",
+    "title": "AI Features",
+    "toggleDescription": "Photo analysis, item extraction, and AI commands",
+    "topPLabel": "Top P",
+    "topPRange": "0.0–1.0"
+  },
+  "analyzeError": {
+    "checkAiSettings": "Check AI Settings",
+    "details": "Details",
+    "titleGeneric": "Analysis failed",
+    "titleInvalidConfig": "AI configuration issue",
+    "titleProviderDown": "Provider unavailable",
+    "titleRateLimit": "Rate limit reached"
+  },
+  "analyzeLabel": {
+    "applyingCorrection": "Applying correction",
+    "done": "Done",
+    "foundPrefix": "Found",
+    "foundSuffix": "found",
+    "noItemsFound": "No items found",
+    "reanalyzing": "Reanalyzing",
+    "scanning": "Scanning"
+  },
+  "analyzeProgress": {
+    "cancelScanAriaLabel": "Cancel scan"
+  },
+  "askFlow": {
+    "requestFailed": "Request failed"
+  },
+  "chat": {
+    "dialogTitle": "Ask AI",
+    "newChat": "New chat"
+  },
+  "commandActions": {
+    "addItems": "Add {{items}} to \"{{bin}}\"",
+    "addTags_one": "Add tag {{tags}} to \"{{bin}}\"",
+    "addTags_other": "Add tags {{tags}} to \"{{bin}}\"",
+    "appendNotes": "Append to notes on \"{{bin}}\"",
+    "checkoutItem": "Check out \"{{item}}\" from \"{{bin}}\"",
+    "clearNotes": "Clear notes on \"{{bin}}\"",
+    "createBin": "Create {{binTerm}} \"{{name}}\"",
+    "createBinInArea": " in {{area}}",
+    "createBinWithItems_one": " with {{count}} item",
+    "createBinWithItems_other": " with {{count}} items",
+    "deleteArea": "Delete {{areaTerm}} \"{{area}}\"",
+    "deleteBin": "Delete \"{{bin}}\"",
+    "duplicateBin": "Duplicate \"{{bin}}\"",
+    "duplicateBinAs": "Duplicate \"{{bin}}\" as \"{{newName}}\"",
+    "modifyItem": "Rename \"{{oldItem}}\" to \"{{newItem}}\" in \"{{bin}}\"",
+    "modifyTag": "Rename tag \"{{oldTag}}\" to \"{{newTag}}\" on \"{{bin}}\"",
+    "pinBin": "Pin \"{{bin}}\"",
+    "removeItems": "Remove {{items}} from \"{{bin}}\"",
+    "removeItemZeroQuantity": "Remove \"{{item}}\" from \"{{bin}}\"",
+    "removeTags_one": "Remove tag {{tags}} from \"{{bin}}\"",
+    "removeTags_other": "Remove tags {{tags}} from \"{{bin}}\"",
+    "renameArea": "Rename {{areaTerm}} \"{{area}}\" to \"{{newName}}\"",
+    "reorderItems": "Reorder items in \"{{bin}}\"",
+    "restoreBin": "Restore \"{{bin}}\" from trash",
+    "returnItem": "Return \"{{item}}\" to \"{{bin}}\"",
+    "returnItemTo": "Return \"{{item}}\" to \"{{bin}}\"",
+    "setArea": "Move \"{{bin}}\" to {{areaTerm}} \"{{area}}\"",
+    "setColor": "Set color on \"{{bin}}\" to {{color}}",
+    "setIcon": "Set icon on \"{{bin}}\" to {{icon}}",
+    "setItemQuantity": "Set quantity of \"{{item}}\" to {{quantity}} in \"{{bin}}\"",
+    "setNotes": "Set notes on \"{{bin}}\"",
+    "setTagColor": "Set color of tag \"{{tag}}\" to {{color}}",
+    "unknownAction": "Unknown action: {{type}}",
+    "unknownBin": "a bin",
+    "unpinBin": "Unpin \"{{bin}}\"",
+    "updateBin": "Update \"{{bin}}\": {{fields}}"
+  },
+  "commandExecution": {
+    "executionFailed": "Execution failed"
+  },
+  "commandList": {
+    "action": "action",
+    "actions": "actions",
+    "destructive": "destructive",
+    "noMatches": "No matching {{bins}} found, or the command was ambiguous. Try using exact {{bin}} names.",
+    "selectedConfirmSuffix": "selected. Click apply again to confirm."
+  },
+  "composer": {
+    "addAttachment": "Add attachment",
+    "placeholder": "Ask anything…",
+    "recording": "Recording: {{elapsed}}",
+    "send": "Send",
+    "stop": "Stop",
+    "stopRecording": "Stop recording",
+    "takePhoto": "Take photo",
+    "transcribingAudio": "Transcribing audio",
+    "uploadFromGallery": "Upload from gallery",
+    "voiceInputLabel": "Voice input"
+  },
+  "emptyState": {
+    "scopedExample1": "Auto-tag these based on their contents",
+    "scopedExample2": "What do these have in common?",
+    "scopedExample3": "Move all of these to the Garage {{area}}",
+    "scopedExample4": "Suggest better names for these",
+    "scopedExample5": "Which of these contain electronics?",
+    "tryAsking": "Try asking",
+    "unscopedExample1": "Where is the cordless drill?",
+    "unscopedExample2": "What's in the Camping Gear {{bin}}?",
+    "unscopedExample3": "Which {{bins}} have batteries?",
+    "unscopedExample4": "Add bungee cords to the Car Supplies {{bin}}",
+    "unscopedExample5": "Create a {{bin}} called Pool Floats in the Garage",
+    "unscopedExample6": "Duplicate the Power Tools {{bin}}",
+    "unscopedExample7": "What's in my trash?"
+  },
+  "groupReviewAi": {
+    "analyzeFailed": "Couldn't analyze the photo — try again"
+  },
+  "itemQuery": {
+    "actionsAriaLabel": "Item actions",
+    "adjustQuantity": "Adjust quantity",
+    "binRestoredToast": "Bin restored",
+    "bulkActionFailed": "Bulk action failed",
+    "bulkActionsAriaLabel": "Bulk actions",
+    "bulkDone_one": "Done — {{count}} {{word}} {{verb}}",
+    "bulkDone_other": "Done — {{count}} {{word}} {{verb}}",
+    "checkedOutToast": "Checked out \"{{name}}\"",
+    "checkedOutVerb": "checked out",
+    "checkout": "Checkout",
+    "clearSelectionAriaLabel": "Clear selection",
+    "decrementAriaLabel": "Decrement",
+    "hide": "Hide",
+    "incrementAriaLabel": "Increment",
+    "item": "item",
+    "itemNameAriaLabel": "Item name",
+    "items": "items",
+    "itemsInBin": "Items in {{bin}}",
+    "moreItemsSuffix": "more {{word}} — open bin to see all",
+    "openBin": "Open bin",
+    "openPrefix": "Open",
+    "partialSuccess": "{{completed}} of {{total}} actions completed",
+    "quantityAriaLabel": "Quantity",
+    "remove": "Remove",
+    "removeCountDescription": "This will permanently remove the selected {{word}} from their bins.",
+    "removeCountTitle_one": "Remove {{count}} {{word}}?",
+    "removeCountTitle_other": "Remove {{count}} {{word}}?",
+    "removedToast": "Removed \"{{name}}\"",
+    "removedVerb": "removed",
+    "removeItemDescription": "This will permanently remove \"{{name}}\" from the bin.",
+    "removeItemTitle": "Remove item?",
+    "removingEllipsis": "Removing…",
+    "rename": "Rename",
+    "renamedToast": "Renamed to \"{{name}}\"",
+    "restoreAndOpen": "Restore & open",
+    "restoreFailed": "Restore failed",
+    "selectAllPrefix": "Select all",
+    "selectedSuffix": "selected",
+    "selectItemAriaLabel": "Select {{name}}",
+    "show": "Show"
+  },
+  "promptHelp": {
+    "analysis": "Existing tags and custom fields are passed automatically in the user message. This prompt defines the instructions only.",
+    "command": "Inventory context (bins, items, areas, tags, colors, icons) is passed automatically. This prompt defines the instructions only.",
+    "query": "Inventory context (bins, items, areas, tags) is passed automatically. This prompt defines the instructions only.",
+    "reorganization": "Available variables: <v>{max_bins_instruction}</v> <v>{area_instruction}</v> <v>{strictness_instruction}</v> <v>{granularity_instruction}</v> <v>{duplicates_instruction}</v> <v>{ambiguous_instruction}</v> <v>{outliers_instruction}</v> <v>{items_per_bin_instruction}</v> <v>{notes_instruction}</v>. Existing tags are passed automatically in the user message.",
+    "structure": "Bin name and existing items are appended automatically. This prompt defines the extraction rules.",
+    "tagSuggestion": "Governs AI tag suggestions (Tags mode on the Reorganize page). The model sees the full tag vocabulary of the location plus a list of bins with items/area/existing tags, and proposes a cleaner taxonomy and per-bin assignments. Available variables: <v>{change_level_instruction}</v> <v>{granularity_instruction}</v> <v>{tag_count_instruction}</v> <v>{notes_instruction}</v>."
+  },
+  "providers": {
+    "anthropic": "Anthropic",
+    "gemini": "Gemini",
+    "openai": "OpenAI",
+    "openai-compatible": "Self-Hosted"
+  },
+  "queryAnswer": {
+    "noMatches": "No matching bins found. Try different terms or check trash."
+  },
+  "scopePill": {
+    "clearScope": "Clear scope",
+    "focusedOn": "Focused on {{n}} {{unit}}"
+  },
+  "setup": {
+    "apiKeyAriaLabel": "API key",
+    "apiKeyPlaceholder": "API key",
+    "configured": "AI configured",
+    "connectionFailed": "Connection failed — check settings",
+    "connectionSuccess": "Connection successful",
+    "defaultLabel": "Set up AI provider to get started",
+    "endpointAriaLabel": "Endpoint URL",
+    "endpointPlaceholder": "Endpoint URL",
+    "goToSettings": "Go to Settings",
+    "hideApiKey": "Hide API key",
+    "later": "Later",
+    "modelAriaLabel": "Model name",
+    "modelPlaceholder": "Model name",
+    "save": "Save",
+    "saveFailed": "Failed to save AI settings",
+    "saving": "Saving...",
+    "settingsSaved": "AI settings saved",
+    "showApiKey": "Show API key",
+    "test": "Test",
+    "testing": "Testing...",
+    "viewDescription": "Connect a provider in Settings to enable AI features",
+    "viewTitle": "Set up an AI provider to get started"
+  },
+  "stream": {
+    "emptyResponse": "{{fallback}} — empty response from AI",
+    "unexpectedFormat": "{{fallback}} — unexpected response format"
+  },
+  "streamingAsk": {
+    "noRelevantInfo": "I couldn't find relevant information for that.",
+    "processError": "Couldn't process that request"
+  },
+  "streamingPreview": {
+    "findingMore": "Finding more items...",
+    "previewAlt": "Preview {{n}}"
+  },
+  "structureText": {
+    "fallbackError": "Couldn't extract items — try describing them differently"
+  },
+  "suggestions": {
+    "applySelected": "Apply Selected",
+    "changedBadge": "Changed",
+    "currentPrefix": "Current",
+    "dismiss": "Dismiss",
+    "itemsLabel": "Items",
+    "nameLabel": "Name",
+    "reanalysisComplete": "Reanalysis complete — compare with previous results",
+    "selectPrompt": "Select which suggestions to apply to this bin.",
+    "title": "AI Suggestions",
+    "willReplace_one": "Will replace current {{count}} item",
+    "willReplace_other": "Will replace current {{count}} items"
+  },
+  "taskGroups": {
+    "deepText": {
+      "description": "Reorganize, Tag Suggestions",
+      "label": "Deep Text"
+    },
+    "quickText": {
+      "description": "Commands, Queries, Text Extraction",
+      "label": "Quick Text"
+    },
+    "vision": {
+      "description": "Photo Scan",
+      "label": "Vision"
+    }
+  },
+  "taskRouting": {
+    "configuredByServer": "Configured by server",
+    "defaultProviderOption": "Default ({{provider}})",
+    "endpointLabel": "Endpoint URL",
+    "modelLabel": "Model",
+    "providerLabel": "Provider",
+    "resetToDefault": "Reset to default"
+  },
+  "transcription": {
+    "failed": "Transcription failed. Try again."
+  },
+  "turnError": {
+    "retry": "Retry"
+  },
+  "turnPreview": {
+    "applying": "Applying…",
+    "applyPrefix": "Apply",
+    "confirmPrefix": "Confirm",
+    "selectedOfTotal": "{{selected}} of {{total}} selected"
+  },
+  "turnResult": {
+    "applied": "Applied",
+    "change": "change",
+    "changes": "changes",
+    "failed": "failed"
+  },
+  "turnThinking": {
+    "ariaLabel": "AI is thinking",
+    "executing": "Applying",
+    "parsing": "Thinking",
+    "querying": "Searching"
+  }
+}

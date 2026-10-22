@@ -1,8 +1,9 @@
 import { RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import type { AiProvider, AiSettings, AiTaskGroup } from '@/types';
-import { AI_PROVIDERS, MODEL_HINTS, TASK_GROUP_META } from './aiConstants';
+import { aiProviderLabel, aiTaskGroupDescription, aiTaskGroupLabel, MODEL_HINTS, TASK_GROUP_META } from './aiConstants';
 
 interface TaskRoutingSectionProps {
   settings: AiSettings;
@@ -12,6 +13,7 @@ interface TaskRoutingSectionProps {
 }
 
 export function TaskRoutingSection({ settings, overrides, onChange, disabled }: TaskRoutingSectionProps) {
+  const { t } = useTranslation('ai');
   const envLocked = settings.taskOverridesEnvLocked ?? [];
 
   const configuredProviders = settings.providerConfigs
@@ -34,13 +36,13 @@ export function TaskRoutingSection({ settings, overrides, onChange, disabled }: 
             {i > 0 && <div className="border-t border-[var(--border-subtle)] my-3" />}
             <div className="space-y-2">
               <div>
-                <span className="text-[13px] font-medium text-[var(--text-primary)]">{group.label}</span>
-                <span className="text-[11px] text-[var(--text-tertiary)] ml-1.5">{group.description}</span>
+                <span className="text-[13px] font-medium text-[var(--text-primary)]">{aiTaskGroupLabel(group.key, t)}</span>
+                <span className="text-[11px] text-[var(--text-tertiary)] ml-1.5">{aiTaskGroupDescription(group.key, t)}</span>
               </div>
 
               {isLocked && (
                 <div className="settings-section-banner settings-section-banner-info">
-                  Configured by server
+                  {t('taskRouting.configuredByServer', { defaultValue: 'Configured by server' })}
                   {envOverride?.provider && ` \u2014 ${envOverride.provider}`}
                   {envOverride?.model && ` / ${envOverride.model}`}
                 </div>
@@ -49,7 +51,9 @@ export function TaskRoutingSection({ settings, overrides, onChange, disabled }: 
               {!isLocked && (
                 <div className="flex flex-col gap-2">
                   <div className="min-w-0 space-y-1">
-                    <label htmlFor={`task-provider-${group.key}`} className="text-[12px] text-[var(--text-tertiary)]">Provider</label>
+                    <label htmlFor={`task-provider-${group.key}`} className="text-[12px] text-[var(--text-tertiary)]">
+                      {t('taskRouting.providerLabel', { defaultValue: 'Provider' })}
+                    </label>
                     <Select<string>
                       id={`task-provider-${group.key}`}
                       value={selectedProvider}
@@ -62,22 +66,27 @@ export function TaskRoutingSection({ settings, overrides, onChange, disabled }: 
                         });
                       }}
                       disabled={disabled}
-                      ariaLabel="Provider"
+                      ariaLabel={t('taskRouting.providerLabel', { defaultValue: 'Provider' })}
                       options={[
                         {
                           value: '',
-                          label: `Default (${AI_PROVIDERS.find((p) => p.key === settings.provider)?.label ?? settings.provider})`,
+                          label: t('taskRouting.defaultProviderOption', {
+                            defaultValue: 'Default ({{provider}})',
+                            provider: aiProviderLabel(settings.provider, t),
+                          }),
                         },
                         ...configuredProviders.map((p) => ({
                           value: p,
-                          label: AI_PROVIDERS.find((ap) => ap.key === p)?.label ?? p,
+                          label: aiProviderLabel(p, t),
                         })),
                       ]}
                     />
                   </div>
 
                   <div className="min-w-0 space-y-1">
-                    <label htmlFor={`task-model-${group.key}`} className="text-[12px] text-[var(--text-tertiary)]">Model</label>
+                    <label htmlFor={`task-model-${group.key}`} className="text-[12px] text-[var(--text-tertiary)]">
+                      {t('taskRouting.modelLabel', { defaultValue: 'Model' })}
+                    </label>
                     <Input
                       id={`task-model-${group.key}`}
                       value={selectedModel}
@@ -103,7 +112,7 @@ export function TaskRoutingSection({ settings, overrides, onChange, disabled }: 
                       type="button"
                       onClick={() => onChange(group.key, null)}
                       className="self-end p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-                      title="Reset to default"
+                      title={t('taskRouting.resetToDefault', { defaultValue: 'Reset to default' })}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
                     </button>
@@ -113,7 +122,9 @@ export function TaskRoutingSection({ settings, overrides, onChange, disabled }: 
 
               {!isLocked && selectedProvider === 'openai-compatible' && (
                 <div className="space-y-1">
-                  <label htmlFor={`task-endpoint-${group.key}`} className="text-[12px] text-[var(--text-tertiary)]">Endpoint URL</label>
+                  <label htmlFor={`task-endpoint-${group.key}`} className="text-[12px] text-[var(--text-tertiary)]">
+                    {t('taskRouting.endpointLabel', { defaultValue: 'Endpoint URL' })}
+                  </label>
                   <Input
                     id={`task-endpoint-${group.key}`}
                     value={selectedEndpoint}

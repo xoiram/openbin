@@ -1,5 +1,6 @@
 import { Eye, EyeOff, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Disclosure } from '@/components/ui/disclosure';
@@ -13,20 +14,22 @@ import { usePlan } from '@/lib/usePlan';
 import { cn, getErrorMessage } from '@/lib/utils';
 import type { AiTaskGroup } from '@/types';
 import { AI_PROVIDERS, KEY_PLACEHOLDERS, MODEL_HINTS, TASK_GROUP_META } from './aiConstants';
-import { PROMPT_HELP_TEXT, type PromptTab } from './promptHelpText';
+import { PromptHelpText, type PromptTab } from './promptHelpText';
 import { TaskRoutingSection } from './TaskRoutingSection';
 import { useAiProviderSetup } from './useAiProviderSetup';
 import { deleteAiSettings, deleteTaskOverride, saveAiSettings, saveTaskOverride, testAiConnection, useAiSettings } from './useAiSettings';
 import { useDefaultPrompts } from './useDefaultPrompts';
 
-const PROMPT_TAB_META = [
-  { key: 'analysis', label: 'Photo Analysis', shortLabel: 'Photos' },
-  { key: 'command', label: 'Commands', shortLabel: 'Cmds' },
-  { key: 'query', label: 'Queries', shortLabel: 'Queries' },
-  { key: 'structure', label: 'Extraction', shortLabel: 'Extract' },
-  { key: 'reorganization', label: 'Reorganize', shortLabel: 'Reorg' },
-  { key: 'tagSuggestion', label: 'Tag Suggestion', shortLabel: 'Tags' },
-] as const;
+const PROMPT_TAB_KEYS = ['analysis', 'command', 'query', 'structure', 'reorganization', 'tagSuggestion'] as const;
+
+const PROMPT_TAB_DEFAULTS: Record<PromptTab, { label: string; shortLabel: string }> = {
+  analysis: { label: 'Photo Analysis', shortLabel: 'Photos' },
+  command: { label: 'Commands', shortLabel: 'Cmds' },
+  query: { label: 'Queries', shortLabel: 'Queries' },
+  structure: { label: 'Extraction', shortLabel: 'Extract' },
+  reorganization: { label: 'Reorganize', shortLabel: 'Reorg' },
+  tagSuggestion: { label: 'Tag Suggestion', shortLabel: 'Tags' },
+};
 
 interface AiSettingsSectionProps {
   aiEnabled: boolean;
@@ -68,6 +71,7 @@ function parseOptionalNumber(value: string): number | null {
 }
 
 export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProps) {
+  const { t } = useTranslation(['ai', 'settings']);
   const { demoMode } = useAuth();
   const { isSelfHosted } = usePlan();
   const { settings, isLoading, setSettings } = useAiSettings();
@@ -76,6 +80,12 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
 
   const setup = useAiProviderSetup({ providerConfigs: settings?.providerConfigs });
   const { setProvider, setApiKey, setModel, setEndpointUrl } = setup;
+
+  const promptTabMeta = PROMPT_TAB_KEYS.map((key) => ({
+    key,
+    label: t(`settings:ai.promptTabs.${key}.label`, { defaultValue: PROMPT_TAB_DEFAULTS[key].label }),
+    shortLabel: t(`settings:ai.promptTabs.${key}.shortLabel`, { defaultValue: PROMPT_TAB_DEFAULTS[key].shortLabel }),
+  }));
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [activePromptTab, setActivePromptTab] = useState<PromptTab>('analysis');
@@ -129,7 +139,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
       setup.setTestResult('success');
     } catch (err) {
       setup.setTestResult('error');
-      const base = getErrorMessage(err, 'Connection failed');
+      const base = getErrorMessage(err, t('aiSettingsSection.connectionFailedBase', { defaultValue: 'Connection failed' }));
       setTestError(setup.model ? `${base} (model: ${setup.model})` : base);
     }
   }
@@ -167,9 +177,9 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
       if (overrideOps.length > 0) await Promise.all(overrideOps);
 
       setSettings(saved);
-      showToast({ message: 'AI settings saved', variant: 'success' });
+      showToast({ message: t('setup.settingsSaved', { defaultValue: 'AI settings saved' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to save'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('setup.saveFailed', { defaultValue: 'Failed to save AI settings' })), variant: 'error' });
     }
   }
 
@@ -184,9 +194,9 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
       setForm(EMPTY_FORM);
       setTaskOverrides({});
       setup.setTestResult(null);
-      showToast({ message: 'AI settings removed', variant: 'success' });
+      showToast({ message: t('aiSettingsSection.settingsRemoved', { defaultValue: 'AI settings removed' }), variant: 'success' });
     } catch {
-      showToast({ message: 'Failed to remove settings', variant: 'error' });
+      showToast({ message: t('aiSettingsSection.removeFailed', { defaultValue: 'Failed to remove settings' }), variant: 'error' });
     }
   }
 
@@ -195,10 +205,10 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
   return (
     <Card id="ai-settings">
       <CardContent>
-        <Disclosure defaultOpen={window.location.hash === '#ai-settings'} label={<span className="inline-flex items-center gap-1.5 text-[var(--text-primary)]"><Sparkles className="h-4 w-4" />AI Features</span>} labelClassName="text-[15px] font-semibold">
+        <Disclosure defaultOpen={window.location.hash === '#ai-settings'} label={<span className="inline-flex items-center gap-1.5 text-[var(--text-primary)]"><Sparkles className="h-4 w-4" />{t('aiSettingsSection.title', { defaultValue: 'AI Features' })}</span>} labelClassName="text-[15px] font-semibold">
         <div className="row-spread mt-1">
           <p id="ai-toggle-description" className="text-[13px] text-[var(--text-tertiary)]">
-            Photo analysis, item extraction, and AI commands
+            {t('aiSettingsSection.toggleDescription', { defaultValue: 'Photo analysis, item extraction, and AI commands' })}
           </p>
           <Switch id="ai-toggle" checked={aiEnabled} onCheckedChange={onToggle} aria-labelledby="ai-toggle-description" />
         </div>
@@ -216,14 +226,16 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
             )}>
               {settings === null && !touched && (
                 <p className="text-[13px] text-[var(--text-secondary)] mt-3">
-                  Connect an AI provider to unlock photo analysis, item extraction from text and voice, and natural language commands for managing your bins.
+                  {t('aiSettingsSection.connectPrompt', {
+                    defaultValue: 'Connect an AI provider to unlock photo analysis, item extraction from text and voice, and natural language commands for managing your bins.',
+                  })}
                 </p>
               )}
 
               {settings?.source === 'env' && (
                 <div className="mt-3 px-3 py-2 rounded-[var(--radius-sm)] bg-[var(--accent)]/10 border border-[var(--accent)]/20">
                   <p className="text-[13px] text-[var(--text-secondary)]">
-                    AI configured by server. Save your own settings to override.
+                    {t('aiSettingsSection.envConfigured', { defaultValue: 'AI configured by server. Save your own settings to override.' })}
                   </p>
                 </div>
               )}
@@ -238,7 +250,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
 
                 {/* API Key */}
                 <div className="space-y-1.5">
-                  <label htmlFor="ai-api-key" className="text-[13px] text-[var(--text-secondary)]">API Key</label>
+                  <label htmlFor="ai-api-key" className="text-[13px] text-[var(--text-secondary)]">{t('aiSettingsSection.apiKeyLabel', { defaultValue: 'API Key' })}</label>
                   <div className="relative">
                     <Input
                       id="ai-api-key"
@@ -251,7 +263,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                     <button
                       type="button"
                       onClick={() => setup.setShowKey(!setup.showKey)}
-                      aria-label={setup.showKey ? 'Hide API key' : 'Show API key'}
+                      aria-label={setup.showKey ? t('setup.hideApiKey', { defaultValue: 'Hide API key' }) : t('setup.showApiKey', { defaultValue: 'Show API key' })}
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
                     >
                       {setup.showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -261,7 +273,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
 
                 {/* Model */}
                 <div className="space-y-1.5">
-                  <label htmlFor="ai-model" className="text-[13px] text-[var(--text-secondary)]">Model</label>
+                  <label htmlFor="ai-model" className="text-[13px] text-[var(--text-secondary)]">{t('aiSettingsSection.modelLabel', { defaultValue: 'Model' })}</label>
                   <Input
                     id="ai-model"
                     value={setup.model}
@@ -273,7 +285,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                 {/* Endpoint URL — only for openai-compatible */}
                 {setup.provider === 'openai-compatible' && (
                   <div className="space-y-1.5">
-                    <label htmlFor="ai-endpoint" className="text-[13px] text-[var(--text-secondary)]">Endpoint URL</label>
+                    <label htmlFor="ai-endpoint" className="text-[13px] text-[var(--text-secondary)]">{t('setup.endpointAriaLabel', { defaultValue: 'Endpoint URL' })}</label>
                     <Input
                       id="ai-endpoint"
                       value={setup.endpointUrl}
@@ -286,7 +298,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                 {/* Required fields hint */}
                 {touched && !setup.apiKey && !setup.model && (
                   <p className="text-[12px] text-[var(--text-tertiary)]" role="alert">
-                    API key and model are required.
+                    {t('aiSettingsSection.requiredFieldsHint', { defaultValue: 'API key and model are required.' })}
                   </p>
                 )}
 
@@ -321,10 +333,10 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                   const active = promptMap[activePromptTab];
                   const setActive = (value: string) => updateField(active.key, value);
                   return (
-                    <Disclosure label="Custom Prompts">
+                    <Disclosure label={t('aiSettingsSection.customPromptsLabel', { defaultValue: 'Custom Prompts' })}>
                       <div className="space-y-2">
                         <OptionGroup
-                          options={PROMPT_TAB_META.map((tab) => ({ key: tab.key, label: tab.label, shortLabel: tab.shortLabel }))}
+                          options={promptTabMeta}
                           value={activePromptTab}
                           onChange={setActivePromptTab}
                           size="sm"
@@ -341,7 +353,9 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           )}
                         />
                         {demoMode && (
-                          <p className="text-[12px] text-[var(--text-tertiary)] italic">Custom prompts are disabled for demo accounts.</p>
+                          <p className="text-[12px] text-[var(--text-tertiary)] italic">
+                            {t('aiSettingsSection.demoPromptsDisabled', { defaultValue: 'Custom prompts are disabled for demo accounts.' })}
+                          </p>
                         )}
                         <Textarea
                           value={active.value}
@@ -352,7 +366,9 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           disabled={demoMode}
                         />
                         <div className="row-spread">
-                          <p className="text-[12px] text-[var(--text-tertiary)]">{PROMPT_HELP_TEXT[activePromptTab]}</p>
+                          <p className="text-[12px] text-[var(--text-tertiary)]">
+                            <PromptHelpText tab={activePromptTab} t={t} />
+                          </p>
                           {!demoMode && (active.value.trim() ? (
                             <button
                               type="button"
@@ -360,7 +376,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                               className="flex items-center gap-1 text-[12px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors shrink-0 ml-2"
                             >
                               <RotateCcw className="h-3 w-3" />
-                              Reset to Default
+                              {t('aiSettingsSection.resetToDefault', { defaultValue: 'Reset to Default' })}
                             </button>
                           ) : (
                             <button
@@ -368,7 +384,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                               onClick={() => setActive(defaultPrompts?.[activePromptTab] ?? '')}
                               className="text-[12px] text-[var(--accent)] hover:underline shrink-0 ml-2"
                             >
-                              Load default to customize
+                              {t('aiSettingsSection.loadDefaultToCustomize', { defaultValue: 'Load default to customize' })}
                             </button>
                           ))}
                         </div>
@@ -379,12 +395,12 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
 
                 {/* Advanced AI Parameters */}
                 <Disclosure
-                  label="Advanced"
+                  label={t('aiSettingsSection.advancedLabel', { defaultValue: 'Advanced' })}
                   indicator={!!(form.temperature || form.maxTokens || form.topP || form.requestTimeout)}
                 >
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <label htmlFor="ai-temperature" className="text-[13px] text-[var(--text-secondary)]">Temperature</label>
+                      <label htmlFor="ai-temperature" className="text-[13px] text-[var(--text-secondary)]">{t('aiSettingsSection.temperatureLabel', { defaultValue: 'Temperature' })}</label>
                       <div className="relative">
                         <Input
                           id="ai-temperature"
@@ -395,7 +411,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           step={0.1}
                           value={form.temperature}
                           onChange={(e) => updateField('temperature', e.target.value)}
-                          placeholder="Default"
+                          placeholder={t('aiSettingsSection.defaultPlaceholder', { defaultValue: 'Default' })}
                         />
                         {form.temperature && (
                           <button type="button" onClick={() => updateField('temperature', '')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
@@ -403,10 +419,10 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           </button>
                         )}
                       </div>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">0.0–2.0</p>
+                      <p className="text-[11px] text-[var(--text-tertiary)]">{t('aiSettingsSection.temperatureRange', { defaultValue: '0.0–2.0' })}</p>
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="ai-max-tokens" className="text-[13px] text-[var(--text-secondary)]">Max Tokens</label>
+                      <label htmlFor="ai-max-tokens" className="text-[13px] text-[var(--text-secondary)]">{t('aiSettingsSection.maxTokensLabel', { defaultValue: 'Max Tokens' })}</label>
                       <div className="relative">
                         <Input
                           id="ai-max-tokens"
@@ -417,7 +433,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           step={100}
                           value={form.maxTokens}
                           onChange={(e) => updateField('maxTokens', e.target.value)}
-                          placeholder="Default"
+                          placeholder={t('aiSettingsSection.defaultPlaceholder', { defaultValue: 'Default' })}
                         />
                         {form.maxTokens && (
                           <button type="button" onClick={() => updateField('maxTokens', '')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
@@ -425,10 +441,10 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           </button>
                         )}
                       </div>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">100–16,000</p>
+                      <p className="text-[11px] text-[var(--text-tertiary)]">{t('aiSettingsSection.maxTokensRange', { defaultValue: '100–16,000' })}</p>
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="ai-top-p" className="text-[13px] text-[var(--text-secondary)]">Top P</label>
+                      <label htmlFor="ai-top-p" className="text-[13px] text-[var(--text-secondary)]">{t('aiSettingsSection.topPLabel', { defaultValue: 'Top P' })}</label>
                       <div className="relative">
                         <Input
                           id="ai-top-p"
@@ -439,7 +455,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           step={0.05}
                           value={form.topP}
                           onChange={(e) => updateField('topP', e.target.value)}
-                          placeholder="Default"
+                          placeholder={t('aiSettingsSection.defaultPlaceholder', { defaultValue: 'Default' })}
                         />
                         {form.topP && (
                           <button type="button" onClick={() => updateField('topP', '')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
@@ -447,10 +463,10 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           </button>
                         )}
                       </div>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">0.0–1.0</p>
+                      <p className="text-[11px] text-[var(--text-tertiary)]">{t('aiSettingsSection.topPRange', { defaultValue: '0.0–1.0' })}</p>
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="ai-timeout" className="text-[13px] text-[var(--text-secondary)]">Request Timeout</label>
+                      <label htmlFor="ai-timeout" className="text-[13px] text-[var(--text-secondary)]">{t('aiSettingsSection.requestTimeoutLabel', { defaultValue: 'Request Timeout' })}</label>
                       <div className="relative">
                         <Input
                           id="ai-timeout"
@@ -461,7 +477,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           step={5}
                           value={form.requestTimeout}
                           onChange={(e) => updateField('requestTimeout', e.target.value)}
-                          placeholder="Default (30)"
+                          placeholder={t('aiSettingsSection.requestTimeoutPlaceholder', { defaultValue: 'Default (30)' })}
                         />
                         {form.requestTimeout && (
                           <button type="button" onClick={() => updateField('requestTimeout', '')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
@@ -469,14 +485,16 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                           </button>
                         )}
                       </div>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">10–300 seconds</p>
+                      <p className="text-[11px] text-[var(--text-tertiary)]">{t('aiSettingsSection.requestTimeoutRange', { defaultValue: '10–300 seconds' })}</p>
                     </div>
                   </div>
                 </Disclosure>
 
                 {/* Test result */}
                 {setup.testResult === 'success' && (
-                  <p className="text-[13px] text-[var(--color-success)]" aria-live="polite">Connected to {setup.model} successfully</p>
+                  <p className="text-[13px] text-[var(--color-success)]" aria-live="polite">
+                    {t('aiSettingsSection.connectedSuccess', { defaultValue: 'Connected to {{model}} successfully', model: setup.model })}
+                  </p>
                 )}
                 {setup.testResult === 'error' && (
                   <p className="text-[13px] text-[var(--destructive)]" role="alert">{testError}</p>
@@ -491,13 +509,13 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                       disabled={setup.testing || !setup.apiKey || !setup.model}
                     >
                       {setup.testing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
-                      Test Connection
+                      {t('aiSettingsSection.testConnection', { defaultValue: 'Test Connection' })}
                     </Button>
                     <Button
                       onClick={handleSave}
                       disabled={setup.saving || !setup.apiKey || !setup.model}
                     >
-                      {setup.saving ? 'Saving...' : 'Save'}
+                      {setup.saving ? t('setup.saving', { defaultValue: 'Saving...' }) : t('setup.save', { defaultValue: 'Save' })}
                     </Button>
                   </div>
                   {settings && settings.source !== 'env' && (
@@ -506,7 +524,7 @@ export function AiSettingsSection({ aiEnabled, onToggle }: AiSettingsSectionProp
                         variant="destructive-ghost"
                         onClick={handleRemove}
                       >
-                        Remove AI Settings
+                        {t('aiSettingsSection.removeSettings', { defaultValue: 'Remove AI Settings' })}
                       </Button>
                     </div>
                   )}

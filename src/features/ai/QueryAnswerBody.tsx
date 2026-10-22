@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ItemQueryResults } from './ItemQueryResults';
 import { QueryIntroText } from './QueryIntroText';
 import type { QueryResult } from './useInventoryQuery';
@@ -8,6 +9,7 @@ interface QueryAnswerBodyProps {
 }
 
 export function QueryAnswerBody({ queryResult, onBinClick }: QueryAnswerBodyProps) {
+  const { t } = useTranslation('ai');
   const { answer, matches } = queryResult;
   return (
     <div className="space-y-3">
@@ -15,7 +17,9 @@ export function QueryAnswerBody({ queryResult, onBinClick }: QueryAnswerBodyProp
       <ItemQueryResults matches={matches} onBinClick={onBinClick} />
       {matches.length === 0 && !answer.trim() && (
         <p className="text-[13px] text-[var(--text-tertiary)] text-center py-2">
-          No matching bins found. Try different terms or check trash.
+          {t('queryAnswer.noMatches', {
+            defaultValue: 'No matching bins found. Try different terms or check trash.',
+          })}
         </p>
       )}
     </div>

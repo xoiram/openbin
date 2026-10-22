@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,6 +21,10 @@ export interface RecoverAccountDialogProps {
   onRecovered: () => Promise<void> | void;
 }
 
+// The description below is split into prefix/suffix t() keys around
+// scheduledDate so the formatted date renders as its own React node — a test
+// asserts on the date substring directly. i18next-cli lint flags this as
+// "string concatenation"; it's intentional here — see docs/i18n.md.
 export function RecoverAccountDialog({
   open,
   onOpenChange,
@@ -29,6 +34,7 @@ export function RecoverAccountDialog({
   onRecovered,
 }: RecoverAccountDialogProps) {
   const { recoverAccount } = useAuth();
+  const { t } = useTranslation('settings');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,7 +46,7 @@ export function RecoverAccountDialog({
       onOpenChange(false);
       await onRecovered();
     } catch (err) {
-      setError(getErrorMessage(err, 'Recovery failed'));
+      setError(getErrorMessage(err, t('recoverDialog.recoveryFailedDefault', { defaultValue: 'Recovery failed' })));
     } finally {
       setSubmitting(false);
     }
@@ -56,9 +62,10 @@ export function RecoverAccountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Account scheduled for deletion</DialogTitle>
+          <DialogTitle>{t('recoverDialog.title', { defaultValue: 'Account scheduled for deletion' })}</DialogTitle>
           <DialogDescription>
-            This account is scheduled for permanent deletion on {scheduledDate}. Recover it now to continue using your account.
+            {t('recoverDialog.descPrefix', { defaultValue: 'This account is scheduled for permanent deletion on' })}{' '}
+            {scheduledDate}. {t('recoverDialog.descSuffix', { defaultValue: 'Recover it now to continue using your account.' })}
           </DialogDescription>
         </DialogHeader>
         {error && (
@@ -68,10 +75,12 @@ export function RecoverAccountDialog({
         )}
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            {t('recoverDialog.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button type="button" onClick={handleRecover} disabled={submitting}>
-            {submitting ? 'Recovering...' : 'Recover account'}
+            {submitting
+              ? t('recoverDialog.recovering', { defaultValue: 'Recovering...' })
+              : t('recoverDialog.recoverAccountButton', { defaultValue: 'Recover account' })}
           </Button>
         </DialogFooter>
       </DialogContent>

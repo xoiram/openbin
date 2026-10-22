@@ -1,0 +1,186 @@
+{
+  "askAi": {
+    "openPalette": {
+      "body": "Åpne Spør AI med {{shortcut}} fra hvor som helst.",
+      "bodyMobile": "Spør hvor noe er, eller be AI om å gjøre noe.",
+      "title": "Spør om hva som helst"
+    },
+    "photoToBin": {
+      "body": "Legg ved et bilde, så oppretter AI en {{bin}} fra det — gjenstander, stikkord og notater inkludert.",
+      "title": "Slipp et bilde inn i chatten"
+    },
+    "tryQuery": {
+      "body": "Spør «hvor er batteriene?» eller «opprett en {{bin}} for kjøkkenredskaper».",
+      "title": "Prøv et spørsmål"
+    },
+    "voiceInput": {
+      "body": "Trykk på mikrofonen for å diktere — perfekt når hendene er opptatt.",
+      "title": "Snakk i stedet for å skrive"
+    }
+  },
+  "banner": {
+    "dismissAriaLabel": "Lukk omvisningsforslag",
+    "seeWhatCanDo": "Se hva {{appName}} kan gjøre",
+    "showMe": "Vis meg"
+  },
+  "binAnatomy": {
+    "binAppearance": {
+      "body": "Stikkord filtrerer på tvers av {{bins}}, {{areas}} grupperer dem, og utseende bestemmer utskrevne etiketter.",
+      "title": "Stikkord, område og utseende"
+    },
+    "binQr": {
+      "body": "Den 6-tegns koden er en utskriftsklar QR-kode. Fest den på {{bin}} — hvem som helst i dette {{location}} kan skanne eller skrive den inn.",
+      "title": "Hver {{bin}} har en kode"
+    },
+    "binTabs": {
+      "body": "Bytt faner for filer, et bruksvarmekart og aktivitet — se når denne {{bin}} sist ble åpnet og hva som har endret seg.",
+      "title": "Se hva som skjer"
+    },
+    "binToolbar": {
+      "body": "Verktøylinjen har alt du trenger: rediger innhold, fest for rask tilgang, skriv ut en etikett, dupliser eller flytt.",
+      "title": "Rediger, fest, skriv ut, dupliser"
+    },
+    "quickAdd": {
+      "bodyAi": "Skriv «3 skrutrekkere, et målebånd» og trykk på gnisten — AI tolker det til gjenstander med antall.",
+      "bodyNoAi": "Skriv inn et navn og trykk Enter. Lim inn en kommaseparert liste for flere.",
+      "title": "Legg til gjenstander raskt"
+    }
+  },
+  "bulkEdit": {
+    "bulkActionBar": {
+      "body": "Merk av én eller flere {{bins}}, så flyter denne linjen opp med alle massehandlinger: stikkord, {{areas}}, utseende, utsjekkingsstatus eller sletting.",
+      "title": "Handlingslinjen låser opp massredigering"
+    },
+    "selectToggle": {
+      "body": "Trykk på en avmerkingsboks i en rad for å begynne å velge {{bins}}.",
+      "title": "Velg {{bins}} for massredigering"
+    },
+    "undoToast": {
+      "body": "Masseslettinger kan angres fra én samlet angre-varsling — ingen bekreftelse per gjenstand nødvendig.",
+      "title": "Én varsling, én angring"
+    }
+  },
+  "createAi": {
+    "bulkAddConfirm": {
+      "body": "AI-forslagene er redigerbare. Bekreft for å opprette hver {{bin}} i én omgang.",
+      "title": "Opprett alle på én gang"
+    },
+    "captureCamera": {
+      "body": "Rett kameraet mot en hylle, skuff eller et rom — AI navngir {{bin}} og lister opp hva som er inni.",
+      "title": "Ta et bilde"
+    },
+    "captureGrouping": {
+      "body": "Slå på gruppering for å gjøre flere bilder om til flere {{bins}} i én omgang.",
+      "title": "Grupper mens du går"
+    },
+    "groupReview": {
+      "body": "Dra bilder mellom grupper, gi nytt navn eller slå sammen før AI kjører.",
+      "title": "Se over før du bekrefter"
+    }
+  },
+  "highlights": {
+    "askAi": {
+      "body": "Spør hvor noe er, eller be den gjøre noe — AI kan opprette, redigere og finne {{bins}}. Prøv {{shortcut}}.",
+      "bodyDisabled": "Bruk søkefeltet for å finne {{bins}} etter navn, stikkord eller innhold.",
+      "titleDisabled": "Finn dine {{bins}}",
+      "titleEnabled": "Spør AI om hva som helst"
+    },
+    "cta": {
+      "bodyReadonly": "Flere omvisninger er tilgjengelige fra «?»-knappen på hver side, eller fra Innstillinger.",
+      "bodyWrite": "Opprett din neste {{bin}} for å komme i gang. Flere omvisninger er tilgjengelige fra «?»-knappen på hver side, eller fra Innstillinger.",
+      "bodyWriteAi": "Prøv «opprett en {{bin}} for kjøkkenredskaper» for å komme i gang. Flere omvisninger er tilgjengelige fra «?»-knappen på hver side, eller fra Innstillinger.",
+      "buttonNewBin": "Ny {{bin}}",
+      "buttonTryIt": "Prøv det",
+      "title": "Det var høydepunktene"
+    },
+    "dashboardOverview": {
+      "body": "Oversikten din viser festede {{bins}}, nylige skanninger, utsjekkinger og et aktivitetskart, så du ser hva som skjer.",
+      "title": "Velkommen hjem"
+    },
+    "navSidebar": {
+      "body": "Åpne Gjenstander, Stikkord eller {{areas}} for visninger på tvers av {{bin}} og massredigering — pluss papirkurv og aktivitetslogg.",
+      "title": "Visninger på tvers av bokser"
+    },
+    "scanQr": {
+      "body": "Rett kameraet mot en etikett for å hoppe rett til den {{bin}}, eller skriv inn den 6-tegns koden.",
+      "title": "Skann eller søk"
+    }
+  },
+  "launcher": {
+    "stepCount_one": "{{count}} steg",
+    "stepCount_other": "{{count}} steg",
+    "tourAriaLabel": "Omvisning:"
+  },
+  "overlay": {
+    "ariaLabel": "Guidet omvisning",
+    "back": "Tilbake",
+    "done": "Ferdig",
+    "next": "Neste",
+    "skipTour": "Hopp over omvisning"
+  },
+  "picker": {
+    "ask-ai": {
+      "summary": "Palett, talediktering, bilde-til-boks",
+      "title": "Spør AI og bruk stemme"
+    },
+    "bin-anatomy": {
+      "summary": "Gjenstander, stikkord, QR, faner, verktøylinje",
+      "title": "Inni en boks"
+    },
+    "bulk-edit": {
+      "summary": "Velg, handlingslinje og samlet angre",
+      "title": "Massrediger"
+    },
+    "create-ai": {
+      "summary": "Ta bilde, grupper og se over AI-genererte bokser",
+      "title": "Opprett bokser fra bilder"
+    },
+    "highlights": {
+      "summary": "Oversikt, Spør AI, skann og bokser på tvers",
+      "title": "Høydepunkter"
+    },
+    "print-scan": {
+      "summary": "Etikettformater, forhåndsinnstillinger og QR-skanning",
+      "title": "Skriv ut og skann"
+    },
+    "reorganize": {
+      "summary": "Regrupper bokser eller slå sammen stikkord",
+      "title": "Reorganiser med AI"
+    }
+  },
+  "printScan": {
+    "printBinSelector": {
+      "body": "Skriv ut etiketter for noen få {{bins}} eller for alt. Kan lenkes direkte hit fra hvilken som helst liste.",
+      "title": "Velg hvilke {{bins}} som skal skrives ut"
+    },
+    "printMode": {
+      "body": "Velg et format: QR-etiketter for skanning, navnekort, eller en full sjekkliste for opptelling.",
+      "title": "Etiketter, navn eller gjenstandslister"
+    },
+    "printPreset": {
+      "body": "Slå på tilpasning av mål for å justere marger, og lagre justeringene som en gjenbrukbar forhåndsinnstilling — neste utskrift er ett klikk unna.",
+      "title": "Tilpass og lagre forhåndsinnstillinger"
+    },
+    "scanQr": {
+      "body": "Rett kameraet mot en utskrevet etikett for å hoppe til boksen — ingen skriving nødvendig.",
+      "title": "Skann den utskrevne etiketten"
+    }
+  },
+  "reorganize": {
+    "reorganizeMode": {
+      "body": "Velg boksmodus for å dele opp eller slå sammen overfylte {{bins}}; velg stikkordmodus for å samle stikkordvokabularet på tvers av {{bins}}.",
+      "title": "Regrupper bokser eller stikkord"
+    },
+    "reorganizeSelector": {
+      "body": "Velg noen få {{bins}} eller stikkord. AI-en gjør det bedre med fokusert input enn hele {{location}}.",
+      "title": "Fokuser AI-en"
+    },
+    "reorganizeSubmit": {
+      "body": "Forhåndsvis hver endring før du bekrefter. Ingenting flyttes før du sier ja.",
+      "title": "Forhåndsvis, så bruk"
+    }
+  },
+  "shared": {
+    "gotIt": "Skjønner"
+  }
+}

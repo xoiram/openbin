@@ -8,6 +8,7 @@ import { setAccessTokenCookie, setRefreshTokenCookie } from '../../lib/cookies.j
 import { getEeHooks } from '../../lib/eeHooks.js';
 import { ConflictError, ForbiddenError, ValidationError } from '../../lib/httpErrors.js';
 import { createLogger } from '../../lib/logger.js';
+import { requirePasswordAuthEnabled } from '../../lib/passwordAuthGate.js';
 import { isSelfHosted, Plan, SubStatus } from '../../lib/planGate.js';
 import { queryMaybeOne, queryOne } from '../../lib/queryHelpers.js';
 import { createRefreshToken } from '../../lib/refreshTokens.js';
@@ -20,6 +21,7 @@ const router = Router();
 
 // POST /api/auth/register
 router.post('/register', asyncHandler(async (req, res) => {
+  requirePasswordAuthEnabled();
   const regMode = await getRegistrationMode();
   if (regMode === 'closed') {
     throw new ForbiddenError('Registration is currently disabled');

@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { MouseEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn, focusRing } from '@/lib/utils';
 
 interface BinDisclosurePillProps {
@@ -23,6 +24,8 @@ export function BinDisclosurePill({
   binName,
   onToggle,
 }: BinDisclosurePillProps) {
+  const { t } = useTranslation('ai');
+
   if (mode === 'nav') {
     return (
       <span className={PILL_CONTENT} aria-hidden="true">
@@ -32,9 +35,10 @@ export function BinDisclosurePill({
     );
   }
 
-  const label = binName
-    ? `${expanded ? 'Hide' : 'Show'} ${countLabel} in ${binName}`
-    : `${expanded ? 'Hide' : 'Show'} ${countLabel}`;
+  const verb = expanded
+    ? t('itemQuery.hide', { defaultValue: 'Hide' })
+    : t('itemQuery.show', { defaultValue: 'Show' });
+  const label = binName ? `${verb} ${countLabel} in ${binName}` : `${verb} ${countLabel}`;
 
   return (
     <button

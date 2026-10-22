@@ -1,4 +1,5 @@
 import { type MutableRefObject, useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { useToast } from '@/components/ui/toast';
 import { mapAiError } from './aiErrors';
 import type { Turn } from './conversationTurns';
@@ -24,6 +25,7 @@ export function useCommandExecution({
   locationId,
   showToast,
 }: UseCommandExecutionOptions) {
+  const { t } = useTranslation('ai');
   const [executing, setExecuting] = useState<ExecutingState>(null);
   const executingRef = useRef<ExecutingState>(null);
 
@@ -86,7 +88,7 @@ export function useCommandExecution({
           ),
         );
       } catch (err) {
-        const message = mapAiError(err, 'Execution failed');
+        const message = mapAiError(err, t('commandExecution.executionFailed', { defaultValue: 'Execution failed' }), t);
         showToast({ message });
         setTurns((curr) =>
           curr.map((t) =>
@@ -98,7 +100,7 @@ export function useCommandExecution({
         setExecuting(null);
       }
     },
-    [turnsRef, setTurns, locationId, showToast],
+    [turnsRef, setTurns, locationId, showToast, t],
   );
 
   return { executing, executeActions, toggleAction };

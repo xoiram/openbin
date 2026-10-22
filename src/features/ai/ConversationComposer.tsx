@@ -1,5 +1,6 @@
 import { Camera, Image as ImageIcon, Plus, Send, Square } from 'lucide-react';
 import { lazy, Suspense, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/components/ui/textarea';
 import { CreditCost } from '@/lib/aiCreditCost';
 import { useClickOutside } from '@/lib/useClickOutside';
@@ -29,6 +30,7 @@ interface AttachmentMenuProps {
 }
 
 function AttachmentMenu({ onPhotoClick, onCameraClick, disabled }: AttachmentMenuProps) {
+  const { t } = useTranslation('ai');
   const { visible, animating, isOpen, close, toggle } = usePopover();
   const menuRef = useRef<HTMLDivElement>(null);
   useClickOutside(menuRef, close);
@@ -45,7 +47,7 @@ function AttachmentMenu({ onPhotoClick, onCameraClick, disabled }: AttachmentMen
           'rounded-[var(--radius-sm)] text-[var(--text-tertiary)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)] disabled:opacity-40 transition-colors',
           isOpen && 'bg-[var(--bg-active)] text-[var(--text-primary)]',
         )}
-        aria-label="Add attachment"
+        aria-label={t('composer.addAttachment', { defaultValue: 'Add attachment' })}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         data-tour="photo-to-bin"
@@ -70,7 +72,7 @@ function AttachmentMenu({ onPhotoClick, onCameraClick, disabled }: AttachmentMen
             className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <Camera className="h-4 w-4 text-[var(--text-tertiary)]" />
-            Take photo
+            {t('composer.takePhoto', { defaultValue: 'Take photo' })}
           </button>
           <button
             type="button"
@@ -82,7 +84,7 @@ function AttachmentMenu({ onPhotoClick, onCameraClick, disabled }: AttachmentMen
             className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <ImageIcon className="h-4 w-4 text-[var(--text-tertiary)]" />
-            Upload from gallery
+            {t('composer.uploadFromGallery', { defaultValue: 'Upload from gallery' })}
           </button>
         </div>
       )}
@@ -99,6 +101,7 @@ export function ConversationComposer({
   transcription,
   disabled,
 }: ConversationComposerProps) {
+  const { t } = useTranslation('ai');
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -140,9 +143,11 @@ export function ConversationComposer({
               send();
             }
           }}
-          placeholder="Ask anything…"
+          placeholder={t('composer.placeholder', { defaultValue: 'Ask anything…' })}
           rows={1}
-          aria-label="Ask AI"
+          // Same string as CommandInput.tsx's dialog title — the composer
+          // textarea and the dialog it lives in share the "Ask AI" label.
+          aria-label={t('chat.dialogTitle', { defaultValue: 'Ask AI' })}
           enterKeyHint="send"
           autoComplete="off"
           disabled={!!isTranscribing || disabled}
@@ -160,7 +165,7 @@ export function ConversationComposer({
               focusRing,
               'rounded-[var(--radius-sm)] bg-[var(--destructive)] text-[var(--text-on-accent)] hover:bg-[var(--destructive-hover)] transition-colors',
             )}
-            aria-label="Stop"
+            aria-label={t('composer.stop', { defaultValue: 'Stop' })}
           >
             <Square className="h-4 w-4" fill="currentColor" />
           </button>
@@ -174,7 +179,7 @@ export function ConversationComposer({
               focusRing,
               'rounded-[var(--radius-sm)] bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors',
             )}
-            aria-label="Send"
+            aria-label={t('composer.send', { defaultValue: 'Send' })}
           >
             <Send className="h-4 w-4" />
           </button>

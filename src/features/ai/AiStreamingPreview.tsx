@@ -1,5 +1,6 @@
 import { AlertCircle, AlertTriangle, ChevronDown, Clock, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -23,7 +24,16 @@ export function classifyAiError(message: string): AiErrorVariant {
   return 'generic';
 }
 
-const VARIANT_TITLES: Record<AiErrorVariant, string> = {
+function variantTitleKey(variant: AiErrorVariant): string {
+  switch (variant) {
+    case 'rate-limit': return 'analyzeError.titleRateLimit';
+    case 'provider-down': return 'analyzeError.titleProviderDown';
+    case 'invalid-config': return 'analyzeError.titleInvalidConfig';
+    default: return 'analyzeError.titleGeneric';
+  }
+}
+
+const VARIANT_TITLE_DEFAULTS: Record<AiErrorVariant, string> = {
   'rate-limit': 'Rate limit reached',
   'provider-down': 'Provider unavailable',
   'invalid-config': 'AI configuration issue',
@@ -46,6 +56,7 @@ interface AiStreamingPreviewProps {
 
 /** Shared streaming analysis UI — photo with scan overlay, streamed name/items, status indicator. */
 export function AiStreamingPreview({ previewUrls, streamedName, streamedItems, initialStatusLabel }: AiStreamingPreviewProps) {
+  const { t } = useTranslation('ai');
   const hasStreamedData = streamedItems.length > 0 || streamedName.length > 0;
   const shimmerClass = cn(
     'rounded-[var(--radius-lg)] ai-photo-shrink transition-all duration-500 ease-in-out',
@@ -57,14 +68,14 @@ export function AiStreamingPreview({ previewUrls, streamedName, streamedItems, i
     <div className="space-y-3" aria-live="polite" aria-atomic="false">
       {previewUrls.length === 1 ? (
         <div className={shimmerClass}>
-          <img src={previewUrls[0]} alt="Preview 1" className={imgClass} />
+          <img src={previewUrls[0]} alt={t('streamingPreview.previewAlt', { defaultValue: 'Preview {{n}}', n: 1 })} className={imgClass} />
         </div>
       ) : (
         <div className="flex gap-2 overflow-x-auto">
           {previewUrls.map((url, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: preview URLs have no stable identity
             <div key={i} className={cn('shrink-0 flex-1 min-w-0', shimmerClass)}>
-              <img src={url} alt={`Preview ${i + 1}`} className={imgClass} />
+              <img src={url} alt={t('streamingPreview.previewAlt', { defaultValue: 'Preview {{n}}', n: i + 1 })} className={imgClass} />
             </div>
           ))}
         </div>
@@ -93,7 +104,7 @@ export function AiStreamingPreview({ previewUrls, streamedName, streamedItems, i
 
       <div className="row text-[13px] text-[var(--text-tertiary)]">
         <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--accent)]" />
-        <span>{hasStreamedData ? 'Finding more items...' : initialStatusLabel}</span>
+        <span>{hasStreamedData ? t('streamingPreview.findingMore', { defaultValue: 'Finding more items...' }) : initialStatusLabel}</span>
       </div>
     </div>
   );
@@ -118,6 +129,7 @@ interface AiAnalyzeErrorProps {
  * falls back to AlertCircle.
  */
 export function AiAnalyzeError({ error, detail, onRetry, onConfigureAi }: AiAnalyzeErrorProps) {
+  const { t } = useTranslation('ai');
   const [showDetail, setShowDetail] = useState(false);
   const variant = classifyAiError(error);
   const isRateLimit = variant === 'rate-limit';
@@ -149,7 +161,7 @@ export function AiAnalyzeError({ error, detail, onRetry, onConfigureAi }: AiAnal
               isRateLimit ? 'text-amber-600 dark:text-amber-400' : 'text-[var(--destructive)]',
             )}
           >
-            {VARIANT_TITLES[variant]}
+            {t(variantTitleKey(variant), { defaultValue: VARIANT_TITLE_DEFAULTS[variant] })}
           </p>
           <p className="text-[12px] text-[var(--text-tertiary)] mb-2.5">{error}</p>
           {detail && detail !== error && (
@@ -160,7 +172,7 @@ export function AiAnalyzeError({ error, detail, onRetry, onConfigureAi }: AiAnal
                 className="mb-1.5 flex items-center gap-1 text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
               >
                 <ChevronDown className={cn('h-3 w-3 transition-transform', !showDetail && '-rotate-90')} />
-                Details
+                {t('analyzeError.details', { defaultValue: 'Details' })}
               </button>
               {showDetail && (
                 <p className="mb-2 text-[11px] text-[var(--text-tertiary)] font-mono break-all">{detail}</p>
@@ -169,11 +181,11 @@ export function AiAnalyzeError({ error, detail, onRetry, onConfigureAi }: AiAnal
           )}
           <div className="flex gap-2">
             <Button type="button" size="sm" onClick={onRetry}>
-              Retry
+              {t('turnError.retry', { defaultValue: 'Retry' })}
             </Button>
             {showConfigButton && (
               <Button type="button" size="sm" variant="outline" onClick={onConfigureAi}>
-                Check AI Settings
+                {t('analyzeError.checkAiSettings', { defaultValue: 'Check AI Settings' })}
               </Button>
             )}
           </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn, focusRing } from '@/lib/utils';
 import type { SettingsCategory } from './settingsCategories';
@@ -17,15 +18,16 @@ const itemIdle =
 
 export function SettingsSidebar({ mainCategories, adminCategories }: SettingsSidebarProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
 
   return (
     <nav
-      aria-label="Settings"
+      aria-label={t('nav.heading', { defaultValue: 'Settings' })}
       className="flex w-[232px] shrink-0 flex-col overflow-y-auto"
     >
       <div className="px-5 pt-6 pb-4">
         <h1 className="font-heading text-[24px] font-bold leading-none tracking-[-0.02em] text-[var(--text-primary)]">
-          Settings
+          {t('nav.heading', { defaultValue: 'Settings' })}
         </h1>
       </div>
 

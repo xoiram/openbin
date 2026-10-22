@@ -3,6 +3,7 @@ import { asyncHandler } from '../../lib/asyncHandler.js';
 import { config } from '../../lib/config.js';
 import { ValidationError } from '../../lib/httpErrors.js';
 import { createLogger } from '../../lib/logger.js';
+import { requirePasswordAuthEnabled } from '../../lib/passwordAuthGate.js';
 import { consumeResetToken, createPasswordResetToken } from '../../lib/passwordReset.js';
 import { queryMaybeOne } from '../../lib/queryHelpers.js';
 import { validateEmail } from '../../lib/validation.js';
@@ -12,6 +13,7 @@ const router = Router();
 
 // POST /api/auth/forgot-password — request a password reset email (no auth)
 router.post('/forgot-password', asyncHandler(async (req, res) => {
+  requirePasswordAuthEnabled();
   const { email } = req.body;
 
   if (!email || typeof email !== 'string') {
@@ -40,6 +42,7 @@ router.post('/forgot-password', asyncHandler(async (req, res) => {
 
 // POST /api/auth/reset-password — consume reset token and set new password (no auth)
 router.post('/reset-password', asyncHandler(async (req, res) => {
+  requirePasswordAuthEnabled();
   const { token, newPassword } = req.body;
 
   if (!token || typeof token !== 'string') {

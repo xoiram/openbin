@@ -26,9 +26,13 @@ const steps: TourStep[] = [
     id: 'select-toggle',
     selector: '[data-tour="select-toggle"]',
     placement: 'bottom',
-    title: (ctx) => `Pick ${ctx.terminology.bins} to bulk edit`,
+    title: (ctx) =>
+      ctx.t('tour:bulkEdit.selectToggle.title', { defaultValue: 'Pick {{bins}} to bulk edit', bins: ctx.terminology.bins }),
     body: (ctx) =>
-      `Tap any row's checkbox to start selecting ${ctx.terminology.bins}.`,
+      ctx.t('tour:bulkEdit.selectToggle.body', {
+        defaultValue: "Tap any row's checkbox to start selecting {{bins}}.",
+        bins: ctx.terminology.bins,
+      }),
     route: '/bins',
     mobilePlacement: 'bottom',
   },
@@ -36,9 +40,13 @@ const steps: TourStep[] = [
     id: 'bulk-action-bar',
     selector: '[data-tour="bulk-action-bar"]',
     placement: 'top',
-    title: 'The action bar unlocks bulk edits',
+    title: (ctx) => ctx.t('tour:bulkEdit.bulkActionBar.title', { defaultValue: 'The action bar unlocks bulk edits' }),
     body: (ctx) =>
-      `Tick one or more ${ctx.terminology.bins} and this bar floats up with every bulk action: tags, ${ctx.terminology.areas}, appearance, checkout status, or delete.`,
+      ctx.t('tour:bulkEdit.bulkActionBar.body', {
+        defaultValue: 'Tick one or more {{bins}} and this bar floats up with every bulk action: tags, {{areas}}, appearance, checkout status, or delete.',
+        bins: ctx.terminology.bins,
+        areas: ctx.terminology.areas,
+      }),
     route: '/bins',
     mobilePlacement: 'top',
     // Select a row so the action bar actually mounts — otherwise the step has
@@ -53,11 +61,14 @@ const steps: TourStep[] = [
     id: 'undo-toast',
     selector: '[data-tour="select-toggle"]',
     placement: 'bottom',
-    title: 'One toast, one undo',
-    body: 'Bulk deletes can be reversed from a single coalesced undo toast — no per-item confirmation needed.',
+    title: (ctx) => ctx.t('tour:bulkEdit.undoToast.title', { defaultValue: 'One toast, one undo' }),
+    body: (ctx) =>
+      ctx.t('tour:bulkEdit.undoToast.body', {
+        defaultValue: 'Bulk deletes can be reversed from a single coalesced undo toast — no per-item confirmation needed.',
+      }),
     route: '/bins',
     mobilePlacement: 'bottom',
-    buttonLabel: 'Got it',
+    buttonLabel: (ctx) => ctx.t('tour:shared.gotIt', { defaultValue: 'Got it' }),
   },
 ];
 

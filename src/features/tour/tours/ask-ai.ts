@@ -8,11 +8,13 @@ const steps: TourStep[] = [
     id: 'open-palette',
     selector: '[data-tour="ask-composer"]',
     placement: 'bottom',
-    title: 'Ask anything',
+    title: (ctx) => ctx.t('tour:askAi.openPalette.title', { defaultValue: 'Ask anything' }),
     body: (ctx) => {
-      if (ctx.isMobile) return `Ask where something is, or tell AI what to do.`;
+      if (ctx.isMobile) {
+        return ctx.t('tour:askAi.openPalette.bodyMobile', { defaultValue: 'Ask where something is, or tell AI what to do.' });
+      }
       const [shortcut] = formatKeys('mod+j');
-      return `Open Ask AI with ${shortcut} from anywhere.`;
+      return ctx.t('tour:askAi.openPalette.body', { defaultValue: 'Open Ask AI with {{shortcut}} from anywhere.', shortcut });
     },
     route: '/',
     mobilePlacement: 'bottom',
@@ -27,8 +29,9 @@ const steps: TourStep[] = [
     id: 'voice-input',
     selector: '[data-tour="voice-input"]',
     placement: 'top',
-    title: 'Talk instead of type',
-    body: 'Tap the mic to dictate — great for hands-busy capture.',
+    title: (ctx) => ctx.t('tour:askAi.voiceInput.title', { defaultValue: 'Talk instead of type' }),
+    body: (ctx) =>
+      ctx.t('tour:askAi.voiceInput.body', { defaultValue: 'Tap the mic to dictate — great for hands-busy capture.' }),
     route: '/',
     mobilePlacement: 'top',
   },
@@ -36,9 +39,12 @@ const steps: TourStep[] = [
     id: 'photo-to-bin',
     selector: '[data-tour="photo-to-bin"]',
     placement: 'top',
-    title: 'Drop a photo into the chat',
+    title: (ctx) => ctx.t('tour:askAi.photoToBin.title', { defaultValue: 'Drop a photo into the chat' }),
     body: (ctx) =>
-      `Attach a photo and AI creates a ${ctx.terminology.bin} from it — items, tags, notes included.`,
+      ctx.t('tour:askAi.photoToBin.body', {
+        defaultValue: 'Attach a photo and AI creates a {{bin}} from it — items, tags, notes included.',
+        bin: ctx.terminology.bin,
+      }),
     route: '/',
     condition: (ctx) => ctx.canWrite,
     mobilePlacement: 'top',
@@ -47,12 +53,15 @@ const steps: TourStep[] = [
     id: 'try-query',
     selector: '[data-tour="ask-composer"]',
     placement: 'top',
-    title: 'Try a query',
+    title: (ctx) => ctx.t('tour:askAi.tryQuery.title', { defaultValue: 'Try a query' }),
     body: (ctx) =>
-      `Ask "where are the batteries?" or "create a kitchen utensils ${ctx.terminology.bin}".`,
+      ctx.t('tour:askAi.tryQuery.body', {
+        defaultValue: 'Ask "where are the batteries?" or "create a kitchen utensils {{bin}}".',
+        bin: ctx.terminology.bin,
+      }),
     route: '/',
     mobilePlacement: 'top',
-    buttonLabel: 'Got it',
+    buttonLabel: (ctx) => ctx.t('tour:shared.gotIt', { defaultValue: 'Got it' }),
   },
 ];
 

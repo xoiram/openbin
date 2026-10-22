@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -33,10 +34,17 @@ interface DeleteAccountDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Several sentences below are deliberately split into prefix/suffix t() keys
+// around a dynamic value (email, plan, dates, CONFIRM_PHRASE) rather than one
+// interpolated key — the value must render as its own React node so tests
+// asserting on it (or on partial button/label text) keep working. i18next-cli
+// lint flags this as "string concatenation"; it's intentional here, not an
+// oversight — see docs/i18n.md.
 export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogProps) {
   const { user, deleteAccount, activeLocationId } = useAuth();
   const { planInfo, isSelfHosted } = usePlan();
   const { showToast } = useToast();
+  const { t } = useTranslation('settings');
 
   const hasPassword = user?.hasPassword !== false;
   const hasActiveSub =
@@ -59,10 +67,10 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
     setExporting(true);
     try {
       await exportZip(activeLocationId);
-      showToast({ message: 'Backup downloaded', variant: 'success' });
+      showToast({ message: t('deleteDialog.backupDownloaded', { defaultValue: 'Backup downloaded' }), variant: 'success' });
     } catch (err) {
       showToast({
-        message: getErrorMessage(err, 'Failed to download backup'),
+        message: getErrorMessage(err, t('deleteDialog.backupDownloadFailed', { defaultValue: 'Failed to download backup' })),
         variant: 'error',
       });
     } finally {
@@ -125,13 +133,16 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
       );
       showToast({
         message: result.scheduledAt
-          ? `Account scheduled for deletion on ${new Date(result.scheduledAt).toLocaleDateString()}`
-          : 'Account deleted',
+          ? t('deleteDialog.deleteScheduledToast', {
+              defaultValue: 'Account scheduled for deletion on {{date}}',
+              date: new Date(result.scheduledAt).toLocaleDateString(),
+            })
+          : t('deleteDialog.accountDeletedToast', { defaultValue: 'Account deleted' }),
         variant: 'success',
       });
       // auth state already cleared by deleteAccount
     } catch (err) {
-      setError(getErrorMessage(err, 'Failed to delete account'));
+      setError(getErrorMessage(err, t('deleteDialog.deleteFailedToast', { defaultValue: 'Failed to delete account' })));
       setSubmitting(false);
     }
   }
@@ -145,27 +156,31 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 mb-1">
             <DialogTitle>
-              {step === 'summary' && 'Delete Account'}
-              {step === 'subscription' && 'Cancel Subscription'}
-              {step === 'confirm' && 'Confirm Account Deletion'}
+              {step === 'summary' && t('deleteDialog.titleSummary', { defaultValue: 'Delete Account' })}
+              {step === 'subscription' && t('deleteDialog.titleSubscription', { defaultValue: 'Cancel Subscription' })}
+              {step === 'confirm' && t('deleteDialog.titleConfirm', { defaultValue: 'Confirm Account Deletion' })}
             </DialogTitle>
             <span className="text-[12px] text-[var(--text-tertiary)] shrink-0">
-              Step {stepNumber} of {totalSteps}
+              {t('deleteDialog.stepPrefix', { defaultValue: 'Step' })} {stepNumber} {t('deleteDialog.stepOf', { defaultValue: 'of' })} {totalSteps}
             </span>
           </div>
           {step === 'summary' && (
             <DialogDescription>
-              You're about to delete <span className="font-medium text-[var(--text-secondary)]">{user.email}</span>.
+              {t('deleteDialog.descSummaryPrefix', { defaultValue: "You're about to delete" })}{' '}
+              <span className="font-medium text-[var(--text-secondary)]">{user.email}</span>.
             </DialogDescription>
           )}
           {step === 'subscription' && (
             <DialogDescription>
-              Choose how to handle your active subscription.
+              {t('deleteDialog.descSubscription', { defaultValue: 'Choose how to handle your active subscription.' })}
             </DialogDescription>
           )}
           {step === 'confirm' && (
             <DialogDescription>
-              This action will be irreversible after the {DELETION_GRACE_PERIOD_DAYS}-day recovery window.
+              {t('deleteDialog.descConfirm', {
+                defaultValue: 'This action will be irreversible after the {{days}}-day recovery window.',
+                days: DELETION_GRACE_PERIOD_DAYS,
+              })}
             </DialogDescription>
           )}
         </DialogHeader>
@@ -183,18 +198,22 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
           <div className="space-y-4">
             <div className="space-y-2 text-[14px] text-[var(--text-secondary)]">
               <p>
-                This will permanently delete your account in{' '}
-                <span className="font-medium text-[var(--text-primary)]">{DELETION_GRACE_PERIOD_DAYS} days</span>.
+                {t('deleteDialog.willDeleteIntroPrefix', { defaultValue: 'This will permanently delete your account in' })}{' '}
+                <span className="font-medium text-[var(--text-primary)]">
+                  {DELETION_GRACE_PERIOD_DAYS} {t('deleteDialog.daysSuffix', { defaultValue: 'days' })}
+                </span>.
               </p>
-              <p>You can recover your account by signing in until then.</p>
+              <p>{t('deleteDialog.recoverHint', { defaultValue: 'You can recover your account by signing in until then.' })}</p>
             </div>
             <div>
-              <p className="text-[13px] font-medium text-[var(--text-primary)] mb-2">What will be deleted:</p>
+              <p className="text-[13px] font-medium text-[var(--text-primary)] mb-2">
+                {t('deleteDialog.whatWillBeDeleted', { defaultValue: 'What will be deleted:' })}
+              </p>
               <ul className="text-[13px] text-[var(--text-secondary)] list-disc pl-5 space-y-1">
-                <li>All bins and items in locations where you are the only member</li>
-                <li>All photos and attachments you uploaded</li>
-                <li>Your API keys and personal settings</li>
-                <li>Locations shared with others will be preserved</li>
+                <li>{t('deleteDialog.deleteBullet1', { defaultValue: 'All bins and items in locations where you are the only member' })}</li>
+                <li>{t('deleteDialog.deleteBullet2', { defaultValue: 'All photos and attachments you uploaded' })}</li>
+                <li>{t('deleteDialog.deleteBullet3', { defaultValue: 'Your API keys and personal settings' })}</li>
+                <li>{t('deleteDialog.deleteBullet4', { defaultValue: 'Locations shared with others will be preserved' })}</li>
               </ul>
               <div className="pt-2">
                 <Button
@@ -204,19 +223,21 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
                   disabled={exporting || !activeLocationId}
                   className="text-sm"
                 >
-                  {exporting ? 'Downloading…' : '↓ Download my data first'}
+                  {exporting
+                    ? t('deleteDialog.downloadingButton', { defaultValue: 'Downloading…' })
+                    : t('deleteDialog.downloadDataButton', { defaultValue: '↓ Download my data first' })}
                 </Button>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                  Get a copy of your bins, items, photos, and tags before deleting.
+                  {t('deleteDialog.downloadDataHint', { defaultValue: 'Get a copy of your bins, items, photos, and tags before deleting.' })}
                 </p>
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('deleteDialog.cancel', { defaultValue: 'Cancel' })}
               </Button>
               <Button type="button" variant="destructive" onClick={goNext}>
-                Continue
+                {t('deleteDialog.continue', { defaultValue: 'Continue' })}
               </Button>
             </DialogFooter>
           </div>
@@ -225,45 +246,48 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
         {step === 'subscription' && (
           <div className="space-y-4">
             <p className="text-[14px] text-[var(--text-secondary)]">
-              You have an active{' '}
-              <span className="font-medium text-[var(--text-primary)]">{planLabel}</span> subscription billing{' '}
+              {t('deleteDialog.activeSubPrefix', { defaultValue: 'You have an active' })}{' '}
+              <span className="font-medium text-[var(--text-primary)]">{planLabel}</span>{' '}
+              {t('deleteDialog.activeSubMiddle', { defaultValue: 'subscription billing' })}{' '}
               <span className="font-medium text-[var(--text-primary)]">{periodLabel}</span>.
             </p>
             <div className="space-y-2">
               <RadioOption
                 selected={refundPolicy === 'none'}
                 onClick={() => setRefundPolicy('none')}
-                label="Cancel and stop billing now"
-                description="No refund for the unused time."
+                label={t('deleteDialog.cancelStopBillingNow', { defaultValue: 'Cancel and stop billing now' })}
+                description={t('deleteDialog.cancelStopBillingDesc', { defaultValue: 'No refund for the unused time.' })}
               />
               <RadioOption
                 selected={refundPolicy === 'prorated'}
                 onClick={() => setRefundPolicy('prorated')}
-                label="Cancel and refund the unused time"
-                description="A prorated refund will be issued for the remainder of the billing period."
+                label={t('deleteDialog.cancelRefundUnused', { defaultValue: 'Cancel and refund the unused time' })}
+                description={t('deleteDialog.cancelRefundUnusedDesc', {
+                  defaultValue: 'A prorated refund will be issued for the remainder of the billing period.',
+                })}
               />
             </div>
             {planInfo?.portalAction && __EE__ && (
               <p className="text-[12px] text-[var(--text-tertiary)]">
-                Or just{' '}
-                <Suspense fallback={<span>cancel your subscription</span>}>
+                {t('deleteDialog.orJustPrefix', { defaultValue: 'Or just' })}{' '}
+                <Suspense fallback={<span>{t('deleteDialog.cancelSubscriptionLink', { defaultValue: 'cancel your subscription' })}</span>}>
                   <CheckoutLink
                     action={planInfo.portalAction}
                     target="_blank"
                     className="text-[var(--accent)] hover:underline"
                   >
-                    cancel your subscription
+                    {t('deleteDialog.cancelSubscriptionLink', { defaultValue: 'cancel your subscription' })}
                   </CheckoutLink>
                 </Suspense>{' '}
-                without deleting your account.
+                {t('deleteDialog.withoutDeletingSuffix', { defaultValue: 'without deleting your account.' })}
               </p>
             )}
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={goBack}>
-                Back
+                {t('deleteDialog.back', { defaultValue: 'Back' })}
               </Button>
               <Button type="button" variant="destructive" onClick={goNext}>
-                Continue
+                {t('deleteDialog.continue', { defaultValue: 'Continue' })}
               </Button>
             </DialogFooter>
           </div>
@@ -273,7 +297,9 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="confirm-phrase">
-                Type <span className="font-mono text-[var(--text-primary)]">{CONFIRM_PHRASE}</span> to confirm
+                {t('deleteDialog.typeToConfirmPrefix', { defaultValue: 'Type' })}{' '}
+                <span className="font-mono text-[var(--text-primary)]">{CONFIRM_PHRASE}</span>{' '}
+                {t('deleteDialog.typeToConfirmSuffix', { defaultValue: 'to confirm' })}
               </Label>
               <Input
                 id="confirm-phrase"
@@ -286,23 +312,27 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
             </div>
             {hasPassword && (
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Enter your password</Label>
+                <Label htmlFor="confirm-password">
+                  {t('deleteDialog.enterPasswordLabel', { defaultValue: 'Enter your password' })}
+                </Label>
                 <Input
                   id="confirm-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
-                  placeholder="Password"
+                  placeholder={t('deleteDialog.passwordPlaceholder', { defaultValue: 'Password' })}
                 />
               </div>
             )}
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={goBack} disabled={submitting}>
-                Back
+                {t('deleteDialog.back', { defaultValue: 'Back' })}
               </Button>
               <Button type="submit" variant="destructive" disabled={!canSubmit}>
-                {submitting ? 'Deleting...' : 'Delete Account'}
+                {submitting
+                  ? t('deleteDialog.deletingButton', { defaultValue: 'Deleting...' })
+                  : t('deleteDialog.deleteAccountButton', { defaultValue: 'Delete Account' })}
               </Button>
             </DialogFooter>
           </form>
@@ -317,6 +347,7 @@ interface DeletionPendingBannerProps {
 }
 
 export function DeletionPendingBanner({ scheduledAt }: DeletionPendingBannerProps) {
+  const { t } = useTranslation('settings');
   const date = new Date(scheduledAt).toLocaleDateString(undefined, {
     month: 'long',
     day: 'numeric',
@@ -330,10 +361,13 @@ export function DeletionPendingBanner({ scheduledAt }: DeletionPendingBannerProp
         'text-[13px] text-[var(--text-secondary)]',
       )}
     >
-      <p className="font-medium text-[var(--destructive)] mb-1">Account scheduled for deletion</p>
+      <p className="font-medium text-[var(--destructive)] mb-1">
+        {t('deleteDialog.pendingBannerTitle', { defaultValue: 'Account scheduled for deletion' })}
+      </p>
       <p>
-        Your account is scheduled for deletion on{' '}
-        <span className="font-medium text-[var(--text-primary)]">{date}</span>. Sign back in before then to recover it.
+        {t('deleteDialog.pendingBannerBodyPrefix', { defaultValue: 'Your account is scheduled for deletion on' })}{' '}
+        <span className="font-medium text-[var(--text-primary)]">{date}</span>.{' '}
+        {t('deleteDialog.pendingBannerBodySuffix', { defaultValue: 'Sign back in before then to recover it.' })}
       </p>
     </output>
   );

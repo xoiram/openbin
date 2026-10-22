@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn, flatCard } from '@/lib/utils';
 import { CommandActionList } from './CommandActionList';
@@ -27,6 +28,7 @@ export function AiTurnCommandPreview({
   onExecute,
   executingProgress,
 }: AiTurnCommandPreviewProps) {
+  const { t } = useTranslation('ai');
   const [confirmDestructive, setConfirmDestructive] = useState(false);
 
   const selectedCount = actions.filter((_, i) => checkedActions.get(i) !== false).length;
@@ -76,7 +78,11 @@ export function AiTurnCommandPreview({
       {!isFinal && (
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-subtle)]">
           <span className="text-[12px] text-[var(--text-tertiary)]">
-            {selectedCount} of {actions.length} selected
+            {t('turnPreview.selectedOfTotal', {
+              defaultValue: '{{selected}} of {{total}} selected',
+              selected: selectedCount,
+              total: actions.length,
+            })}
           </span>
           <Button
             type="button"
@@ -88,12 +94,16 @@ export function AiTurnCommandPreview({
             {isExecuting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                Applying…
+                {t('turnPreview.applying', { defaultValue: 'Applying…' })}
               </>
             ) : confirmDestructive ? (
-              <>Confirm {selectedCount}</>
+              <>
+                {t('turnPreview.confirmPrefix', { defaultValue: 'Confirm' })} {selectedCount}
+              </>
             ) : (
-              <>Apply {selectedCount}</>
+              <>
+                {t('turnPreview.applyPrefix', { defaultValue: 'Apply' })} {selectedCount}
+              </>
             )}
           </Button>
         </div>

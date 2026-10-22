@@ -1,6 +1,7 @@
 import '@/components/ui/animations.css';
 import { PackagePlus, Printer, QrCode, Settings, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BrandIcon } from '@/components/BrandIcon';
 import { AnimatedHeight } from '@/components/ui/animated-height';
 import { closeButton, cn, focusRing } from '@/lib/utils';
@@ -13,18 +14,39 @@ import { DemoBrowseStep } from './steps/DemoBrowseStep';
 import { DemoWelcomeStep } from './steps/DemoWelcomeStep';
 import { useOnboardingActions } from './useOnboardingActions';
 
-const DEMO_COMPLETION_ACTIONS: CompletionAction[] = [
-  { icon: PackagePlus, label: 'Browse all bins', description: 'Explore the 40+ pre-built demo bins', path: '/bins' },
-  { icon: Printer, label: 'Print labels', description: 'Generate QR labels for your bins', path: '/print' },
-  { icon: QrCode, label: 'Scan a QR code', description: 'Try scanning a label with your camera', path: '/scan' },
-  { icon: Settings, label: 'Explore settings', description: 'Customize terminology, AI, and more', path: '/settings' },
-];
-
 export function OnboardingOverlay(props: OnboardingActions) {
   const { step, totalSteps, advanceWithLocation, advanceStep, complete, demoMode, activeLocationId } = props;
+  const { t } = useTranslation('onboarding');
   const state = useOnboardingActions(props);
   const { displayedStep, transitioning, navigate } = state;
   const dots = Array.from({ length: totalSteps });
+
+  const demoCompletionActions: CompletionAction[] = [
+    {
+      icon: PackagePlus,
+      label: t('demoCompletion.browseBins.label', { defaultValue: 'Browse all bins' }),
+      description: t('demoCompletion.browseBins.description', { defaultValue: 'Explore the 40+ pre-built demo bins' }),
+      path: '/bins',
+    },
+    {
+      icon: Printer,
+      label: t('demoCompletion.printLabels.label', { defaultValue: 'Print labels' }),
+      description: t('demoCompletion.printLabels.description', { defaultValue: 'Generate QR labels for your bins' }),
+      path: '/print',
+    },
+    {
+      icon: QrCode,
+      label: t('demoCompletion.scanQr.label', { defaultValue: 'Scan a QR code' }),
+      description: t('demoCompletion.scanQr.description', { defaultValue: 'Try scanning a label with your camera' }),
+      path: '/scan',
+    },
+    {
+      icon: Settings,
+      label: t('demoCompletion.exploreSettings.label', { defaultValue: 'Explore settings' }),
+      description: t('demoCompletion.exploreSettings.description', { defaultValue: 'Customize terminology, AI, and more' }),
+      path: '/settings',
+    },
+  ];
 
   function handleAction(action: CompletionAction) {
     if (demoMode) markDemoTourDone();
@@ -65,7 +87,7 @@ export function OnboardingOverlay(props: OnboardingActions) {
         <button
           type="button"
           onClick={state.handleSkipSetup}
-          aria-label="Close setup"
+          aria-label={t('overlay.closeSetup', { defaultValue: 'Close setup' })}
           className={cn(closeButton, focusRing)}
         >
           <X className="h-4 w-4" />
@@ -109,9 +131,9 @@ export function OnboardingOverlay(props: OnboardingActions) {
           {displayedStep === 3 && demoMode && (
             <CompletionStep
               icon={<BrandIcon className="h-16 w-16 text-[var(--accent)] mb-5" />}
-              title="Tour complete"
-              subtitle="That's the essentials. Dive in and explore."
-              actions={DEMO_COMPLETION_ACTIONS}
+              title={t('completion.tourCompleteTitle', { defaultValue: 'Tour complete' })}
+              subtitle={t('completion.tourCompleteSubtitle', { defaultValue: "That's the essentials. Dive in and explore." })}
+              actions={demoCompletionActions}
               onAction={handleAction}
               onDashboard={handleDashboard}
             />

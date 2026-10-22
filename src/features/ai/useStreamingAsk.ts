@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ConversationTurnPayload } from './conversationTurns';
 import { useAiStream } from './useAiStream';
 import type { CommandAction, CommandResult } from './useCommand';
@@ -11,12 +12,15 @@ export type AskClassified =
   | { kind: 'command'; actions: CommandAction[]; interpretation: string }
   | { kind: 'query'; answer: string; matches: QueryMatch[] };
 
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
 function isValidAction(a: unknown): a is CommandAction {
   return typeof a === 'object' && a !== null && typeof (a as Record<string, unknown>).type === 'string';
 }
 
 /** Classify unified AI response as command or query based on which fields are present. */
-export function classifyResult(result: AskResult): AskClassified {
+export function classifyResult(result: AskResult, t: unknown): AskClassified {
+  const translate = t as Translate;
   const asCmd = result as Partial<CommandResult>;
   const asQuery = result as Partial<QueryResult>;
 
@@ -42,7 +46,9 @@ export function classifyResult(result: AskResult): AskClassified {
   if (Array.isArray(asCmd.actions) && asCmd.actions.length === 0) {
     return {
       kind: 'query',
-      answer: asCmd.interpretation ?? 'I couldn\'t find relevant information for that.',
+      answer: asCmd.interpretation ?? translate('streamingAsk.noRelevantInfo', {
+        defaultValue: "I couldn't find relevant information for that.",
+      }),
       matches: [],
     };
   }
@@ -52,9 +58,10 @@ export function classifyResult(result: AskResult): AskClassified {
 }
 
 export function useStreamingAsk() {
+  const { t } = useTranslation('ai');
   const { result, isStreaming, error, stream, cancel, clear: clearStream } = useAiStream<AskResult>(
     '/api/ai/ask/stream',
-    "Couldn't process that request"
+    t('streamingAsk.processError', { defaultValue: "Couldn't process that request" })
   );
 
   const ask = useCallback(
@@ -63,8 +70,8 @@ export function useStreamingAsk() {
   );
 
   const classified = useMemo(
-    () => (result ? classifyResult(result) : null),
-    [result],
+    () => (result ? classifyResult(result, t) : null),
+    [result, t],
   );
 
   return useMemo(() => ({

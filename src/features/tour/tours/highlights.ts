@@ -8,9 +8,12 @@ const steps: TourStep[] = [
     id: 'dashboard-overview',
     selector: '[data-tour="dashboard-overview"]',
     placement: 'bottom',
-    title: 'Welcome home',
+    title: (ctx) => ctx.t('tour:highlights.dashboardOverview.title', { defaultValue: 'Welcome home' }),
     body: (ctx) =>
-      `Your dashboard surfaces pinned ${ctx.terminology.bins}, recent scans, checkouts, and an activity heatmap so you can see what's moving.`,
+      ctx.t('tour:highlights.dashboardOverview.body', {
+        defaultValue: "Your dashboard surfaces pinned {{bins}}, recent scans, checkouts, and an activity heatmap so you can see what's moving.",
+        bins: ctx.terminology.bins,
+      }),
     route: '/',
     mobilePlacement: 'bottom',
   },
@@ -21,13 +24,23 @@ const steps: TourStep[] = [
         ? 'nav[aria-label="Main navigation"] button[aria-label="Ask AI"]'
         : '[data-tour="ask-ai-button"]',
     placement: 'bottom',
-    title: (ctx) => (ctx.aiEnabled ? 'Ask AI anything' : `Find your ${ctx.terminology.bins}`),
+    title: (ctx) =>
+      ctx.aiEnabled
+        ? ctx.t('tour:highlights.askAi.titleEnabled', { defaultValue: 'Ask AI anything' })
+        : ctx.t('tour:highlights.askAi.titleDisabled', { defaultValue: 'Find your {{bins}}', bins: ctx.terminology.bins }),
     body: (ctx) => {
       if (!ctx.aiEnabled) {
-        return `Use the search bar to find ${ctx.terminology.bins} by name, tag, or contents.`;
+        return ctx.t('tour:highlights.askAi.bodyDisabled', {
+          defaultValue: 'Use the search bar to find {{bins}} by name, tag, or contents.',
+          bins: ctx.terminology.bins,
+        });
       }
       const [shortcut] = formatKeys('mod+j');
-      return `Ask where something is, or tell it what to do — AI can create, edit, and find ${ctx.terminology.bins}. Try ${shortcut}.`;
+      return ctx.t('tour:highlights.askAi.body', {
+        defaultValue: 'Ask where something is, or tell it what to do — AI can create, edit, and find {{bins}}. Try {{shortcut}}.',
+        bins: ctx.terminology.bins,
+        shortcut,
+      });
     },
     route: '/',
     condition: (ctx) => ctx.aiEnabled,
@@ -37,9 +50,12 @@ const steps: TourStep[] = [
     id: 'scan-qr',
     selector: scanButtonSelector,
     placement: 'bottom',
-    title: 'Scan or search',
+    title: (ctx) => ctx.t('tour:highlights.scanQr.title', { defaultValue: 'Scan or search' }),
     body: (ctx) =>
-      `Point your camera at a label to jump straight to that ${ctx.terminology.bin}, or type its 6-character code.`,
+      ctx.t('tour:highlights.scanQr.body', {
+        defaultValue: 'Point your camera at a label to jump straight to that {{bin}}, or type its 6-character code.',
+        bin: ctx.terminology.bin,
+      }),
     route: '/',
     mobilePlacement: 'bottom',
   },
@@ -47,9 +63,13 @@ const steps: TourStep[] = [
     id: 'nav-sidebar',
     selector: '[data-tour="nav-sidebar"]',
     placement: 'right',
-    title: 'Cross-bin views',
+    title: (ctx) => ctx.t('tour:highlights.navSidebar.title', { defaultValue: 'Cross-bin views' }),
     body: (ctx) =>
-      `Open Items, Tags, or ${ctx.terminology.Areas} for cross-${ctx.terminology.bin} views and bulk edits — plus the trash and activity log.`,
+      ctx.t('tour:highlights.navSidebar.body', {
+        defaultValue: 'Open Items, Tags, or {{areas}} for cross-{{bin}} views and bulk edits — plus the trash and activity log.',
+        areas: ctx.terminology.Areas,
+        bin: ctx.terminology.bin,
+      }),
     route: '/',
     mobileSelector: 'nav[aria-label="Main navigation"]',
     mobilePlacement: 'top',
@@ -62,22 +82,32 @@ const steps: TourStep[] = [
       return '[data-shortcut-search]';
     },
     placement: 'bottom',
-    title: 'That was the highlights',
+    title: (ctx) => ctx.t('tour:highlights.cta.title', { defaultValue: 'That was the highlights' }),
     body: (ctx) => {
       if (ctx.canWrite && ctx.aiEnabled) {
-        return `Try "create a ${ctx.terminology.bin} for kitchen utensils" to get started. More tours are available from the "?" button on each page, or from Settings.`;
+        return ctx.t('tour:highlights.cta.bodyWriteAi', {
+          defaultValue: 'Try "create a {{bin}} for kitchen utensils" to get started. More tours are available from the "?" button on each page, or from Settings.',
+          bin: ctx.terminology.bin,
+        });
       }
       if (ctx.canWrite) {
-        return `Create your next ${ctx.terminology.bin} to get going. More tours are available from the "?" button on each page, or from Settings.`;
+        return ctx.t('tour:highlights.cta.bodyWrite', {
+          defaultValue: 'Create your next {{bin}} to get going. More tours are available from the "?" button on each page, or from Settings.',
+          bin: ctx.terminology.bin,
+        });
       }
-      return `More tours are available from the "?" button on each page, or from Settings.`;
+      return ctx.t('tour:highlights.cta.bodyReadonly', {
+        defaultValue: 'More tours are available from the "?" button on each page, or from Settings.',
+      });
     },
     route: '/',
     mobilePlacement: 'bottom',
     buttonLabel: (ctx) => {
-      if (ctx.canWrite && ctx.aiEnabled) return 'Try it';
-      if (ctx.canWrite) return `New ${ctx.terminology.bin}`;
-      return 'Got it';
+      if (ctx.canWrite && ctx.aiEnabled) return ctx.t('tour:highlights.cta.buttonTryIt', { defaultValue: 'Try it' });
+      if (ctx.canWrite) {
+        return ctx.t('tour:highlights.cta.buttonNewBin', { defaultValue: 'New {{bin}}', bin: ctx.terminology.bin });
+      }
+      return ctx.t('tour:shared.gotIt', { defaultValue: 'Got it' });
     },
   },
 ];

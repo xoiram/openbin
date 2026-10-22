@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,7 +12,7 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/lib/auth';
 import { usePermissions } from '@/lib/usePermissions';
-import { getErrorMessage } from '@/lib/utils';
+import { getErrorMessage, plural } from '@/lib/utils';
 import { BinItemGroup } from './BinItemGroup';
 import { ItemSelectionBar } from './ItemSelectionBar';
 import { executeBatch } from './useActionExecutor';
@@ -27,9 +28,12 @@ interface ItemQueryResultsProps {
 const MAX_MATCHES = 8;
 
 export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps) {
+  const { t } = useTranslation(['ai', 'common']);
   const { canWrite } = usePermissions();
   const { activeLocationId } = useAuth();
   const { showToast } = useToast();
+  const itemWord = (count: number) =>
+    plural(count, t('itemQuery.item', { defaultValue: 'item' }), t('itemQuery.items', { defaultValue: 'items' }));
 
   // Defensive: the prompt says "at most 8 bins", but a misbehaving model
   // could return more. Also dedup — two matches with the same bin_id would
@@ -79,12 +83,25 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
 
       if (failed > 0) {
         showToast({
-          message: `${completed} of ${actions.length} actions completed`,
+          message: t('itemQuery.partialSuccess', {
+            defaultValue: '{{completed}} of {{total}} actions completed',
+            completed,
+            total: actions.length,
+          }),
           variant: 'error',
         });
       } else {
+        const verb =
+          kind === 'checkout'
+            ? t('itemQuery.checkedOutVerb', { defaultValue: 'checked out' })
+            : t('itemQuery.removedVerb', { defaultValue: 'removed' });
         showToast({
-          message: `Done — ${selection.selectionCount} ${selection.selectionCount === 1 ? 'item' : 'items'} ${kind === 'checkout' ? 'checked out' : 'removed'}`,
+          message: t('itemQuery.bulkDone', {
+            defaultValue: 'Done — {{count}} {{word}} {{verb}}',
+            count: selection.selectionCount,
+            word: itemWord(selection.selectionCount),
+            verb,
+          }),
         });
       }
       if (kind === 'remove' && failed === 0) {
@@ -96,7 +113,10 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
       }
       selection.clearSelection();
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Bulk action failed'), variant: 'error' });
+      showToast({
+        message: getErrorMessage(err, t('itemQuery.bulkActionFailed', { defaultValue: 'Bulk action failed' })),
+        variant: 'error',
+      });
     } finally {
       setIsBusy(false);
     }
@@ -126,14 +146,23 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
       <Dialog open={confirmRemove} onOpenChange={(v) => { if (!isBusy) setConfirmRemove(v); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove {selection.selectionCount} {selection.selectionCount === 1 ? 'item' : 'items'}?</DialogTitle>
+            <DialogTitle>
+              {t('itemQuery.removeCountTitle', {
+                defaultValue: 'Remove {{count}} {{word}}?',
+                count: selection.selectionCount,
+                word: itemWord(selection.selectionCount),
+              })}
+            </DialogTitle>
             <DialogDescription>
-              This will permanently remove the selected {selection.selectionCount === 1 ? 'item' : 'items'} from their bins.
+              {t('itemQuery.removeCountDescription', {
+                defaultValue: 'This will permanently remove the selected {{word}} from their bins.',
+                word: itemWord(selection.selectionCount),
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmRemove(false)} disabled={isBusy}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button
               variant="destructive"
@@ -143,7 +172,7 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
                 setConfirmRemove(false);
               }}
             >
-              {isBusy ? 'Removing\u2026' : 'Remove'}
+              {isBusy ? t('itemQuery.removingEllipsis', { defaultValue: 'Removing\u2026' }) : t('itemQuery.remove', { defaultValue: 'Remove' })}
             </Button>
           </DialogFooter>
         </DialogContent>

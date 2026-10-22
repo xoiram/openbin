@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import type { Terminology } from '@/lib/terminology';
 
 export type Placement = 'top' | 'bottom' | 'left' | 'right';
@@ -11,6 +12,7 @@ export interface TourContext {
   isMobile: boolean;
   openCommandInput: () => void;
   closeCommandInput: () => void;
+  t: TFunction<'tour'>;
 }
 
 export interface TourStep {

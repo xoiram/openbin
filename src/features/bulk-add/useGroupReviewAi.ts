@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LOCK_BEAT_MS, MAX_AI_PHOTOS } from '@/features/ai/aiConstants';
 import { mapAiError } from '@/features/ai/aiErrors';
 import type { AnalyzeStreamMode } from '@/features/ai/analyzeLabel';
@@ -65,6 +66,7 @@ export interface UseGroupReviewAiResult {
  */
 export function useGroupReviewAi(args: UseGroupReviewAiArgs): UseGroupReviewAiResult {
   const { group, currentIndex, aiEnabled, aiSettings, activeLocationId, dispatch, onAiSetupNeeded } = args;
+  const { t } = useTranslation('ai');
 
   const [confirmPhase, setConfirmPhase] = useState<'idle' | 'locking'>('idle');
   const lockTimerRef = useRef<number | null>(null);
@@ -216,7 +218,11 @@ export function useGroupReviewAi(args: UseGroupReviewAiArgs): UseGroupReviewAiRe
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
-      dispatch({ type: 'SET_ANALYZE_ERROR', id: target.id, error: mapAiError(err, "Couldn't analyze the photo — try again") });
+      dispatch({
+        type: 'SET_ANALYZE_ERROR',
+        id: target.id,
+        error: mapAiError(err, t('groupReviewAi.analyzeFailed', { defaultValue: "Couldn't analyze the photo — try again" }), t),
+      });
     }
   }
 
@@ -247,7 +253,11 @@ export function useGroupReviewAi(args: UseGroupReviewAiArgs): UseGroupReviewAiRe
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
-      dispatch({ type: 'SET_ANALYZE_ERROR', id: target.id, error: mapAiError(err, "Couldn't analyze the photo — try again") });
+      dispatch({
+        type: 'SET_ANALYZE_ERROR',
+        id: target.id,
+        error: mapAiError(err, t('groupReviewAi.analyzeFailed', { defaultValue: "Couldn't analyze the photo — try again" }), t),
+      });
     }
   }
 

@@ -6,6 +6,7 @@ import { verifyLocationMembership } from '../../lib/binAccess.js';
 import { clearAuthCookies, setAccessTokenCookie, setRefreshTokenCookie } from '../../lib/cookies.js';
 import { ConflictError, ForbiddenError, UnauthorizedError, ValidationError } from '../../lib/httpErrors.js';
 import { createLogger } from '../../lib/logger.js';
+import { requirePasswordAuthEnabled } from '../../lib/passwordAuthGate.js';
 import { queryMaybeOne } from '../../lib/queryHelpers.js';
 import { createRefreshToken, revokeAllUserTokens, revokeSingleToken, rotateRefreshToken } from '../../lib/refreshTokens.js';
 import { authenticate, signToken } from '../../middleware/auth.js';
@@ -17,6 +18,7 @@ const router = Router();
 
 // POST /api/auth/login
 router.post('/login', asyncHandler(async (req, res) => {
+  requirePasswordAuthEnabled();
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -24,7 +26,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   }
 
   const result = await query(
-    'SELECT id, password_hash, display_name, email, avatar_path, active_location_id, deleted_at, deletion_scheduled_at, suspended_at, token_version, force_password_change, is_admin FROM users WHERE email = $1',
+    'SELECT id, password_hash, display_name, email, avatar_path, active_location_id, deleted_at, deletion_scheduled_at, suspended_at, token_version, force_password_change, is_admin, language FROM users WHERE email = $1',
     [email.toLowerCase().trim()]
   );
 
@@ -122,6 +124,7 @@ router.post('/login', asyncHandler(async (req, res) => {
       email: user.email,
       avatarUrl: user.avatar_path ? `/api/auth/avatar/${user.id}` : null,
       isAdmin: !!user.is_admin,
+      language: user.language || null,
     },
     activeLocationId,
   });

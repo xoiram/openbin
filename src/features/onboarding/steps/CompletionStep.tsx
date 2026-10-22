@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn, focusRing } from '@/lib/utils';
 
@@ -18,14 +19,15 @@ export interface CompletionStepProps {
 }
 
 export function CompletionStep({ icon, title, subtitle, actions, onAction, onDashboard }: CompletionStepProps) {
+  const { t } = useTranslation('onboarding');
   return (
     <div className="flex flex-col items-center text-center">
       <div className="onboarding-completion-icon">{icon}</div>
       <h2 className="text-[22px] font-bold text-[var(--text-primary)] mb-2">
-        {title ?? "You're all set"}
+        {title ?? t('completion.defaultTitle', { defaultValue: "You're all set" })}
       </h2>
       <p className="text-[14px] text-[var(--text-tertiary)] mb-5 leading-relaxed">
-        {subtitle ?? 'Jump into any of these to get started.'}
+        {subtitle ?? t('completion.defaultSubtitle', { defaultValue: 'Jump into any of these to get started.' })}
       </p>
       <div className="w-full space-y-2 mb-6">
         {actions.map((action, i) => {
@@ -60,7 +62,7 @@ export function CompletionStep({ icon, title, subtitle, actions, onAction, onDas
         onClick={onDashboard}
         className="w-full rounded-[var(--radius-md)] h-11 text-[15px]"
       >
-        Go to Dashboard
+        {t('completion.goToDashboard', { defaultValue: 'Go to Dashboard' })}
       </Button>
     </div>
   );

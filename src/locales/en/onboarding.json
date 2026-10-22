@@ -1,0 +1,69 @@
+{
+  "aiShowcaseStep": {
+    "body": "Take a photo of any bin and AI identifies the items inside.",
+    "photoAlt": "Bin contents",
+    "seeResult": "See the Result",
+    "title": "Photo to inventory"
+  },
+  "browseStep": {
+    "body": "Each bin gets a card with its contents, tags, and a QR code you can print and stick on the container.",
+    "finishTour": "Finish Tour",
+    "title": "Your bin, organized"
+  },
+  "completion": {
+    "defaultSubtitle": "Jump into any of these to get started.",
+    "defaultTitle": "You're all set",
+    "goToDashboard": "Go to Dashboard",
+    "tourCompleteSubtitle": "That's the essentials. Dive in and explore.",
+    "tourCompleteTitle": "Tour complete"
+  },
+  "demoCompletion": {
+    "browseBins": {
+      "description": "Explore the 40+ pre-built demo bins",
+      "label": "Browse all bins"
+    },
+    "exploreSettings": {
+      "description": "Customize terminology, AI, and more",
+      "label": "Explore settings"
+    },
+    "printLabels": {
+      "description": "Generate QR labels for your bins",
+      "label": "Print labels"
+    },
+    "scanQr": {
+      "description": "Try scanning a label with your camera",
+      "label": "Scan a QR code"
+    }
+  },
+  "demoCta": {
+    "cloud": {
+      "description": "Managed hosting, automatic updates",
+      "label": "Sign up for Cloud"
+    },
+    "continueExploring": "Continue Exploring",
+    "dismiss": "Dismiss",
+    "selfHost": {
+      "description": "Free, open source, full control",
+      "label": "Self-host with Docker"
+    },
+    "subtitle": "Take {{appName}} home with you.",
+    "title": "Ready to get started?"
+  },
+  "overlay": {
+    "closeSetup": "Close setup"
+  },
+  "thinGate": {
+    "createFailed": "Couldn't create the location. Try again.",
+    "createPrefix": "Create",
+    "creating": "Creating…",
+    "nameLabel": "Name",
+    "namePlaceholder": "My Home",
+    "namePrefix": "Name your first",
+    "subtitle": "Home, garage, office — whatever fits."
+  },
+  "welcomeStep": {
+    "body": "This demo has a pre-built home with bins already organized. We'll walk through the key features in under a minute.",
+    "startTour": "Start Tour",
+    "title": "Welcome to {{appName}}"
+  }
+}

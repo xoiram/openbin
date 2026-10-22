@@ -1,4 +1,5 @@
 import { SquarePen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TourLauncher } from '@/features/tour/TourLauncher';
@@ -12,6 +13,7 @@ interface CommandInputProps {
 }
 
 export function CommandInput({ open, onOpenChange }: CommandInputProps) {
+  const { t } = useTranslation('ai');
   const selectedBinIds = getCommandSelectedBinIds();
   const navigate = useNavigate();
   const handleBinNavigate = useBinNavigate(() => onOpenChange(false));
@@ -39,7 +41,7 @@ export function CommandInput({ open, onOpenChange }: CommandInputProps) {
           renderChrome={({ conversation }) => (
             <>
               <DialogHeader className="shrink-0 px-5 pt-4 pb-3 mb-0 text-left border-b border-[var(--border-subtle)]">
-                <DialogTitle>Ask AI</DialogTitle>
+                <DialogTitle>{t('chat.dialogTitle', { defaultValue: 'Ask AI' })}</DialogTitle>
                 {conversation.scopeInfo.isScoped && (
                   <div className="flex items-center gap-2 mt-1">
                     <ConversationScopePill
@@ -55,8 +57,8 @@ export function CommandInput({ open, onOpenChange }: CommandInputProps) {
                 {conversation.turns.length > 0 && (
                   <button
                     type="button"
-                    aria-label="New chat"
-                    title="New chat"
+                    aria-label={t('chat.newChat', { defaultValue: 'New chat' })}
+                    title={t('chat.newChat', { defaultValue: 'New chat' })}
                     className="ai-newchat-enter rounded-[var(--radius-sm)] h-9 w-9 bg-[var(--bg-input)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors flex items-center justify-center"
                     onClick={conversation.clearConversation}
                   >
