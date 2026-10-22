@@ -1,0 +1,11 @@
+// Renovate, self-hosted in the d42-infra cluster (docs/runbooks/renovate.md
+// there). Fork-only, like publish-fork.yml: leave it out of upstream PRs.
+// It covers npm dependencies, the Dockerfile's base images and the GitHub
+// Actions in .github/workflows. Everything is a PR to review: CI runs on
+// them, but nothing automerges.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended', ':dependencyDashboard'],
+  timezone: 'Europe/Oslo',
+  gitAuthor: 'Renovate <renovate@dot42.no>',
+}
