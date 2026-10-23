@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import { Router } from 'express';
 import { unzipSync } from 'fflate';
 import multer from 'multer';
@@ -142,7 +142,7 @@ router.get('/locations/:id/export/zip', requireLocationMember(), requireExportAc
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader('Content-Disposition', `attachment; filename="openbin-export-${new Date().toISOString().slice(0, 10)}.zip"`);
 
-  const archive = archiver('zip', { zlib: { level: 6 } });
+  const archive = new ZipArchive({ zlib: { level: 6 } });
   archive.pipe(res);
 
   archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
