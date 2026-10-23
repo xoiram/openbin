@@ -46,7 +46,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.2",
     "@types/archiver": "^7.0.0",
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcrypt": "^6.0.0",
     "@types/better-sqlite3": "^7.6.12",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
