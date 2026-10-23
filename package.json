@@ -51,7 +51,7 @@
     "happy-dom": "^21.0.0",
     "husky": "^9.1.7",
     "i18next-cli": "^1.67.8",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "^8.0.0",
