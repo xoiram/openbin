@@ -2,7 +2,8 @@
 // there). Fork-only, like publish-fork.yml: leave it out of upstream PRs.
 // It covers npm dependencies, the Dockerfile's base images and the GitHub
 // Actions in .github/workflows. Minor and patch updates automerge once CI
-// passes; majors and digest bumps are PRs to review.
+// passes, grouped into one PR a day; majors and digest bumps are separate
+// PRs to review.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: ['config:recommended', ':dependencyDashboard'],
@@ -14,8 +15,11 @@
   platformAutomerge: false,
   packageRules: [
     {
-      description: 'Minor and patch updates automerge once CI passes',
+      description: 'Minor and patch updates: one grouped PR a day, automerged once CI passes',
       matchUpdateTypes: ['minor', 'patch'],
+      groupName: 'all minor and patch dependencies',
+      groupSlug: 'all-minor-patch',
+      schedule: ['before 6am'],
       automerge: true,
     },
   ],
