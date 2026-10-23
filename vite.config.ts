@@ -63,7 +63,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   server: {
@@ -75,22 +75,22 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        experimentalMinChunkSize: 5000,
-        manualChunks(id) {
-          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/') || id.includes('node_modules/react-router')) {
-            return 'vendor-react';
-          }
-          if (id.includes('node_modules/html5-qrcode')) {
-            return 'vendor-scanner';
-          }
-          if (id.includes('node_modules/qrcode')) {
-            return 'vendor-qrcode';
-          }
-          if (id.includes('node_modules/lucide-react')) {
-            return 'vendor-icons';
-          }
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vendor-react',
+              test: (id) =>
+                id.includes('node_modules/react-dom') ||
+                id.includes('node_modules/react/') ||
+                id.includes('node_modules/react-router'),
+              priority: 4,
+            },
+            { name: 'vendor-scanner', test: (id) => id.includes('node_modules/html5-qrcode'), priority: 3 },
+            { name: 'vendor-qrcode', test: (id) => id.includes('node_modules/qrcode'), priority: 2 },
+            { name: 'vendor-icons', test: (id) => id.includes('node_modules/lucide-react'), priority: 1 },
+          ],
         },
       },
     },
