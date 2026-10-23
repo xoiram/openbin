@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.53",
-    "@ai-sdk/google": "^3.0.36",
+    "@ai-sdk/google": "^4.0.0",
     "@ai-sdk/openai": "^3.0.39",
     "@ai-sdk/openai-compatible": "^2.0.33",
     "@aws-sdk/client-s3": "^3.1045.0",
