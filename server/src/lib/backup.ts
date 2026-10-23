@@ -2,7 +2,7 @@ import { execFile as execFileCb } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import cron, { type ScheduledTask } from 'node-cron';
 import { getSqliteDb } from '../db/sqlite.js';
 import { getDialect } from '../db.js';
@@ -99,7 +99,7 @@ export async function runBackup(config?: Partial<BackupConfig>): Promise<string>
     // Create ZIP archive
     await new Promise<void>((resolve, reject) => {
       const output = fs.createWriteStream(zipPath);
-      const archive = archiver('zip', { zlib: { level: 6 } });
+      const archive = new ZipArchive({ zlib: { level: 6 } });
 
       output.on('close', resolve);
       archive.on('error', reject);
