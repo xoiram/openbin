@@ -14,7 +14,7 @@ vi.mock('../../db.js', () => ({
   isUniqueViolation: () => false,
 }));
 vi.mock('../config.js', () => ({
-  config: { photoStoragePath: '/tmp/photos' },
+  config: { photoStoragePath: '/tmp/photos', maxPhotoSizeMb: 5, maxAvatarSizeMb: 2 },
 }));
 vi.mock('../storage.js', () => ({
   storage: { readStream: vi.fn(), exists: vi.fn(), delete: vi.fn() },

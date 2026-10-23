@@ -12,6 +12,8 @@ vi.mock('../../lib/config.js', () => ({
     photoStoragePath: '/tmp/photos',
     storageBackend: 'local',
     attachmentsEnabled: true,
+    maxPhotoSizeMb: 5,
+    maxAvatarSizeMb: 2,
   },
   isDemoUser: () => false,
   getEnvAiConfig: () => null,

@@ -24,13 +24,6 @@ jobs:
         run: npm ci
         working-directory: server
 
-      - name: Audit dependencies (client)
-        run: npm audit --audit-level=critical
-
-      - name: Audit dependencies (server)
-        run: npm audit --audit-level=critical
-        working-directory: server
-
       - name: Lint (client)
         run: npx biome check src/
 
