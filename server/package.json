@@ -14,10 +14,10 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.0",
-    "@ai-sdk/google": "^3.0.36",
-    "@ai-sdk/openai": "^3.0.39",
-    "@ai-sdk/openai-compatible": "^2.0.33",
+    "@ai-sdk/anthropic": "^4.0.87",
+    "@ai-sdk/google": "^4.0.104",
+    "@ai-sdk/openai": "^4.0.101",
+    "@ai-sdk/openai-compatible": "^3.0.77",
     "@aws-sdk/client-s3": "^3.1045.0",
     "@types/compression": "^1.8.1",
     "ai": "^7.0.0",
