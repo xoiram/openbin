@@ -194,4 +194,4 @@ export const attachmentUpload = multer({
   },
 });
 
-export { PHOTO_STORAGE_PATH, AVATAR_STORAGE_PATH, MIME_TO_EXT };
+export { AVATAR_STORAGE_PATH, MIME_TO_EXT, PHOTO_STORAGE_PATH };

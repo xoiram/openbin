@@ -80,5 +80,5 @@ function StepIndicator({ steps, currentStepIndex, className }: StepIndicatorProp
   );
 }
 
-export { StepIndicator };
 export type { StepIndicatorProps };
+export { StepIndicator };

@@ -1,12 +1,15 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
   "formatter": { "enabled": false },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "useExhaustiveDependencies": "warn"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "warn"
       }
     }
   },
@@ -38,6 +41,9 @@
       "includes": ["src/**/__tests__/**"],
       "linter": {
         "rules": {
+          "correctness": {
+            "noComponentHookFactories": "off"
+          },
           "style": {
             "noNonNullAssertion": "off"
           }

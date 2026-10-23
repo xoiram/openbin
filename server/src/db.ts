@@ -4,10 +4,10 @@ import { getEngine } from './db/init.js';
 import { getSqliteDb } from './db/sqlite.js';
 import type { QueryResult, TxQueryFn } from './db/types.js';
 
-export type { QueryResult, TxQueryFn };
 export { d, getDialect } from './db/dialect.js';
 export { closeDb, initialize, reinitialize } from './db/init.js';
 export { isUniqueViolation } from './db/shared.js';
+export type { QueryResult, TxQueryFn };
 
 export async function query<T = Record<string, any>>(
   text: string,

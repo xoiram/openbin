@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import archiver from 'archiver';
-import cron from 'node-cron';
+import cron, { type ScheduledTask } from 'node-cron';
 import { getSqliteDb } from '../db/sqlite.js';
 import { getDialect } from '../db.js';
 import { config as appConfig } from './config.js';
@@ -175,7 +175,7 @@ export function pruneBackups(backupPath: string, retention: number): void {
   }
 }
 
-let scheduledTask: cron.ScheduledTask | null = null;
+let scheduledTask: ScheduledTask | null = null;
 
 export function startBackupScheduler(): void {
   const cfg = getConfig();
