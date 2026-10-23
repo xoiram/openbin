@@ -20,7 +20,7 @@
     "@ai-sdk/openai-compatible": "^2.0.33",
     "@aws-sdk/client-s3": "^3.1045.0",
     "@types/compression": "^1.8.1",
-    "ai": "^6.0.108",
+    "ai": "^7.0.0",
     "archiver": "^7.0.1",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^11.7.0",
