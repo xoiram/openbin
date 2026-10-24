@@ -60,5 +60,9 @@
   "lint-staged": {
     "src/**/*.{ts,tsx}": "npx biome check --no-errors-on-unmatched",
     "server/src/**/*.{ts,tsx}": "npx biome check --no-errors-on-unmatched"
+  },
+  "allowScripts": {
+    "@swc/core": true,
+    "core-js": false
   }
 }
