@@ -1,4 +1,4 @@
-import { Github, RefreshCw } from 'lucide-react';
+import { FolderGit2, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TourLauncher } from '@/features/tour/TourLauncher';
 import { listTours } from '@/features/tour/tourRegistry';
@@ -45,7 +45,7 @@ export function AboutSection() {
 
       <SettingsSection label={t('about.resourcesSection', { defaultValue: 'Resources' })} dividerAbove>
         <SettingsRow
-          icon={Github}
+          icon={FolderGit2}
           label={t('about.github', { defaultValue: 'GitHub' })}
           description={t('about.githubDesc', { defaultValue: 'Source code, issues, and releases' })}
           border={false}
