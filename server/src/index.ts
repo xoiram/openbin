@@ -159,6 +159,13 @@ export function createApp(opts?: { mountEeRoutes?: (app: express.Express) => voi
   }));
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false }));
+  // Express 5 leaves req.body undefined when no parser matched (no body or a
+  // non-JSON/form content type); Express 4 defaulted it to {}. Routes
+  // destructure req.body directly, so keep the old default.
+  app.use((req, _res, next) => {
+    req.body ??= {};
+    next();
+  });
   app.use(cookieParser());
   app.use(csrfProtect);
   app.use(requestLogger);
@@ -317,7 +324,7 @@ export function createApp(opts?: { mountEeRoutes?: (app: express.Express) => voi
   });
 
   // Catch-all for unmatched API routes
-  app.all('/api/*', (_req, res) => {
+  app.all('/api/{*splat}', (_req, res) => {
     res.status(404).json({ error: 'NOT_FOUND', message: 'Endpoint not found' });
   });
 
@@ -332,8 +339,10 @@ export function createApp(opts?: { mountEeRoutes?: (app: express.Express) => voi
     app.use(express.static(STATIC_DIR));
 
     // SPA fallback — send index.html for any unmatched GET
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(STATIC_DIR, 'index.html'));
+    app.get('/{*splat}', (_req, res) => {
+      // Pass `root` so send's dotfile check only sees 'index.html' — Express 5
+      // (send 1.x) otherwise 404s if STATIC_DIR sits under a dot-directory.
+      res.sendFile('index.html', { root: STATIC_DIR });
     });
   }
 
