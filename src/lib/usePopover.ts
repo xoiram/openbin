@@ -20,7 +20,7 @@ export function usePopover(): UsePopoverReturn {
   const [isOpen, setIsOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState<AnimatingState>(null);
-  const exitTimer = useRef<ReturnType<typeof setTimeout>>();
+  const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => { clearTimeout(exitTimer.current); }, []);
 

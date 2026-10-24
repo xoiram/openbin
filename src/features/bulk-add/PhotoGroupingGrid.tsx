@@ -18,7 +18,7 @@ interface PhotoGroupingGridProps {
   dispatch: React.Dispatch<BulkAddAction>;
   effectiveMax: number;
   locationId: string | null;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onAddMore: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onContinue: () => void;
   onBack: () => void;

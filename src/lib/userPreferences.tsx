@@ -80,7 +80,7 @@ const UserPreferencesContext = createContext<UserPreferencesContextValue | null>
 export function UserPreferencesProvider({ children }: { children: React.ReactNode }) {
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isLoading, setIsLoading] = useState(true);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const latestRef = useRef<UserPreferences>(preferences);
 
   latestRef.current = preferences;

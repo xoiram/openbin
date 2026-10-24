@@ -15,7 +15,7 @@ export function useAppSettings() {
   const locations = ctx?.locations ?? [];
   const isLoading = ctx?.isLoading ?? false;
   const [pendingPatch, setPendingPatch] = useState<Partial<AppSettings> | null>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const pendingPayloadRef = useRef<Record<string, string | number>>({});
   const pendingLocationRef = useRef<string | undefined | null>(activeLocationId);
 

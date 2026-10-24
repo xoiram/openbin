@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 function useAnimatedNumber(target: number, duration = 400) {
   const [display, setDisplay] = useState(target);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number>(undefined);
 
   useEffect(() => {
     if (prefersReducedMotion()) {

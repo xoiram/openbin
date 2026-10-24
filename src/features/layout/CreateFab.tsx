@@ -20,7 +20,7 @@ interface Pill {
   icon: LucideIcon;
   label: string;
   animClass: string;
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.RefObject<HTMLButtonElement | null>;
   onSelect: () => void;
 }
 
