@@ -61,7 +61,7 @@ const binPhotoStorageEngine =
     ? multer.memoryStorage()
     : multer.diskStorage({
         destination: (req, _file, cb) => {
-          const binId = req.params.id;
+          const binId = req.params.id as string; // named `:id` param, never an array
           const dir = path.join(PHOTO_STORAGE_PATH, binId);
           try {
             fs.mkdirSync(dir, { recursive: true });

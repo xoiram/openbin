@@ -59,7 +59,13 @@ if (config.demoMode) {
 // Track timer handles for cleanup during shutdown
 const timers: { timeouts: NodeJS.Timeout[]; intervals: NodeJS.Timeout[] } = { timeouts: [], intervals: [] };
 
-const server = app.listen(config.port, () => {
+const server = app.listen(config.port, (err?: Error) => {
+  // Express 5 routes listen errors (e.g. EADDRINUSE) to this callback instead
+  // of crashing via an unhandled 'error' event — fail fast like before.
+  if (err) {
+    log.error(`Failed to listen on port ${config.port}: ${err.message}`);
+    process.exit(1);
+  }
   log.info(`API server listening on port ${config.port}`);
   pushLog({ level: 'info', message: `Server started on port ${config.port}` });
   startBackupScheduler();
