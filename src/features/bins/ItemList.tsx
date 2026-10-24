@@ -73,7 +73,7 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
   }
   const effectiveItems = viewMode ? localItems : items;
 
-  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const displayItems = useMemo(
     () => effectiveItems.filter((item) => !pendingDeleteIds.has(item.id)),

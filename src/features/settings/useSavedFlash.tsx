@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 /** Briefly flashes `saved = true` after calling `flash()`, auto-clears after 1.5 s. */
 export function useSavedFlash() {
   const [saved, setSaved] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const flash = useCallback(() => {
     setSaved(true);

@@ -95,7 +95,7 @@ interface CreditCostProps {
   className?: string;
 }
 
-export function CreditCost({ cost, className }: CreditCostProps): JSX.Element | null {
+export function CreditCost({ cost, className }: CreditCostProps): React.JSX.Element | null {
   if (cost <= 0) return null;
   return (
     <span className={cn('text-xs text-zinc-500 dark:text-zinc-400', className)}>

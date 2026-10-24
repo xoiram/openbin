@@ -161,7 +161,7 @@ export function mergeLoadedSettings(data: Partial<PrintSettings>): PrintSettings
 export function usePrintSettings() {
   const [settings, setSettings] = useState<PrintSettings>(DEFAULT_PRINT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const latestRef = useRef<PrintSettings>(settings);
 
   // Keep ref in sync

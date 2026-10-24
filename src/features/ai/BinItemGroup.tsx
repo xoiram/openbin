@@ -74,7 +74,6 @@ export function BinItemGroup({
             expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
           )}
         >
-          {/* @ts-expect-error -- inert is valid HTML but not typed in React 18 */}
           <div className="min-h-0 overflow-hidden" inert={!expanded ? true : undefined}>
             <ul className="border-t border-[var(--border-subtle)]">
               {match.items.map((item) => (

@@ -57,7 +57,7 @@ function MiniPreview({ style }: { style: QrStyleOptions }) {
   const [prevUrl, setPrevUrl] = useState<string>('');
   const [transitioning, setTransitioning] = useState(false);
   const styleKey = JSON.stringify(style);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     let cancelled = false;
