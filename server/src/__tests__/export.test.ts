@@ -165,6 +165,26 @@ describe('POST /api/locations/:id/import', () => {
     expect(res.body.binsSkipped).toBe(0);
   });
 
+  it('accepts imports larger than the global 1mb JSON limit', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const now = new Date().toISOString();
+    const bins = Array.from({ length: 300 }, (_, i) => ({
+      id: `big-${i}`, name: `Bin ${i}`, items: [], notes: 'n'.repeat(5000), tags: [], icon: '', color: '',
+      createdAt: now, updatedAt: now, photos: [],
+    }));
+    const body = { bins, mode: 'merge' };
+    expect(JSON.stringify(body).length).toBeGreaterThan(1024 * 1024);
+
+    const res = await request(app)
+      .post(`/api/locations/${location.id}/import`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(body);
+
+    expect(res.status).toBe(200);
+    expect(res.body.binsImported).toBe(300);
+  });
+
   it('skips existing bins in merge mode', async () => {
     const { token } = await createTestUser(app);
     const location = await createTestLocation(app, token);

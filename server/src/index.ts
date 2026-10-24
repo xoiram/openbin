@@ -64,6 +64,9 @@ import userPreferencesRoutes from './routes/userPreferences.js';
 
 const STATIC_DIR = path.join(import.meta.dirname, '..', 'public');
 
+/** POST /api/locations/:id/import — see routes/export/json.ts. */
+const JSON_IMPORT_PATH = /^\/api\/locations\/[^/]+\/import\/?$/;
+
 // CSP hashes pin the inline scripts in index.html — update when those scripts change.
 // CF beacon allowances cover the Web Analytics RUM script Cloudflare auto-injects at
 // the proxy layer; harmless on self-hosted (no CF proxy in the request path).
@@ -157,7 +160,17 @@ export function createApp(opts?: { mountEeRoutes?: (app: express.Express) => voi
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   }));
-  app.use(express.json({ limit: '1mb' }));
+  // The JSON import route parses its own body with a 50mb limit (exports embed
+  // photos as base64). Skip the global 1mb parser there so that one can run —
+  // once a parser has consumed the stream, later parsers are no-ops.
+  const jsonParser = express.json({ limit: '1mb' });
+  app.use((req, res, next) => {
+    if (req.method === 'POST' && JSON_IMPORT_PATH.test(req.path)) {
+      next();
+      return;
+    }
+    jsonParser(req, res, next);
+  });
   app.use(express.urlencoded({ extended: false }));
   // Express 5 leaves req.body undefined when no parser matched (no body or a
   // non-JSON/form content type); Express 4 defaulted it to {}. Routes
@@ -315,6 +328,16 @@ export function createApp(opts?: { mountEeRoutes?: (app: express.Express) => voi
     if (err instanceof multer.MulterError) {
       const message = err.code === 'LIMIT_FILE_SIZE' ? 'File is too large' : err.message;
       res.status(422).json({ error: 'VALIDATION_ERROR', message });
+      return;
+    }
+    // body-parser errors carry a `type`; without this they surface as 500s.
+    const bodyErrorType = (err as { type?: unknown }).type;
+    if (bodyErrorType === 'entity.too.large') {
+      res.status(413).json({ error: 'PAYLOAD_TOO_LARGE', message: 'Request body is too large' });
+      return;
+    }
+    if (bodyErrorType === 'entity.parse.failed') {
+      res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Malformed JSON in request body' });
       return;
     }
     const log = createLogger('http');
