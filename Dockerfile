@@ -1,5 +1,5 @@
 # ── Stage 1: Build frontend ──────────────────
-FROM node:22-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 ARG BUILD_EDITION=selfhosted
 ARG BUILD_VERSION
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY server/openapi.yaml ./server/openapi.yaml
 RUN BUILD_EDITION=$BUILD_EDITION BUILD_VERSION=$BUILD_VERSION npx vite build
 
 # ── Stage 2: Build server ────────────────────
-FROM node:22-alpine AS server-builder
+FROM node:24-alpine AS server-builder
 ARG BUILD_EDITION=selfhosted
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
@@ -25,7 +25,7 @@ RUN if [ "$BUILD_EDITION" != "cloud" ]; then rm -rf dist/ee; fi
 RUN npm prune --omit=dev
 
 # ── Stage 3: Runtime ─────────────────────────
-FROM node:22-alpine
+FROM node:24-alpine
 # Bust the apk upgrade layer on every CI run so security patches land
 # (otherwise BuildKit reuses a stale layer and Trivy flags old CVEs).
 ARG APK_UPGRADE_BUST=0

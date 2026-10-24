@@ -133,7 +133,7 @@ OpenAPI spec at [`server/openapi.yaml`](server/openapi.yaml). See the full [API 
 
 ## Local Development
 
-**Prerequisites:** Node.js 20+
+**Prerequisites:** Node.js 24+
 
 ```bash
 npm install                 # Install frontend dependencies
