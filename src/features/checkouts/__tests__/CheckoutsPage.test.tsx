@@ -3,6 +3,13 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ItemCheckoutWithContext } from '@/types';
 
+vi.mock('@/lib/terminology', () => ({
+  useTerminology: () => ({
+    bin: 'bin', bins: 'bins', Bin: 'Bin', Bins: 'Bins',
+    area: 'area', areas: 'areas', Area: 'Area', Areas: 'Areas',
+    location: 'location', locations: 'locations', Location: 'Location', Locations: 'Locations',
+  }),
+}));
 vi.mock('@/lib/api', () => ({ apiFetch: vi.fn() }));
 vi.mock('@/lib/auth', () => ({
   useAuth: vi.fn(() => ({ activeLocationId: 'loc-1', token: 'test' })),

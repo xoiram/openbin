@@ -5,6 +5,11 @@ import { CapturePageBulkGroup } from '../CapturePageBulkGroup';
 import { takeCapturedPhotos } from '../capturedPhotos';
 import { PHOTO_TIPS_SEEN_KEY } from '../guidance/tips';
 
+vi.mock('@/lib/terminology', async () => {
+  const { DEFAULT_TERMINOLOGY } = await vi.importActual<typeof import('@/lib/terminology')>('@/lib/terminology');
+  return { useTerminology: () => DEFAULT_TERMINOLOGY };
+});
+
 // Mock the grouping hook to drive the UI deterministically
 const mockHook = {
   videoRef: { current: null },

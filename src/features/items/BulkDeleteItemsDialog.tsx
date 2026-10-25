@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,6 +18,7 @@ interface BulkDeleteItemsDialogProps {
 }
 
 export function BulkDeleteItemsDialog({ open, onOpenChange, count, onConfirm }: BulkDeleteItemsDialogProps) {
+  const { t } = useTranslation(['items', 'common']);
   const [loading, setLoading] = useState(false);
   async function handleConfirm() {
     setLoading(true);
@@ -31,13 +33,25 @@ export function BulkDeleteItemsDialog({ open, onOpenChange, count, onConfirm }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete {count} item{count === 1 ? '' : 's'}?</DialogTitle>
-          <DialogDescription>You can undo this immediately after.</DialogDescription>
+          <DialogTitle>
+            {t('bulkDelete.title', {
+              count,
+              defaultValue_one: 'Delete {{count}} item?',
+              defaultValue_other: 'Delete {{count}} items?',
+            })}
+          </DialogTitle>
+          <DialogDescription>
+            {t('bulkDelete.description', { defaultValue: 'You can undo this immediately after.' })}
+          </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
+          </Button>
           <Button variant="destructive" onClick={handleConfirm} disabled={loading}>
-            {loading ? 'Deleting…' : 'Delete'}
+            {loading
+              ? t('bulkDelete.submitting', { defaultValue: 'Deleting…' })
+              : t('common:actions.delete', { defaultValue: 'Delete' })}
           </Button>
         </DialogFooter>
       </DialogContent>

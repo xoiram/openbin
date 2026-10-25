@@ -1,0 +1,72 @@
+{
+  "binCount_one": "{{count}} {{bin}}",
+  "binCount_other": "{{count}} {{bins}}",
+  "card": {
+    "total": "({{n}} total)",
+    "unassigned": "Unassigned"
+  },
+  "create": {
+    "creating": "Creating...",
+    "description": "{{areas}} help organize {{bins}} by zone (e.g. Garage, Kitchen, Closet).",
+    "nameExists": "{{area}} name already exists",
+    "namePlaceholder": "{{area}} name...",
+    "noParent": "No parent (root {{area}})",
+    "parentLabel": "Parent {{area}}",
+    "submit": "Create",
+    "title": "Create {{area}}"
+  },
+  "delete": {
+    "and": "{{first}} and {{second}}",
+    "binCount_one": "{{count}} {{bin}}",
+    "binCount_other": "{{count}} {{bins}}",
+    "confirmName": "Delete \"{{name}}\"?",
+    "deleting": "Deleting...",
+    "subAreaCount_one": "{{count}} sub-{{area}}",
+    "subAreaCount_other": "{{count}} sub-{{areas}}",
+    "title": "Delete {{area}}?",
+    "withBins": "\"{{name}}\" has {{bins}}. They will become unassigned.",
+    "withDescendants": "This will also delete {{parts}}. {{bins}} will become unassigned."
+  },
+  "genericError": "Something went wrong",
+  "locationMenu": {
+    "customFields": "Custom Fields",
+    "delete": "Delete {{location}}",
+    "leave": "Leave",
+    "retention": "Retention & Roles",
+    "settings": "Settings"
+  },
+  "menu": {
+    "moreActions": "More actions",
+    "rename": "Rename"
+  },
+  "page": {
+    "areaCount_one": "{{count}} {{area}}",
+    "areaCount_other": "{{count}} {{areas}}",
+    "browseBins": "Browse {{bins}}",
+    "createLocation": "Create {{location}}",
+    "createLocationButton": "Create {{location}}",
+    "customFieldsUpgrade": "Define custom fields for your {{bins}}.",
+    "join": "Join",
+    "joinLocation": "Join {{location}}",
+    "leaveDescription": "You'll lose access to all {{bins}} and {{areas}} in \"{{name}}\". You can rejoin later with an invite code.",
+    "leaveTitle": "Leave {{location}}?",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
+    "membersAndViewers": "{{members}}, {{viewers}}",
+    "noAreas": "No {{areas}} yet",
+    "noAreasAdminHint": "Create {{areas}} to organize your {{bins}} by zone",
+    "noAreasHint": "This {{location}} has no {{areas}} yet",
+    "noLocations": "No {{locations}} yet",
+    "noLocationsHint": "Create a {{location}} or join one with an invite code",
+    "viewerCount_one": "{{count}} viewer",
+    "viewerCount_other": "{{count}} viewers",
+    "viewMembers": "View {{members}}",
+    "viewMembersAndViewers": "View {{members}} and {{viewers}}",
+    "yourRole": "Your role: {{role}}"
+  },
+  "picker": {
+    "createNew": "Create new {{area}}...",
+    "noArea": "No {{area}}",
+    "search": "Search {{areas}}..."
+  }
+}

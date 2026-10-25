@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn, focusRing } from '@/lib/utils';
 
 interface ShutterButtonProps {
@@ -9,12 +10,13 @@ interface ShutterButtonProps {
 }
 
 export function ShutterButton({ onClick, showAccentRing, dataTour }: ShutterButtonProps) {
+  const { t } = useTranslation('capture');
   return (
     <button
       type="button"
       onClick={onClick}
       data-tour={dataTour}
-      aria-label="Take photo"
+      aria-label={t('takePhoto', { defaultValue: 'Take photo' })}
       className={cn(
         focusRing,
         'h-[54px] w-[54px] rounded-[50%] border-[3px] border-white flex items-center justify-center active:scale-95 transition-transform relative focus-visible:ring-offset-2 focus-visible:ring-offset-black',

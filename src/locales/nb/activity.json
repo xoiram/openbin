@@ -1,0 +1,118 @@
+{
+  "apiKey": "API",
+  "apiKeyNamed": "API: {{name}}",
+  "backLabel": "Aktivitet",
+  "badge": {
+    "created": "Opprettet",
+    "deleted": "Slettet",
+    "invite": "Invitasjon",
+    "joined": "Ble med",
+    "left": "Forlot",
+    "moved": "Flyttet",
+    "photo": "Bilde",
+    "removed": "Fjernet",
+    "restored": "Gjenopprettet",
+    "role": "Rolle",
+    "updated": "Oppdatert"
+  },
+  "chips": {
+    "itemsAdded_one": "+{{count}} gjenstand",
+    "itemsAdded_other": "+{{count}} gjenstander",
+    "itemsRemoved_one": "−{{count}} gjenstand",
+    "itemsRemoved_other": "−{{count}} gjenstander",
+    "itemsRenamed_one": "endret navn på gjenstand",
+    "itemsRenamed_other": "endret navn på {{count}} gjenstander",
+    "quantity": "antall"
+  },
+  "description": {
+    "area": "{{area}} {{name}}",
+    "bin": "{{bin}} {{name}}",
+    "binMoved": "{{bin}} {{name}} fra {{from}} til {{to}}",
+    "inviteCode": "invitasjonskode",
+    "location": "{{location}} {{name}}",
+    "photo": "bilde i {{bin}} {{name}}",
+    "roleFor": "rolle for {{name}}",
+    "theLocation": "{{location}}"
+  },
+  "detail": {
+    "auth": "Autentisering: {{method}}",
+    "changes": "Endringer",
+    "unknownAuth": "ukjent",
+    "user": "Bruker: {{name}}",
+    "view": "Vis {{type}}"
+  },
+  "diff": {
+    "itemsAdded": "+ gjenstander",
+    "itemsRemoved": "− gjenstander",
+    "renamed": "nytt navn"
+  },
+  "entityTypes": {
+    "member": "medlem"
+  },
+  "fields": {
+    "area": "{{area}}",
+    "color": "farge",
+    "icon": "ikon",
+    "name": "navn",
+    "notes": "notater",
+    "style": "stil",
+    "tags": "stikkord",
+    "visibility": "synlighet"
+  },
+  "filters": {
+    "all": "Alle",
+    "allUsers": "Alle brukere",
+    "byUser": "Filtrer etter bruker",
+    "filters": "Filtre",
+    "filtersActive": "Filtre (aktive)",
+    "fromDate": "Fra dato",
+    "members": "Medlemmer",
+    "searchPlaceholder": "Søk i aktivitet...",
+    "toDate": "Til dato"
+  },
+  "label": {
+    "areaCreated": "opprettet {{area}} {{name}}",
+    "areaDeleted": "slettet {{area}} {{name}}",
+    "areaRenamed": "ga {{area}} nytt navn: {{name}}",
+    "binCreated": "opprettet {{bin}} {{name}}",
+    "binDeleted": "slettet {{bin}} {{name}}",
+    "binMoved": "flyttet {{bin}} {{name}} fra {{from}} til {{to}}",
+    "binPermanentlyDeleted": "slettet {{bin}} {{name}} permanent",
+    "binRestored": "gjenopprettet {{bin}} {{name}}",
+    "binUpdated": "oppdaterte {{bin}} {{name}}",
+    "inviteRegenerated": "lagde ny invitasjonskode",
+    "locationCreated": "opprettet {{location}} {{name}}",
+    "locationUpdated": "oppdaterte {{location}} {{name}}",
+    "memberJoined": "ble med i {{location}}",
+    "memberLeft": "forlot {{location}}",
+    "memberRemoved": "fjernet {{name}}",
+    "photoAdded": "la til bilde i {{bin}} {{name}}",
+    "photoRemoved": "fjernet bilde fra {{bin}} {{name}}",
+    "roleChanged": "endret rolle for {{name}}"
+  },
+  "page": {
+    "description": "Se endringer og handlinger i hele {{location}}.",
+    "empty": "Ingen aktivitet ennå",
+    "emptyHint": "Handlinger som å opprette, redigere og slette {{bins}} vises her",
+    "loadFailed": "Kunne ikke laste aktivitet",
+    "noMatches": "Ingen aktivitet samsvarer",
+    "noMatchesHint": "Prøv andre filtre eller søkeord",
+    "title": "Aktivitetslogg"
+  },
+  "relativeTime": {
+    "days": "{{n}} d siden",
+    "hours": "{{n}} t siden",
+    "justNow": "akkurat nå",
+    "minutes": "{{n}} min siden",
+    "months": "{{n}} mnd siden",
+    "years": "{{n}} år siden"
+  },
+  "table": {
+    "action": "Handling",
+    "description": "Beskrivelse",
+    "moreChips": "+{{n}} til",
+    "time": "Tid",
+    "type": "Type",
+    "user": "Bruker"
+  }
+}

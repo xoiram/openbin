@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -8,18 +9,21 @@ interface DeletePhotoDialogProps {
 }
 
 export function DeletePhotoDialog({ open, onOpenChange, onConfirm }: DeletePhotoDialogProps) {
+  const { t } = useTranslation(['photos', 'common']);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete photo?</DialogTitle>
+          <DialogTitle>{t('deleteDialog.title', { defaultValue: 'Delete photo?' })}</DialogTitle>
           <DialogDescription>
-            This photo will be permanently deleted. This action cannot be undone.
+            {t('deleteDialog.description', {
+              defaultValue: 'This photo will be permanently deleted. This action cannot be undone.',
+            })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             onClick={() => {
@@ -28,7 +32,7 @@ export function DeletePhotoDialog({ open, onOpenChange, onConfirm }: DeletePhoto
             }}
             className="bg-[var(--destructive)] hover:bg-[var(--destructive-hover)] text-[var(--text-on-accent)]"
           >
-            Delete
+            {t('common:actions.delete', { defaultValue: 'Delete' })}
           </Button>
         </DialogFooter>
       </DialogContent>

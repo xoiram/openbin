@@ -1,0 +1,88 @@
+{
+  "actions": {
+    "requestFailed": "Forespørselen mislyktes"
+  },
+  "bulkCheckout": {
+    "title_one": "Sjekke ut {{count}} gjenstand?",
+    "title_other": "Sjekke ut {{count}} gjenstander?",
+    "description": "Gjenstander som allerede er sjekket ut, hoppes over.",
+    "submit": "Sjekk ut",
+    "submitting": "Sjekker ut…"
+  },
+  "bulkDelete": {
+    "title_one": "Slette {{count}} gjenstand?",
+    "title_other": "Slette {{count}} gjenstander?",
+    "description": "Du kan angre dette rett etterpå.",
+    "submitting": "Sletter…"
+  },
+  "bulkMove": {
+    "title_one": "Flytt {{count}} gjenstand",
+    "title_other": "Flytt {{count}} gjenstander",
+    "description": "Velg en {{bin}} gjenstandene skal flyttes til.",
+    "submit": "Flytt",
+    "submitting": "Flytter…"
+  },
+  "bulkQuantity": {
+    "title_one": "Oppdater antall for {{count}} gjenstand",
+    "title_other": "Oppdater antall for {{count}} gjenstander",
+    "submit": "Bruk",
+    "submitting": "Bruker…",
+    "newQuantity": "Nytt antall",
+    "amount": "Mengde",
+    "ops": {
+      "set": {
+        "label": "Sett til",
+        "description": "Setter antallet på alle valgte gjenstander."
+      },
+      "inc": {
+        "label": "Øk med",
+        "description": "Legger til på eksisterende antall for alle valgte gjenstander."
+      },
+      "dec": {
+        "label": "Reduser med",
+        "description": "Trekker fra eksisterende antall. Gjenstander som når null, får antallet fjernet."
+      },
+      "clear": {
+        "label": "Fjern antall",
+        "description": "Fjerner antallet fra alle valgte gjenstander."
+      }
+    }
+  },
+  "bulkToasts": {
+    "deleted_one": "Slettet {{count}} gjenstand",
+    "deleted_other": "Slettet {{count}} gjenstander",
+    "undo": "Angre",
+    "checkedOut_one": "Sjekket ut {{count}} gjenstand",
+    "checkedOut_other": "Sjekket ut {{count}} gjenstander",
+    "withFailures": "{{main}}. {{failed}} mislyktes.",
+    "moved_one": "Flyttet {{count}} gjenstand til {{name}}",
+    "moved_other": "Flyttet {{count}} gjenstander til {{name}}",
+    "updated_one": "Oppdaterte {{count}} gjenstand",
+    "updated_other": "Oppdaterte {{count}} gjenstander",
+    "withRemoved": "{{main}}. {{removed}} fjernet."
+  },
+  "page": {
+    "title": "Gjenstander",
+    "searchPlaceholder": "Søk i gjenstander...",
+    "bulk": {
+      "checkout": "Sjekk ut",
+      "move": "Flytt",
+      "setQuantity": "Angi antall"
+    },
+    "empty": {
+      "noMatchesTitle": "Ingen gjenstander samsvarer med søket",
+      "title": "Ingen gjenstander ennå",
+      "noMatchesSubtitle": "Prøv et annet søkeord",
+      "subtitle": "Gjenstander du legger i {{bins}}, vises her",
+      "browse": "Bla gjennom {{bins}}"
+    },
+    "selectionLabel_one": "{{count}} gjenstand valgt",
+    "selectionLabel_other": "{{count}} gjenstander valgt"
+  },
+  "table": {
+    "item": "Gjenstand",
+    "qty": "Ant.",
+    "rowLabel": "{{name}} i {{bin}}",
+    "rowLabelWithQuantity": "{{name}} ({{quantity}}) i {{bin}}"
+  }
+}

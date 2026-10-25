@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/tooltip';
-import { cn, haptic, plural } from '@/lib/utils';
+import { cn, haptic } from '@/lib/utils';
 import type { UsageDay, UsageGranularity } from '@/types';
 import {
   bucketByMonth,
@@ -29,38 +30,36 @@ const VISIBLE_DOW = new Set([1, 3, 5]);
 const CELL_TRANSITION =
   'transition-[background-color,outline-color] duration-150 ease-out motion-reduce:transition-none';
 
-// All formatters pin timeZone: 'UTC' because the Date inputs are UTC-constructed
-// (Date.UTC / ISO YYYY-MM-DD). Without this, locales west of UTC render midnight-UTC
-// as the prior local day — shifting month labels and tooltips by one (e.g. Jan → "Dec").
-const DATE_FMT = new Intl.DateTimeFormat(undefined, {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
+interface HeatmapFormatters {
+  monthLabels: string[];
+  dowLabels: string[];
+  formatPrettyDate: (isoDate: string) => string;
+}
 
-const MONTH_SHORT_FMT = new Intl.DateTimeFormat(undefined, {
-  month: 'short',
-  timeZone: 'UTC',
-});
-const WEEKDAY_SHORT_FMT = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
-  timeZone: 'UTC',
-});
-
-const MONTH_LABELS: string[] = Array.from({ length: 12 }, (_, i) =>
-  MONTH_SHORT_FMT.format(new Date(Date.UTC(2024, i, 1))),
-);
-
-// 2024-01-07 is a Sunday in UTC; used to anchor the 7 weekday labels.
-const DOW_LABELS: string[] = Array.from({ length: 7 }, (_, i) =>
-  WEEKDAY_SHORT_FMT.format(new Date(Date.UTC(2024, 0, 7 + i))),
-);
-
-function formatPrettyDate(isoDate: string): string {
-  const parsed = parseIsoDate(isoDate);
-  if (!parsed) return isoDate;
-  return DATE_FMT.format(new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d)));
+/**
+ * Month/weekday labels and the tooltip date format in the active UI language.
+ * All formatters pin timeZone: 'UTC' because the Date inputs are UTC-constructed
+ * (Date.UTC / ISO YYYY-MM-DD). Without this, locales west of UTC render midnight-UTC
+ * as the prior local day — shifting month labels and tooltips by one (e.g. Jan → "Dec").
+ */
+function useHeatmapFormatters(): HeatmapFormatters {
+  const { i18n } = useTranslation();
+  const language = i18n.language;
+  return useMemo(() => {
+    const dateFmt = new Intl.DateTimeFormat(language, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    const monthFmt = new Intl.DateTimeFormat(language, { month: 'short', timeZone: 'UTC' });
+    const weekdayFmt = new Intl.DateTimeFormat(language, { weekday: 'short', timeZone: 'UTC' });
+    return {
+      monthLabels: Array.from({ length: 12 }, (_, i) => monthFmt.format(new Date(Date.UTC(2024, i, 1)))),
+      // 2024-01-07 is a Sunday in UTC; used to anchor the 7 weekday labels.
+      dowLabels: Array.from({ length: 7 }, (_, i) => weekdayFmt.format(new Date(Date.UTC(2024, 0, 7 + i)))),
+      formatPrettyDate: (isoDate: string) => {
+        const parsed = parseIsoDate(isoDate);
+        if (!parsed) return isoDate;
+        return dateFmt.format(new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d)));
+      },
+    };
+  }, [language]);
 }
 
 function cellBoxStyle(intensity: Intensity, fill?: boolean): React.CSSProperties {
@@ -170,6 +169,7 @@ interface DailyGrid {
 function buildDailyGrid(
   data: Array<{ date: string; count: number }>,
   year: number,
+  monthLabels: string[],
 ): DailyGrid {
   if (!Number.isFinite(year)) return { cells: [], weeks: 0, monthPositions: [], activeDays: 0 };
 
@@ -210,7 +210,7 @@ function buildDailyGrid(
     if (!parsed) return;
     const monthIdx = parsed.m - 1;
     if (monthIdx !== lastMonth) {
-      monthPositions.push({ month: MONTH_LABELS[monthIdx], col: Math.floor(idx / 7) });
+      monthPositions.push({ month: monthLabels[monthIdx], col: Math.floor(idx / 7) });
       lastMonth = monthIdx;
     }
   });
@@ -221,6 +221,7 @@ function buildDailyGrid(
 function buildWeeklyMonthPositions(
   year: number,
   weekCount: number,
+  monthLabels: string[],
 ): Array<{ month: string; col: number }> {
   if (!Number.isFinite(year)) return [];
   const yearStart = Date.UTC(year, 0, 1);
@@ -231,7 +232,7 @@ function buildWeeklyMonthPositions(
     if (weekStart.getUTCFullYear() !== year) continue;
     const month = weekStart.getUTCMonth();
     if (month !== lastMonth) {
-      positions.push({ month: MONTH_LABELS[month], col: w });
+      positions.push({ month: monthLabels[month], col: w });
       lastMonth = month;
     }
   }
@@ -247,9 +248,11 @@ function DailyView({
   year: number;
   onDayClick?: (date: string) => void;
 }) {
+  const { t } = useTranslation('usage');
+  const { monthLabels, dowLabels, formatPrettyDate } = useHeatmapFormatters();
   const { cells, weeks, monthPositions, activeDays } = useMemo(
-    () => buildDailyGrid(data, year),
-    [data, year],
+    () => buildDailyGrid(data, year, monthLabels),
+    [data, year, monthLabels],
   );
   const gridWidth = weeks * CELL_SIZE + (weeks - 1) * CELL_GAP;
   const todayIso = toIsoUtc(new Date());
@@ -259,7 +262,12 @@ function DailyView({
       key={year}
       className="flex flex-col gap-2 animate-fade-in motion-reduce:animate-none"
       role="img"
-      aria-label={`Daily usage heatmap for ${year}. ${activeDays} active ${plural(activeDays, 'day')}.`}
+      aria-label={t('heatmap.dailyLabel', {
+        count: activeDays,
+        year,
+        defaultValue_one: 'Daily usage heatmap for {{year}}. {{count}} active day.',
+        defaultValue_other: 'Daily usage heatmap for {{year}}. {{count}} active days.',
+      })}
     >
       <div className="overflow-x-auto scrollbar-thin -mx-1 px-1 pb-0.5" style={{ overscrollBehaviorX: 'contain' }}>
         <div className="inline-flex gap-2 items-start">
@@ -268,7 +276,7 @@ function DailyView({
             style={{ rowGap: CELL_GAP, paddingTop: 16 }}
             aria-hidden
           >
-            {DOW_LABELS.map((label, i) => (
+            {dowLabels.map((label, i) => (
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: fixed 7-slot week, locales may repeat short labels
                 key={i}
@@ -296,13 +304,26 @@ function DailyView({
                 const intensity = intensityStep(cell.count, 'daily');
                 const date = cell.date;
                 const isToday = date === todayIso;
-                const tooltipBase = `${formatPrettyDate(date)} — ${cell.count} ${plural(cell.count, 'hit')}`;
+                const prettyDate = formatPrettyDate(date);
+                const tooltip = isToday
+                  ? t('heatmap.dayTooltipToday', {
+                      count: cell.count,
+                      date: prettyDate,
+                      defaultValue_one: '{{date}} — {{count}} hit (today)',
+                      defaultValue_other: '{{date}} — {{count}} hits (today)',
+                    })
+                  : t('heatmap.dayTooltip', {
+                      count: cell.count,
+                      date: prettyDate,
+                      defaultValue_one: '{{date}} — {{count}} hit',
+                      defaultValue_other: '{{date}} — {{count}} hits',
+                    });
                 return (
                   <Cell
                     key={cell.key}
                     intensity={intensity}
                     highlight={isToday}
-                    tooltip={isToday ? `${tooltipBase} (today)` : tooltipBase}
+                    tooltip={tooltip}
                     onClick={onDayClick ? () => onDayClick(date) : undefined}
                   />
                 );
@@ -322,10 +343,12 @@ function WeeklyView({
   data: Array<{ date: string; count: number }>;
   year: number;
 }) {
+  const { t } = useTranslation('usage');
+  const { monthLabels } = useHeatmapFormatters();
   const buckets = useMemo(() => bucketByWeek(data, year), [data, year]);
   const monthPositions = useMemo(
-    () => buildWeeklyMonthPositions(year, buckets.length),
-    [year, buckets.length],
+    () => buildWeeklyMonthPositions(year, buckets.length, monthLabels),
+    [year, buckets.length, monthLabels],
   );
   const gridWidth = buckets.length * CELL_SIZE + (buckets.length - 1) * CELL_GAP;
   const activeWeeks = useMemo(
@@ -338,7 +361,12 @@ function WeeklyView({
       key={year}
       className="flex flex-col gap-2 animate-fade-in motion-reduce:animate-none"
       role="img"
-      aria-label={`Weekly usage heatmap for ${year}. ${activeWeeks} active ${plural(activeWeeks, 'week')}.`}
+      aria-label={t('heatmap.weeklyLabel', {
+        count: activeWeeks,
+        year,
+        defaultValue_one: 'Weekly usage heatmap for {{year}}. {{count}} active week.',
+        defaultValue_other: 'Weekly usage heatmap for {{year}}. {{count}} active weeks.',
+      })}
     >
       <div className="overflow-x-auto scrollbar-thin -mx-1 px-1 pb-0.5" style={{ overscrollBehaviorX: 'contain' }}>
         <div className="inline-flex flex-col gap-1">
@@ -357,7 +385,13 @@ function WeeklyView({
                 <Cell
                   key={bucket.index}
                   intensity={intensity}
-                  tooltip={`Week ${bucket.index + 1}, ${year} — ${bucket.activeDays} active ${plural(bucket.activeDays, 'day')}`}
+                  tooltip={t('heatmap.weekTooltip', {
+                    count: bucket.activeDays,
+                    week: bucket.index + 1,
+                    year,
+                    defaultValue_one: 'Week {{week}}, {{year}} — {{count}} active day',
+                    defaultValue_other: 'Week {{week}}, {{year}} — {{count}} active days',
+                  })}
                 />
               );
             })}
@@ -375,6 +409,8 @@ function MonthlyView({
   data: Array<{ date: string; count: number }>;
   year: number;
 }) {
+  const { t } = useTranslation('usage');
+  const { monthLabels } = useHeatmapFormatters();
   const buckets = useMemo(() => bucketByMonth(data, year), [data, year]);
   const activeMonths = useMemo(
     () => buckets.reduce((s, b) => s + (b.activeDays > 0 ? 1 : 0), 0),
@@ -386,18 +422,29 @@ function MonthlyView({
       key={year}
       className="flex flex-col gap-2 animate-fade-in motion-reduce:animate-none"
       role="img"
-      aria-label={`Monthly usage heatmap for ${year}. ${activeMonths} active ${plural(activeMonths, 'month')}.`}
+      aria-label={t('heatmap.monthlyLabel', {
+        count: activeMonths,
+        year,
+        defaultValue_one: 'Monthly usage heatmap for {{year}}. {{count}} active month.',
+        defaultValue_other: 'Monthly usage heatmap for {{year}}. {{count}} active months.',
+      })}
     >
       <div className="grid grid-cols-12 gap-[6px]">
         {buckets.map((bucket) => {
           const intensity = intensityStep(bucket.activeDays, 'monthly');
-          const label = MONTH_LABELS[bucket.index] ?? bucket.label;
+          const label = monthLabels[bucket.index] ?? bucket.label;
           return (
             <div key={bucket.index} className="flex flex-col items-center gap-1 min-w-0">
               <Cell
                 intensity={intensity}
                 fill
-                tooltip={`${label} ${year} — ${bucket.activeDays} active ${plural(bucket.activeDays, 'day')}`}
+                tooltip={t('heatmap.monthTooltip', {
+                  count: bucket.activeDays,
+                  month: label,
+                  year,
+                  defaultValue_one: '{{month}} {{year}} — {{count}} active day',
+                  defaultValue_other: '{{month}} {{year}} — {{count}} active days',
+                })}
               />
               <span className="text-[11px] text-[var(--text-tertiary)] leading-none">
                 {label}
@@ -458,6 +505,7 @@ export function InlineRetryError({
   onRetry: () => void;
   className?: string;
 }) {
+  const { t } = useTranslation('usage');
   return (
     <div className={cn('flex flex-col gap-1.5', className)} role="alert">
       <p className="text-[13px] font-medium text-[var(--text-primary)] leading-snug">{title}</p>
@@ -469,7 +517,7 @@ export function InlineRetryError({
         onClick={onRetry}
         className="self-start -mx-2 -my-1 px-2 py-1 text-[13px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] rounded-[var(--radius-xs)]"
       >
-        Try again
+        {t('retry', { defaultValue: 'Try again' })}
       </button>
     </div>
   );

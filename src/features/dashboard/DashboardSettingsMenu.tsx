@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -27,12 +28,11 @@ interface DashboardSettingsMenuProps {
   settings: DashboardSettings;
   onUpdate: (patch: Partial<DashboardSettings>) => void;
   onReset?: () => void;
-  terminology: { Bins: string };
+  terminology: { Bins: string; bins: string };
 }
 
 interface SectionTile {
   key: keyof DashboardSettings & `show${string}`;
-  label: string;
   icon: LucideIcon;
   fullWidth?: boolean;
 }
@@ -79,16 +79,28 @@ function TileButton({ tile, label, checked, onToggle }: TileButtonProps) {
 }
 
 const SECTION_TILES: SectionTile[] = [
-  { key: 'showStats', label: 'Stats', icon: BarChart3 },
-  { key: 'showNeedsOrganizing', label: 'Needs Organizing', icon: Sparkles },
-  { key: 'showSavedViews', label: 'Saved searches', icon: Bookmark },
-  { key: 'showPinnedBins', label: 'Pinned', icon: Pin },
-  { key: 'showRecentlyScanned', label: 'Recent scans', icon: ScanLine },
-  { key: 'showCheckouts', label: 'Checked out', icon: PackageCheck },
-  { key: 'showActivity', label: 'Activity', icon: Activity, fullWidth: true },
+  { key: 'showStats', icon: BarChart3 },
+  { key: 'showNeedsOrganizing', icon: Sparkles },
+  { key: 'showSavedViews', icon: Bookmark },
+  { key: 'showPinnedBins', icon: Pin },
+  { key: 'showRecentlyScanned', icon: ScanLine },
+  { key: 'showCheckouts', icon: PackageCheck },
+  { key: 'showActivity', icon: Activity, fullWidth: true },
 ];
 
 export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology }: DashboardSettingsMenuProps) {
+  const { t } = useTranslation('dashboard');
+  const tileLabels: Record<SectionTile['key'], string> = {
+    showStats: t('sections.stats', { defaultValue: 'Stats' }),
+    showNeedsOrganizing: t('sections.needsOrganizing', { defaultValue: 'Needs Organizing' }),
+    showSavedViews: t('sections.savedSearches', { defaultValue: 'Saved searches' }),
+    showPinnedBins: t('sections.pinnedBins', { defaultValue: 'Pinned {{bins}}', bins: terminology.Bins }),
+    showRecentlyScanned: t('sections.recentScans', { defaultValue: 'Recent scans' }),
+    showCheckouts: t('sections.checkedOut', { defaultValue: 'Checked out' }),
+    showActivity: t('sections.activity', { defaultValue: 'Activity' }),
+    showChecklist: t('sections.onboardingChecklist', { defaultValue: 'Onboarding checklist' }),
+    showTimestamps: t('settings.timestamps', { defaultValue: 'Timestamps' }),
+  };
   const { visible, animating, close, toggle } = usePopover();
   const menuRef = useRef<HTMLDivElement>(null);
   const { preferences } = useUserPreferences();
@@ -97,13 +109,13 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
 
   return (
     <div ref={menuRef} className="relative">
-      <Tooltip content="Dashboard settings" side="bottom">
+      <Tooltip content={t('settings.title', { defaultValue: 'Dashboard settings' })} side="bottom">
         <Button
           variant="ghost"
           size="icon"
           onClick={toggle}
           className="h-10 w-10 rounded-[var(--radius-sm)]"
-          aria-label="Dashboard settings"
+          aria-label={t('settings.title', { defaultValue: 'Dashboard settings' })}
         >
           <Settings2 className="h-5 w-5" />
         </Button>
@@ -115,15 +127,14 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
             'absolute right-0 mt-1 w-[304px] rounded-[var(--radius-md)] flat-popover overflow-hidden z-20 p-2.5',
           )}
         >
-          <div className={cn(sectionHeader, 'px-1 pb-1')}>Sections</div>
+          <div className={cn(sectionHeader, 'px-1 pb-1')}>{t('settings.sections', { defaultValue: 'Sections' })}</div>
           <div className="grid grid-cols-2 gap-1.5">
             {SECTION_TILES.map((tile) => {
-              const label = tile.key === 'showPinnedBins' ? `Pinned ${terminology.Bins}` : tile.label;
               return (
                 <TileButton
                   key={tile.key}
                   tile={tile}
-                  label={label}
+                  label={tileLabels[tile.key]}
                   checked={settings[tile.key] as boolean}
                   onToggle={() => onUpdate({ [tile.key]: !settings[tile.key] })}
                 />
@@ -131,8 +142,8 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
             })}
             {preferences.checklist_eligible && (
               <TileButton
-                tile={{ key: 'showChecklist', label: 'Onboarding checklist', icon: CheckSquare }}
-                label="Onboarding checklist"
+                tile={{ key: 'showChecklist', icon: CheckSquare }}
+                label={tileLabels.showChecklist}
                 checked={settings.showChecklist}
                 onToggle={() => onUpdate({ showChecklist: !settings.showChecklist })}
               />
@@ -141,7 +152,7 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
 
           <div className="my-2 border-t border-[var(--border-subtle)]" />
 
-          <div className={cn(sectionHeader, 'px-1 pb-1')}>Display</div>
+          <div className={cn(sectionHeader, 'px-1 pb-1')}>{t('settings.display', { defaultValue: 'Display' })}</div>
           <label
             htmlFor="dash-toggle-timestamps"
             className="flex items-center gap-2 h-10 px-2.5 py-2 rounded-[var(--radius-sm)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
@@ -153,7 +164,7 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
               )}
               strokeWidth={1.75}
             />
-            <span className="flex-1 text-[13px] text-[var(--text-primary)]">Timestamps</span>
+            <span className="flex-1 text-[13px] text-[var(--text-primary)]">{tileLabels.showTimestamps}</span>
             <Switch
               id="dash-toggle-timestamps"
               checked={settings.showTimestamps}
@@ -164,7 +175,9 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
           <div className="px-2.5 py-2">
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4 shrink-0 text-[var(--text-secondary)] opacity-60" strokeWidth={1.75} />
-              <span className="flex-1 text-[13px] text-[var(--text-primary)]">Recent {terminology.Bins}</span>
+              <span className="flex-1 text-[13px] text-[var(--text-primary)]">
+                {t('settings.recentBins', { defaultValue: 'Recent {{bins}}', bins: terminology.Bins })}
+              </span>
               <span className="min-w-[28px] text-center text-[13px] tabular-nums text-[var(--text-primary)] bg-[var(--bg-input)] rounded-full px-2 py-0.5">
                 {settings.recentBinsCount}
               </span>
@@ -176,7 +189,10 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
               value={settings.recentBinsCount}
               onChange={(e) => onUpdate({ recentBinsCount: Number(e.target.value) })}
               className="mt-1.5 w-full accent-[var(--accent)]"
-              aria-label="Number of recent bins to show"
+              aria-label={t('settings.recentBinsCount', {
+                defaultValue: 'Number of recent {{bins}} to show',
+                bins: terminology.bins,
+              })}
             />
           </div>
 
@@ -192,7 +208,7 @@ export function DashboardSettingsMenu({ settings, onUpdate, onReset, terminology
                 className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[var(--radius-sm)] text-[12px] text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)] transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
-                <span>Reset to defaults</span>
+                <span>{t('settings.reset', { defaultValue: 'Reset to defaults' })}</span>
               </button>
             </>
           )}

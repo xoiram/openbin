@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import { isValidElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_TERMINOLOGY } from '@/lib/terminology';
@@ -30,7 +31,18 @@ function entry(overrides: Partial<ActivityLogEntry>): ActivityLogEntry {
   };
 }
 
-const t = DEFAULT_TERMINOLOGY;
+const term = DEFAULT_TERMINOLOGY;
+
+/** Mirrors the global react-i18next mock: resolves defaultValue (plural-aware) and fills {{vars}}. */
+function mockT(_key: string, opts?: Record<string, unknown>): string {
+  let text = opts?.defaultValue;
+  if (typeof opts?.count === 'number') {
+    const form = opts.count === 1 ? opts.defaultValue_one : opts.defaultValue_other;
+    if (typeof form === 'string') text = form;
+  }
+  return String(text ?? _key).replace(/\{\{\s*(\w+)\s*\}\}/g, (p, n: string) => (opts && n in opts ? String(opts[n]) : p));
+}
+const t = mockT as unknown as TFunction<'activity'>;
 
 describe('getActionColor', () => {
   it('returns green for create', () => {
@@ -140,11 +152,11 @@ describe('getActionIcon', () => {
 
 describe('getActionLabel', () => {
   it('bin create', () => {
-    expect(getActionLabel(entry({ action: 'create' }), t)).toBe('created bin "Box"');
+    expect(getActionLabel(entry({ action: 'create' }), term, t)).toBe('created bin "Box"');
   });
 
   it('bin update (generic)', () => {
-    expect(getActionLabel(entry({ action: 'update' }), t)).toBe('updated bin "Box"');
+    expect(getActionLabel(entry({ action: 'update' }), term, t)).toBe('updated bin "Box"');
   });
 
   it('bin update with items_added falls through to generic label', () => {
@@ -152,7 +164,7 @@ describe('getActionLabel', () => {
       action: 'update',
       changes: { items_added: { old: null, new: ['Cable'] } },
     });
-    expect(getActionLabel(e, t)).toBe('updated bin "Box"');
+    expect(getActionLabel(e, term, t)).toBe('updated bin "Box"');
   });
 
   it('bin update with items_removed falls through to generic label', () => {
@@ -160,7 +172,7 @@ describe('getActionLabel', () => {
       action: 'update',
       changes: { items_removed: { old: ['Cable'], new: null } },
     });
-    expect(getActionLabel(e, t)).toBe('updated bin "Box"');
+    expect(getActionLabel(e, term, t)).toBe('updated bin "Box"');
   });
 
   it('bin update with items_renamed falls through to generic label', () => {
@@ -168,7 +180,7 @@ describe('getActionLabel', () => {
       action: 'update',
       changes: { items_renamed: { old: 'Old', new: 'New' } },
     });
-    expect(getActionLabel(e, t)).toBe('updated bin "Box"');
+    expect(getActionLabel(e, term, t)).toBe('updated bin "Box"');
   });
 
   it('bin update with items reorder falls through to generic label', () => {
@@ -176,19 +188,19 @@ describe('getActionLabel', () => {
       action: 'update',
       changes: { items: { old: ['A', 'B'], new: ['B', 'A'] } },
     });
-    expect(getActionLabel(e, t)).toBe('updated bin "Box"');
+    expect(getActionLabel(e, term, t)).toBe('updated bin "Box"');
   });
 
   it('bin delete', () => {
-    expect(getActionLabel(entry({ action: 'delete' }), t)).toBe('deleted bin "Box"');
+    expect(getActionLabel(entry({ action: 'delete' }), term, t)).toBe('deleted bin "Box"');
   });
 
   it('bin restore', () => {
-    expect(getActionLabel(entry({ action: 'restore' }), t)).toBe('restored bin "Box"');
+    expect(getActionLabel(entry({ action: 'restore' }), term, t)).toBe('restored bin "Box"');
   });
 
   it('bin permanent_delete', () => {
-    expect(getActionLabel(entry({ action: 'permanent_delete' }), t)).toBe(
+    expect(getActionLabel(entry({ action: 'permanent_delete' }), term, t)).toBe(
       'permanently deleted bin "Box"',
     );
   });
@@ -198,68 +210,68 @@ describe('getActionLabel', () => {
       action: 'move_in',
       changes: { location: { old: 'Loc A', new: 'Loc B' } },
     });
-    expect(getActionLabel(e, t)).toBe('moved bin "Box" from Loc A to Loc B');
+    expect(getActionLabel(e, term, t)).toBe('moved bin "Box" from Loc A to Loc B');
   });
 
   it('bin add_photo', () => {
-    expect(getActionLabel(entry({ action: 'add_photo' }), t)).toBe('added photo to bin "Box"');
+    expect(getActionLabel(entry({ action: 'add_photo' }), term, t)).toBe('added photo to bin "Box"');
   });
 
   it('bin delete_photo', () => {
-    expect(getActionLabel(entry({ action: 'delete_photo' }), t)).toBe(
+    expect(getActionLabel(entry({ action: 'delete_photo' }), term, t)).toBe(
       'removed photo from bin "Box"',
     );
   });
 
   it('area create', () => {
     const e = entry({ action: 'create', entity_type: 'area', entity_name: 'Shelf' });
-    expect(getActionLabel(e, t)).toBe('created area "Shelf"');
+    expect(getActionLabel(e, term, t)).toBe('created area "Shelf"');
   });
 
   it('area update', () => {
     const e = entry({ action: 'update', entity_type: 'area', entity_name: 'Shelf' });
-    expect(getActionLabel(e, t)).toBe('renamed area to "Shelf"');
+    expect(getActionLabel(e, term, t)).toBe('renamed area to "Shelf"');
   });
 
   it('area delete', () => {
     const e = entry({ action: 'delete', entity_type: 'area', entity_name: 'Shelf' });
-    expect(getActionLabel(e, t)).toBe('deleted area "Shelf"');
+    expect(getActionLabel(e, term, t)).toBe('deleted area "Shelf"');
   });
 
   it('member join', () => {
     const e = entry({ action: 'join', entity_type: 'member' });
-    expect(getActionLabel(e, t)).toBe('joined the location');
+    expect(getActionLabel(e, term, t)).toBe('joined the location');
   });
 
   it('member leave', () => {
     const e = entry({ action: 'leave', entity_type: 'member' });
-    expect(getActionLabel(e, t)).toBe('left the location');
+    expect(getActionLabel(e, term, t)).toBe('left the location');
   });
 
   it('member remove_member', () => {
     const e = entry({ action: 'remove_member', entity_type: 'member', entity_name: 'Bob' });
-    expect(getActionLabel(e, t)).toBe('removed "Bob"');
+    expect(getActionLabel(e, term, t)).toBe('removed "Bob"');
   });
 
   it('location create', () => {
     const e = entry({ action: 'create', entity_type: 'location', entity_name: 'Home' });
-    expect(getActionLabel(e, t)).toBe('created location "Home"');
+    expect(getActionLabel(e, term, t)).toBe('created location "Home"');
   });
 
   it('location regenerate_invite', () => {
     const e = entry({ action: 'regenerate_invite', entity_type: 'location' });
-    expect(getActionLabel(e, t)).toBe('regenerated invite code');
+    expect(getActionLabel(e, term, t)).toBe('regenerated invite code');
   });
 
   it('fallback for unknown action/entity', () => {
     const e = entry({ action: 'someAction', entity_type: 'someType', entity_name: 'name' });
-    expect(getActionLabel(e, t)).toBe('someAction someType "name"');
+    expect(getActionLabel(e, term, t)).toBe('someAction someType "name"');
   });
 });
 
 describe('renderChangeDiff', () => {
   it('returns null for null changes', () => {
-    expect(renderChangeDiff(entry({ changes: null }))).toBeNull();
+    expect(renderChangeDiff(entry({ changes: null }), t, DEFAULT_TERMINOLOGY)).toBeNull();
   });
 
   it('returns item entries when only ITEM_FIELDS are present', () => {
@@ -269,7 +281,7 @@ describe('renderChangeDiff', () => {
         items_removed: { old: ['B'], new: null },
       },
     });
-    expect(renderChangeDiff(e)).toEqual([
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([
       { field: '+ items', old: '', new: 'A' },
       { field: '− items', old: 'B', new: '' },
     ]);
@@ -282,14 +294,14 @@ describe('renderChangeDiff', () => {
         area_id: { old: 'x', new: 'y' },
       },
     });
-    expect(renderChangeDiff(e)).toBeNull();
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toBeNull();
   });
 
   it('handles name change', () => {
     const e = entry({
       changes: { name: { old: 'A', new: 'B' } },
     });
-    expect(renderChangeDiff(e)).toEqual([{ field: 'name', old: 'A', new: 'B' }]);
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([{ field: 'name', old: 'A', new: 'B' }]);
   });
 
   it('handles card_style JSON change', () => {
@@ -301,7 +313,7 @@ describe('renderChangeDiff', () => {
         },
       },
     });
-    expect(renderChangeDiff(e)).toEqual([{ field: 'style', old: 'default', new: 'border' }]);
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([{ field: 'style', old: 'default', new: 'border' }]);
   });
 
   it('handles card_style null to default', () => {
@@ -310,7 +322,7 @@ describe('renderChangeDiff', () => {
         card_style: { old: null, new: '{"variant":"border"}' },
       },
     });
-    const result = renderChangeDiff(e);
+    const result = renderChangeDiff(e, t, DEFAULT_TERMINOLOGY);
     expect(result).toEqual([{ field: 'style', old: 'default', new: 'border' }]);
   });
 
@@ -318,7 +330,7 @@ describe('renderChangeDiff', () => {
     const e = entry({
       changes: { area: { old: 'Kitchen', new: 'Garage' } },
     });
-    expect(renderChangeDiff(e)).toEqual([{ field: 'area', old: 'Kitchen', new: 'Garage' }]);
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([{ field: 'area', old: 'Kitchen', new: 'Garage' }]);
   });
 
   it('returns item additions as structured entries', () => {
@@ -327,7 +339,7 @@ describe('renderChangeDiff', () => {
         items_added: { old: null, new: ['Cable', 'Wire'] },
       },
     });
-    expect(renderChangeDiff(e)).toEqual([
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([
       { field: '+ items', old: '', new: 'Cable, Wire' },
     ]);
   });
@@ -338,7 +350,7 @@ describe('renderChangeDiff', () => {
         items_removed: { old: ['Cable'], new: null },
       },
     });
-    expect(renderChangeDiff(e)).toEqual([
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([
       { field: '− items', old: 'Cable', new: '' },
     ]);
   });
@@ -349,7 +361,7 @@ describe('renderChangeDiff', () => {
         items_renamed: { old: 'Old Name', new: 'New Name' },
       },
     });
-    expect(renderChangeDiff(e)).toEqual([
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([
       { field: 'renamed', old: 'Old Name', new: 'New Name' },
     ]);
   });
@@ -361,7 +373,7 @@ describe('renderChangeDiff', () => {
         items_added: { old: null, new: ['Cable'] },
       },
     });
-    const result = renderChangeDiff(e);
+    const result = renderChangeDiff(e, t, DEFAULT_TERMINOLOGY);
     expect(result).toHaveLength(2);
     expect(result?.[0]).toEqual({ field: 'name', old: 'A', new: 'B' });
     expect(result?.[1]).toEqual({ field: '+ items', old: '', new: 'Cable' });
@@ -379,7 +391,7 @@ describe('renderChangeDiff', () => {
         },
       },
     });
-    expect(renderChangeDiff(e)).toEqual([
+    expect(renderChangeDiff(e, t, DEFAULT_TERMINOLOGY)).toEqual([
       { field: 'renamed', old: 'A', new: 'B' },
       { field: 'renamed', old: 'X', new: 'Y' },
     ]);
@@ -388,60 +400,60 @@ describe('renderChangeDiff', () => {
 
 describe('getActionBadgeLabel', () => {
   it('capitalizes create', () => {
-    expect(getActionBadgeLabel('create')).toBe('Created');
+    expect(getActionBadgeLabel('create', t)).toBe('Created');
   });
   it('capitalizes update', () => {
-    expect(getActionBadgeLabel('update')).toBe('Updated');
+    expect(getActionBadgeLabel('update', t)).toBe('Updated');
   });
   it('capitalizes delete', () => {
-    expect(getActionBadgeLabel('delete')).toBe('Deleted');
+    expect(getActionBadgeLabel('delete', t)).toBe('Deleted');
   });
   it('returns Deleted for permanent_delete', () => {
-    expect(getActionBadgeLabel('permanent_delete')).toBe('Deleted');
+    expect(getActionBadgeLabel('permanent_delete', t)).toBe('Deleted');
   });
   it('capitalizes restore', () => {
-    expect(getActionBadgeLabel('restore')).toBe('Restored');
+    expect(getActionBadgeLabel('restore', t)).toBe('Restored');
   });
   it('returns Photo for add_photo', () => {
-    expect(getActionBadgeLabel('add_photo')).toBe('Photo');
+    expect(getActionBadgeLabel('add_photo', t)).toBe('Photo');
   });
   it('returns Photo for delete_photo', () => {
-    expect(getActionBadgeLabel('delete_photo')).toBe('Photo');
+    expect(getActionBadgeLabel('delete_photo', t)).toBe('Photo');
   });
   it('returns Moved for move_in', () => {
-    expect(getActionBadgeLabel('move_in')).toBe('Moved');
+    expect(getActionBadgeLabel('move_in', t)).toBe('Moved');
   });
   it('returns Moved for move_out', () => {
-    expect(getActionBadgeLabel('move_out')).toBe('Moved');
+    expect(getActionBadgeLabel('move_out', t)).toBe('Moved');
   });
   it('returns Joined for join', () => {
-    expect(getActionBadgeLabel('join')).toBe('Joined');
+    expect(getActionBadgeLabel('join', t)).toBe('Joined');
   });
   it('returns Left for leave', () => {
-    expect(getActionBadgeLabel('leave')).toBe('Left');
+    expect(getActionBadgeLabel('leave', t)).toBe('Left');
   });
   it('returns Removed for remove_member', () => {
-    expect(getActionBadgeLabel('remove_member')).toBe('Removed');
+    expect(getActionBadgeLabel('remove_member', t)).toBe('Removed');
   });
   it('returns Role for change_role', () => {
-    expect(getActionBadgeLabel('change_role')).toBe('Role');
+    expect(getActionBadgeLabel('change_role', t)).toBe('Role');
   });
   it('returns Invite for regenerate_invite', () => {
-    expect(getActionBadgeLabel('regenerate_invite')).toBe('Invite');
+    expect(getActionBadgeLabel('regenerate_invite', t)).toBe('Invite');
   });
   it('capitalizes unknown action', () => {
-    expect(getActionBadgeLabel('some_action')).toBe('Some action');
+    expect(getActionBadgeLabel('some_action', t)).toBe('Some action');
   });
 });
 
 describe('getChangedFieldLabels', () => {
   it('returns [] for non-update actions', () => {
-    expect(getChangedFieldLabels(entry({ action: 'create' }), t)).toEqual([]);
-    expect(getChangedFieldLabels(entry({ action: 'delete' }), t)).toEqual([]);
+    expect(getChangedFieldLabels(entry({ action: 'create' }), term, t)).toEqual([]);
+    expect(getChangedFieldLabels(entry({ action: 'delete' }), term, t)).toEqual([]);
   });
 
   it('returns [] for update with no changes', () => {
-    expect(getChangedFieldLabels(entry({ action: 'update', changes: null }), t)).toEqual([]);
+    expect(getChangedFieldLabels(entry({ action: 'update', changes: null }), term, t)).toEqual([]);
   });
 
   it('labels scalar fields verbatim', () => {
@@ -456,7 +468,7 @@ describe('getChangedFieldLabels', () => {
         visibility: { old: 'location', new: 'private' },
       },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['name', 'notes', 'tags', 'icon', 'color', 'visibility']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['name', 'notes', 'tags', 'icon', 'color', 'visibility']);
   });
 
   it('labels card_style as "style"', () => {
@@ -464,7 +476,7 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { card_style: { old: '{}', new: '{"variant":"border"}' } },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['style']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['style']);
   });
 
   it('uses terminology for area', () => {
@@ -472,8 +484,8 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { area: { old: 'Kitchen', new: 'Garage' } },
     });
-    const customTerminology = { ...t, area: 'zone' };
-    expect(getChangedFieldLabels(e, customTerminology)).toEqual(['zone']);
+    const customTerminology = { ...term, area: 'zone' };
+    expect(getChangedFieldLabels(e, customTerminology, t)).toEqual(['zone']);
   });
 
   it('labels items_added with plural count', () => {
@@ -481,7 +493,7 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { items_added: { old: null, new: ['a', 'b', 'c'] } },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['+3 items']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['+3 items']);
   });
 
   it('labels items_added singular when count is 1', () => {
@@ -489,7 +501,7 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { items_added: { old: null, new: ['a'] } },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['+1 item']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['+1 item']);
   });
 
   it('labels items_removed singular and plural', () => {
@@ -497,13 +509,13 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { items_removed: { old: ['a'], new: null } },
     });
-    expect(getChangedFieldLabels(one, t)).toEqual(['\u22121 item']);
+    expect(getChangedFieldLabels(one, term, t)).toEqual(['\u22121 item']);
 
     const many = entry({
       action: 'update',
       changes: { items_removed: { old: ['a', 'b'], new: null } },
     });
-    expect(getChangedFieldLabels(many, t)).toEqual(['\u22122 items']);
+    expect(getChangedFieldLabels(many, term, t)).toEqual(['\u22122 items']);
   });
 
   it('combines +N items and −M items into two chips', () => {
@@ -514,7 +526,7 @@ describe('getChangedFieldLabels', () => {
         items_removed: { old: ['c'], new: null },
       },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['+2 items', '\u22121 item']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['+2 items', '\u22121 item']);
   });
 
   it('labels legacy items_renamed object as "renamed item"', () => {
@@ -522,7 +534,7 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { items_renamed: { old: 'A', new: 'B' } },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['renamed item']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['renamed item']);
   });
 
   it('labels array-form items_renamed with count', () => {
@@ -538,7 +550,7 @@ describe('getChangedFieldLabels', () => {
         },
       },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['renamed 2 items']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['renamed 2 items']);
   });
 
   it('labels array-form items_renamed with singular when array has exactly one entry', () => {
@@ -552,7 +564,7 @@ describe('getChangedFieldLabels', () => {
         },
       },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['renamed item']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['renamed item']);
   });
 
   it('labels items_quantity as "quantity"', () => {
@@ -560,6 +572,6 @@ describe('getChangedFieldLabels', () => {
       action: 'update',
       changes: { items_quantity: { old: { name: 'x', qty: 1 }, new: { name: 'x', qty: 2 } } },
     });
-    expect(getChangedFieldLabels(e, t)).toEqual(['quantity']);
+    expect(getChangedFieldLabels(e, term, t)).toEqual(['quantity']);
   });
 });

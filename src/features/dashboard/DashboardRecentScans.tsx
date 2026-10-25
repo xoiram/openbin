@@ -3,9 +3,10 @@ import { ScanLine } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
-import { cn, flatCard, plural, relativeTime } from '@/lib/utils';
+import { cn, flatCard } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { SectionHeader } from './DashboardWidgets';
 
@@ -16,24 +17,27 @@ interface DashboardRecentScansProps {
   showTimestamps?: boolean;
 }
 
-function describeBin(bin: Bin, t: TFunction<'common'>): string {
+function describeBin(bin: Bin, tCommon: TFunction<'common'>, emptyLabel: string): string {
   const itemCount = bin.items?.length ?? 0;
   const itemPart = itemCount > 0
-    ? t('itemCount', { count: itemCount, defaultValue: `${itemCount} ${plural(itemCount, 'item')}` })
-    : 'Empty';
+    ? tCommon('itemCount', { count: itemCount, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })
+    : emptyLabel;
   return bin.area_name ? `${bin.area_name} · ${itemPart}` : itemPart;
 }
 
 export function DashboardRecentScans({ bins, scanTimeMap, limit = 3, showTimestamps = true }: DashboardRecentScansProps) {
   const navigate = useNavigate();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('dashboard');
+  const { t: tCommon } = useTranslation('common');
+  const emptyLabel = t('recentScans.empty', { defaultValue: 'Empty' });
+  const relativeTime = useRelativeTime();
   const rows = bins.slice(0, limit);
 
   if (rows.length === 0) return null;
 
   return (
     <section aria-labelledby="dash-recent-scans" className="flex flex-col gap-2">
-      <SectionHeader id="dash-recent-scans" icon={ScanLine} title="Recent scans" />
+      <SectionHeader id="dash-recent-scans" icon={ScanLine} title={t('sections.recentScans', { defaultValue: 'Recent scans' })} />
       <div className={cn(flatCard, 'p-2')}>
         <ul className="flex flex-col">
           {rows.map((bin) => {
@@ -61,7 +65,7 @@ export function DashboardRecentScans({ bins, scanTimeMap, limit = 3, showTimesta
                       )}
                     </div>
                     <p className="text-[11.5px] text-[var(--text-tertiary)] truncate leading-snug">
-                      {describeBin(bin, t)}
+                      {describeBin(bin, tCommon, emptyLabel)}
                     </p>
                   </div>
                   {showTimestamps && time && (

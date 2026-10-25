@@ -1,5 +1,6 @@
 import { Box, Eye, FolderOpen, LogIn, MapPin, MapPinned, Plus, Shield, User, Users } from 'lucide-react';
 import { lazy, Suspense, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crossfade } from '@/components/ui/crossfade';
@@ -38,7 +39,8 @@ const UpgradePrompt = __EE__
   : (() => null) as React.FC<Record<string, unknown>>;
 
 export function AreasPage() {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('areas');
   const navigate = useNavigate();
   const { user, activeLocationId, setActiveLocationId } = useAuth();
   const { locations, isLoading: locationsLoading } = useLocationList();
@@ -84,7 +86,13 @@ export function AreasPage() {
     try {
       await updateArea(activeLocationId, areaId, newName);
     } catch (err) {
-      showToast({ message: err instanceof ApiError && err.status === 409 ? `${t.Area} name already exists` : 'Something went wrong', variant: 'error' });
+      showToast({
+        message:
+          err instanceof ApiError && err.status === 409
+            ? t('create.nameExists', { defaultValue: '{{area}} name already exists', area: term.Area })
+            : t('genericError', { defaultValue: 'Something went wrong' }),
+        variant: 'error',
+      });
       throw err;
     }
   }
@@ -102,15 +110,44 @@ export function AreasPage() {
         setActiveLocationId(other?.id ?? null);
       }
       setLeaveLocationId(null);
-      showToast({ message: 'Left location', variant: 'success' });
+      showToast({ message: t('locations:members.left', { defaultValue: 'Left {{location}}', location: term.location }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to leave'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('locations:members.leaveFailed', { defaultValue: 'Failed to leave' })), variant: 'error' });
     }
   }
 
   const totalMemberCount = activeLocation?.member_count ?? 0;
   const viewerCount = activeLocation?.viewer_count ?? 0;
   const memberCount = totalMemberCount - viewerCount;
+  const roleLabel = isAdmin
+    ? t('locations:roles.admin', { defaultValue: 'Admin' })
+    : isViewer
+      ? t('locations:roles.viewer', { defaultValue: 'Viewer' })
+      : t('locations:roles.member', { defaultValue: 'Member' });
+  const memberCountLabel = t('page.memberCount', {
+    count: memberCount,
+    defaultValue_one: '{{count}} member',
+    defaultValue_other: '{{count}} members',
+  });
+  const viewerCountLabel = t('page.viewerCount', {
+    count: viewerCount,
+    defaultValue_one: '{{count}} viewer',
+    defaultValue_other: '{{count}} viewers',
+  });
+  const binCountLabel = t('binCount', {
+    count: activeLocation?.bin_count ?? 0,
+    bin: term.bin,
+    bins: term.bins,
+    defaultValue_one: '{{count}} {{bin}}',
+    defaultValue_other: '{{count}} {{bins}}',
+  });
+  const areaCountLabel = t('page.areaCount', {
+    count: activeLocation?.area_count ?? 0,
+    area: term.area,
+    areas: term.areas,
+    defaultValue_one: '{{count}} {{area}}',
+    defaultValue_other: '{{count}} {{areas}}',
+  });
   const deleteTargetLocation = locations.find((l) => l.id === deleteLocationId);
   const leaveTargetLocation = locations.find((l) => l.id === leaveLocationId);
 
@@ -118,7 +155,7 @@ export function AreasPage() {
     <div className="page-content">
       {/* Header */}
       <PageHeader
-        title={locations.length === 1 ? activeLocation?.name ?? t.Locations : t.Locations}
+        title={locations.length === 1 ? activeLocation?.name ?? term.Locations : term.Locations}
         actions={locations.length > 0 ? (
           <div className="flex gap-2">
             <Button
@@ -128,13 +165,13 @@ export function AreasPage() {
               className="h-10 px-3.5"
             >
               <LogIn className="h-4 w-4 mr-1.5" />
-              Join
+              {t('page.join', { defaultValue: 'Join' })}
             </Button>
             <Button
               onClick={() => setCreateLocationOpen(true)}
               size="icon"
               className="h-10 w-10 rounded-[var(--radius-sm)]"
-              aria-label={`Create ${t.location}`}
+              aria-label={t('page.createLocation', { defaultValue: 'Create {{location}}', location: term.location })}
             >
               <Plus className="h-5 w-5" />
             </Button>
@@ -179,18 +216,21 @@ export function AreasPage() {
         {locations.length === 0 && (
           <EmptyState
             icon={MapPin}
-            title="No locations yet"
-            subtitle="Create a location or join one with an invite code"
+            title={t('page.noLocations', { defaultValue: 'No {{locations}} yet', locations: term.locations })}
+            subtitle={t('page.noLocationsHint', {
+              defaultValue: 'Create a {{location}} or join one with an invite code',
+              location: term.location,
+            })}
             variant="onboard"
           >
             <div className="flex gap-2.5">
               <Button onClick={() => setJoinLocationOpen(true)} variant="outline">
                 <LogIn className="h-4 w-4 mr-2" />
-                Join Location
+                {t('page.joinLocation', { defaultValue: 'Join {{location}}', location: term.Location })}
               </Button>
               <Button onClick={() => setCreateLocationOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create Location
+                {t('page.createLocationButton', { defaultValue: 'Create {{location}}', location: term.Location })}
               </Button>
             </div>
           </EmptyState>
@@ -215,11 +255,11 @@ export function AreasPage() {
                 <div className="flex items-center gap-3 flex-wrap min-w-0">
                   <span
                     role="img"
-                    aria-label={`Your role: ${isAdmin ? 'Admin' : isViewer ? 'Viewer' : 'Member'}`}
+                    aria-label={t('page.yourRole', { defaultValue: 'Your role: {{role}}', role: roleLabel })}
                     className={cn('inline-flex items-center gap-1.5 text-[12px] font-medium px-2 py-1 rounded-[var(--radius-full)] shrink-0', isAdmin ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-[var(--bg-input)] text-[var(--text-secondary)]')}
                   >
                     {isAdmin ? <Shield className="h-3 w-3" /> : isViewer ? <Eye className="h-3 w-3" /> : <User className="h-3 w-3" />}
-                    {isAdmin ? 'Admin' : isViewer ? 'Viewer' : 'Member'}
+                    {roleLabel}
                   </span>
                   <span className="text-[var(--text-tertiary)] opacity-30 shrink-0">&middot;</span>
                   <button
@@ -228,16 +268,23 @@ export function AreasPage() {
                     onClick={() => setMembersLocationId(activeLocation.id)}
                     aria-label={
                       viewerCount > 0
-                        ? `View ${memberCount} ${memberCount !== 1 ? 'members' : 'member'} and ${viewerCount} ${viewerCount !== 1 ? 'viewers' : 'viewer'}`
-                        : `View ${memberCount} ${memberCount !== 1 ? 'members' : 'member'}`
+                        ? t('page.viewMembersAndViewers', {
+                            defaultValue: 'View {{members}} and {{viewers}}',
+                            members: memberCountLabel,
+                            viewers: viewerCountLabel,
+                          })
+                        : t('page.viewMembers', { defaultValue: 'View {{members}}', members: memberCountLabel })
                     }
                   >
                     <Users className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">
-                      {memberCount} {memberCount !== 1 ? 'members' : 'member'}
-                      {viewerCount > 0 && (
-                        <>, {viewerCount} {viewerCount !== 1 ? 'viewers' : 'viewer'}</>
-                      )}
+                      {viewerCount > 0
+                        ? t('page.membersAndViewers', {
+                            defaultValue: '{{members}}, {{viewers}}',
+                            members: memberCountLabel,
+                            viewers: viewerCountLabel,
+                          })
+                        : memberCountLabel}
                     </span>
                     <span className="sm:hidden">
                       {memberCount}
@@ -249,12 +296,12 @@ export function AreasPage() {
                       <span className="text-[var(--text-tertiary)] opacity-30 shrink-0">&middot;</span>
                       <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-tertiary)] shrink-0">
                         <Box className="h-3.5 w-3.5" />
-                        <span>{activeLocation.bin_count ?? 0} {(activeLocation.bin_count ?? 0) !== 1 ? t.bins : t.bin}</span>
+                        <span>{binCountLabel}</span>
                       </span>
                       <span className="text-[var(--text-tertiary)] opacity-30 shrink-0 hidden sm:inline">&middot;</span>
                       <span className="hidden sm:inline-flex items-center gap-1.5 text-[13px] text-[var(--text-tertiary)] shrink-0">
                         <FolderOpen className="h-3.5 w-3.5" />
-                        <span>{activeLocation.area_count ?? 0} {(activeLocation.area_count ?? 0) !== 1 ? t.areas : t.area}</span>
+                        <span>{areaCountLabel}</span>
                       </span>
                     </>
                   )}
@@ -277,24 +324,36 @@ export function AreasPage() {
             {areas.length === 0 && unassignedCount === 0 ? (
               <EmptyState
                 icon={MapPinned}
-                title={`No ${t.areas} yet`}
-                subtitle={isAdmin ? `Create ${t.areas} to organize your ${t.bins} by zone` : `This ${t.location} has no ${t.areas} yet`}
+                title={t('page.noAreas', { defaultValue: 'No {{areas}} yet', areas: term.areas })}
+                subtitle={
+                  isAdmin
+                    ? t('page.noAreasAdminHint', {
+                        defaultValue: 'Create {{areas}} to organize your {{bins}} by zone',
+                        areas: term.areas,
+                        bins: term.bins,
+                      })
+                    : t('page.noAreasHint', {
+                        defaultValue: 'This {{location}} has no {{areas}} yet',
+                        location: term.location,
+                        areas: term.areas,
+                      })
+                }
               >
                 {isAdmin ? (
                   <Button onClick={() => setCreateAreaOpen(true)} variant="outline" size="sm">
                     <Plus className="h-3.5 w-3.5 mr-1.5" />
-                    {`Create ${t.Area}`}
+                    {t('create.title', { defaultValue: 'Create {{area}}', area: term.Area })}
                   </Button>
                 ) : (
                   <Button onClick={() => navigate('/bins')} variant="outline" size="sm">
                     <Box className="h-3.5 w-3.5 mr-1.5" />
-                    {`Browse ${t.Bins}`}
+                    {t('page.browseBins', { defaultValue: 'Browse {{bins}}', bins: term.Bins })}
                   </Button>
                 )}
               </EmptyState>
             ) : (
               <div className="flex flex-col gap-3">
-                <h2 className="ui-group-label font-semibold">{t.Areas}</h2>
+                <h2 className="ui-group-label font-semibold">{term.Areas}</h2>
                 <div className="flex flex-col gap-2">
                 {flattenAreaTree(areaTree).map((node: AreaTreeNode, index: number) => (
                   <div key={node.id} className="animate-card-stagger" style={{ '--stagger-index': index } as React.CSSProperties}>
@@ -364,7 +423,13 @@ export function AreasPage() {
           <DialogContent>
             {__EE__ && (
               <Suspense fallback={null}>
-                <UpgradePrompt feature="Custom Fields" description="Define custom fields for your bins." upgradeAction={planInfo.upgradeAction} />
+                <UpgradePrompt
+                  feature={t('locationMenu.customFields', { defaultValue: 'Custom Fields' })}
+                  description={t('page.customFieldsUpgrade', {
+                    defaultValue: 'Define custom fields for your {{bins}}.',
+                    bins: term.bins,
+                  })}
+                  upgradeAction={planInfo.upgradeAction} />
               </Suspense>
             )}
           </DialogContent>
@@ -381,17 +446,23 @@ export function AreasPage() {
       <Dialog open={!!leaveLocationId} onOpenChange={(open) => !open && setLeaveLocationId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Leave {t.Location}?</DialogTitle>
+            <DialogTitle>{t('page.leaveTitle', { defaultValue: 'Leave {{location}}?', location: term.Location })}</DialogTitle>
             <DialogDescription>
-              You&apos;ll lose access to all {t.bins} and {t.areas} in &quot;{leaveTargetLocation?.name ?? ''}&quot;. You can rejoin later with an invite code.
+              {t('page.leaveDescription', {
+                defaultValue:
+                  'You\'ll lose access to all {{bins}} and {{areas}} in "{{name}}". You can rejoin later with an invite code.',
+                bins: term.bins,
+                areas: term.areas,
+                name: leaveTargetLocation?.name ?? '',
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setLeaveLocationId(null)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button variant="destructive" onClick={handleLeaveConfirmed}>
-              Leave
+              {t('locationMenu.leave', { defaultValue: 'Leave' })}
             </Button>
           </DialogFooter>
         </DialogContent>

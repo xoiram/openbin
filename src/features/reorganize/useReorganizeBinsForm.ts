@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ReorgOptions } from './useReorganize';
 
 export type Strictness = NonNullable<ReorgOptions['strictness']>;
@@ -34,6 +35,7 @@ export interface ReorganizeBinsForm {
 }
 
 export function useReorganizeBinsForm(): ReorganizeBinsForm {
+  const { t } = useTranslation('reorganize');
   const [maxBins, setMaxBins] = useState<string>('');
   const [userNotes, setUserNotes] = useState('');
   const [strictness, setStrictness] = useState<Strictness>('moderate');
@@ -48,9 +50,13 @@ export function useReorganizeBinsForm(): ReorganizeBinsForm {
   const maxVal = maxItemsPerBin ? Number.parseInt(maxItemsPerBin, 10) : undefined;
   const maxBinsVal = maxBins ? Number.parseInt(maxBins, 10) : undefined;
   const rangeError =
-    minVal != null && maxVal != null && minVal > maxVal ? 'Min must be less than max' : undefined;
+    minVal != null && maxVal != null && minVal > maxVal
+      ? t('binsOptions.rangeError', { defaultValue: 'Min must be less than max' })
+      : undefined;
   const maxBinsError =
-    maxBinsVal != null && maxBinsVal < 1 ? 'Must be at least 1' : undefined;
+    maxBinsVal != null && maxBinsVal < 1
+      ? t('binsOptions.maxBinsError', { defaultValue: 'Must be at least 1' })
+      : undefined;
   const hasValidationError = !!rangeError || !!maxBinsError;
 
   const options: ReorgOptions = useMemo(

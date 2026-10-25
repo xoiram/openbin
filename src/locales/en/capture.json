@@ -1,0 +1,56 @@
+{
+  "close": "Close",
+  "done": "Done",
+  "noPhotosYet": "No photos yet",
+  "takePhoto": "Take photo",
+  "flipCamera": "Flip camera",
+  "retryUpload": "Retry upload",
+  "photoCount_one": "{{count}} photo",
+  "photoCount_other": "{{count}} photos",
+  "discardConfirm_one": "Discard {{count}} photo?",
+  "discardConfirm_other": "Discard {{count}} photos?",
+  "start": {
+    "unavailableTitle": "Camera not available",
+    "unavailableDescription": "Your browser does not support camera access. Make sure you are using HTTPS.",
+    "goBack": "Go Back",
+    "tryAgain": "Try Again",
+    "readyTitle": "Ready to capture",
+    "readyDescription": "Tap the button below to start the camera and take photos.",
+    "startCamera": "Start Camera"
+  },
+  "hints": {
+    "tapShutter": "tap shutter to capture",
+    "keepShooting": "keep shooting — same {{bin}}",
+    "newBin": "new {{bin}} — aim & shoot",
+    "doneWhenFinished": "Done when finished"
+  },
+  "bulk": {
+    "groupStatus_one": "{{Bin}} #{{index}} · {{count}} photo",
+    "groupStatus_other": "{{Bin}} #{{index}} · {{count}} photos",
+    "openLibrary": "Open photo library",
+    "nextBin": "Next {{bin}}",
+    "nextBinLine1": "Next",
+    "nextBinLine2": "{{bin}}"
+  },
+  "thumbnail": {
+    "label": "{{Bin}} {{group}}, photo {{photo}}",
+    "remove": "Remove photo"
+  },
+  "tips": {
+    "title": "Photo tips",
+    "gotIt": "Got it",
+    "items": {
+      "visibility": "Open the {{bin}} so contents are visible",
+      "light": "Use bright, even light",
+      "angles": "Take 2–3 angles",
+      "labels": "Get close to labels"
+    }
+  },
+  "errors": {
+    "uploadFailed": "Upload failed",
+    "accessDenied": "Camera access denied. Please allow camera access in your browser settings and try again.",
+    "notFound": "No camera found on this device.",
+    "generic": "Camera error: {{message}}",
+    "accessFailed": "Failed to access camera."
+  }
+}

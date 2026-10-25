@@ -1,0 +1,19 @@
+{
+  "acceptedTypes": "PDF, Word, Excel, PowerPoint, tekst, CSV, JSON, ODF, ZIP, 7z, tar, gz",
+  "toasts": {
+    "unsupportedOne": "«{{name}}» er ikke en støttet filtype. Tillatt: {{allowed}}.",
+    "unsupportedMany": "{{number}} filer har filtyper som ikke støttes. Tillatt: {{allowed}}.",
+    "tooLarge": "«{{name}}» overskrider grensen på {{max}} MB",
+    "uploadFailed": "Kunne ikke laste opp «{{name}}»",
+    "deleted": "Vedlegget er slettet",
+    "deleteFailed": "Kunne ikke slette"
+  },
+  "download": "Last ned {{name}}",
+  "fileFallback": "FIL",
+  "deleteTooltip": "Slett vedlegg",
+  "deleteLabel": "Slett {{name}}",
+  "uploading": "Laster opp…",
+  "addTooltip": "{{allowed}} · opptil {{max}} MB",
+  "addLabel": "Legg til vedlegg. Tillatte typer: {{allowed}}. Maks {{max}} MB.",
+  "addFile": "Legg til fil"
+}

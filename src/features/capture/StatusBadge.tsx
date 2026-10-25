@@ -1,4 +1,5 @@
 import { Check, RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { CapturedPhoto } from './useCapture';
 
 /** Upload-status overlay for a single thumbnail. Tap to retry on failure. */
@@ -9,6 +10,7 @@ export function StatusBadge({
   photo: CapturedPhoto;
   onRetry: () => void;
 }) {
+  const { t } = useTranslation('capture');
   switch (photo.status) {
     case 'pending':
     case 'uploading':
@@ -32,7 +34,7 @@ export function StatusBadge({
             onRetry();
           }}
           className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-[var(--radius-sm)]"
-          aria-label="Retry upload"
+          aria-label={t('retryUpload', { defaultValue: 'Retry upload' })}
         >
           <RotateCcw className="h-4 w-4 text-red-400" />
         </button>

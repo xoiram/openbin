@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAiStream } from '@/features/ai/useAiStream';
 import { addBin, deleteBin, updateBin } from '@/features/bins/useBins';
 import { useAuth } from '@/lib/auth';
@@ -29,6 +30,7 @@ export type ApplyOutcome =
   | { success: false };
 
 export function useReorganize() {
+  const { t } = useTranslation('reorganize');
   const { activeLocationId } = useAuth();
   const {
     result,
@@ -39,7 +41,10 @@ export function useReorganize() {
     stream,
     cancel,
     clear: clearStream,
-  } = useAiStream<ReorgResponse>('/api/ai/reorganize/stream', 'Failed to generate reorganization');
+  } = useAiStream<ReorgResponse>(
+    '/api/ai/reorganize/stream',
+    t('errors.generateFailed', { defaultValue: 'Failed to generate reorganization' }),
+  );
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
 
@@ -109,13 +114,13 @@ export function useReorganize() {
         notify(Events.AREAS);
         return { success: true, newBinIds: [...preservedIds, ...created.map((bin) => bin.id)] };
       } catch (err) {
-        setApplyError(getErrorMessage(err, 'Failed to apply reorganization'));
+        setApplyError(getErrorMessage(err, t('errors.applyFailed', { defaultValue: 'Failed to apply reorganization' })));
         return { success: false };
       } finally {
         setIsApplying(false);
       }
     },
-    [result, activeLocationId],
+    [result, activeLocationId, t],
   );
 
   const clear = useCallback(() => {

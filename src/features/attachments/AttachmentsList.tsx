@@ -1,5 +1,6 @@
 import { FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -45,7 +46,6 @@ const ACCEPTED_MIME_TYPES = [
 ];
 const ACCEPT_ATTR = [...ACCEPTED_EXTENSIONS, ...ACCEPTED_MIME_TYPES].join(',');
 const ACCEPTED_EXTENSIONS_SET = new Set(ACCEPTED_EXTENSIONS);
-const ACCEPTED_TYPES_HINT = 'PDF, Word, Excel, PowerPoint, text, CSV, JSON, ODF, ZIP, 7z, tar, gz';
 
 function extOf(filename: string): string {
   const idx = filename.lastIndexOf('.');
@@ -53,9 +53,9 @@ function extOf(filename: string): string {
   return filename.slice(idx).toLowerCase();
 }
 
-function getExtensionLabel(filename: string): string {
+function getExtensionLabel(filename: string, fileLabel: string): string {
   const ext = extOf(filename);
-  return ext ? ext.slice(1).toUpperCase().slice(0, 5) : 'FILE';
+  return ext ? ext.slice(1).toUpperCase().slice(0, 5) : fileLabel;
 }
 
 function isAcceptedFile(filename: string): boolean {
@@ -70,11 +70,15 @@ interface AttachmentsListProps {
 }
 
 export function AttachmentsList({ binId, attachments, canUpload, canDelete }: AttachmentsListProps) {
+  const { t } = useTranslation('attachments');
   const { user } = useAuth();
   const { isAdmin } = usePermissions();
   const { showToast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const acceptedTypesHint = t('acceptedTypes', {
+    defaultValue: 'PDF, Word, Excel, PowerPoint, text, CSV, JSON, ODF, ZIP, 7z, tar, gz',
+  });
 
   const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -89,7 +93,17 @@ export function AttachmentsList({ binId, attachments, canUpload, canDelete }: At
     }
     if (rejected.length > 0) {
       showToast({
-        message: `${rejected.length === 1 ? `"${rejected[0]}" is not a supported file type` : `${rejected.length} files have unsupported types`}. Allowed: ${ACCEPTED_TYPES_HINT}.`,
+        message: rejected.length === 1
+          ? t('toasts.unsupportedOne', {
+              defaultValue: '"{{name}}" is not a supported file type. Allowed: {{allowed}}.',
+              name: rejected[0],
+              allowed: acceptedTypesHint,
+            })
+          : t('toasts.unsupportedMany', {
+              defaultValue: '{{number}} files have unsupported types. Allowed: {{allowed}}.',
+              number: rejected.length,
+              allowed: acceptedTypesHint,
+            }),
         variant: 'error',
       });
     }
@@ -101,27 +115,34 @@ export function AttachmentsList({ binId, attachments, canUpload, canDelete }: At
     await Promise.all(accepted.map(async (file) => {
       try {
         if (file.size > MAX_MB * 1024 * 1024) {
-          showToast({ message: `"${file.name}" exceeds the ${MAX_MB} MB limit`, variant: 'error' });
+          showToast({
+            message: t('toasts.tooLarge', {
+              defaultValue: '"{{name}}" exceeds the {{max}} MB limit',
+              name: file.name,
+              max: MAX_MB,
+            }),
+            variant: 'error',
+          });
           return;
         }
         await uploadAttachment(binId, file);
       } catch (err) {
-        showToast({ message: getErrorMessage(err, `Failed to upload "${file.name}"`), variant: 'error' });
+        showToast({ message: getErrorMessage(err, t('toasts.uploadFailed', { defaultValue: 'Failed to upload "{{name}}"', name: file.name })), variant: 'error' });
       } finally {
         setUploadingCount((c) => c - 1);
       }
     }));
     if (inputRef.current) inputRef.current.value = '';
-  }, [binId, showToast]);
+  }, [binId, showToast, t, acceptedTypesHint]);
 
   const handleDelete = useCallback(async (attachment: Attachment) => {
     try {
       await deleteAttachment(attachment.id);
-      showToast({ message: 'Attachment deleted', variant: 'success' });
+      showToast({ message: t('toasts.deleted', { defaultValue: 'Attachment deleted' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to delete'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('toasts.deleteFailed', { defaultValue: 'Failed to delete' })), variant: 'error' });
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const isOwnerOrAdmin = (a: Attachment) => isAdmin || a.created_by === user?.id;
 
@@ -132,13 +153,13 @@ export function AttachmentsList({ binId, attachments, canUpload, canDelete }: At
           <a
             href={getAttachmentDownloadUrl(a.id)}
             download={a.filename}
-            aria-label={`Download ${a.filename}`}
+            aria-label={t('download', { defaultValue: 'Download {{name}}', name: a.filename })}
             className={`flex h-20 w-52 items-center gap-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)] px-3 transition-colors duration-150 hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] snap-start ${focusRing}`}
           >
             <div className="flex h-14 w-12 flex-shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-xs)] border border-[var(--border-subtle)]">
               <FileText className="h-5 w-5 text-[var(--text-secondary)]" aria-hidden="true" />
               <span className="ui-eyebrow text-[10px]">
-                {getExtensionLabel(a.filename)}
+                {getExtensionLabel(a.filename, t('fileFallback', { defaultValue: 'FILE' }))}
               </span>
             </div>
             <div className="min-w-0 flex-1 text-left">
@@ -154,13 +175,13 @@ export function AttachmentsList({ binId, attachments, canUpload, canDelete }: At
             </div>
           </a>
           {canDelete && isOwnerOrAdmin(a) && (
-            <Tooltip content="Delete attachment">
+            <Tooltip content={t('deleteTooltip', { defaultValue: 'Delete attachment' })}>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => handleDelete(a)}
                 className="absolute top-1 right-1 h-8 w-8 rounded-[var(--radius-xs)] bg-[var(--overlay-button)] text-white opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity hover:bg-[var(--overlay-button-hover)] hover:text-[var(--destructive)]"
-                aria-label={`Delete ${a.filename}`}
+                aria-label={t('deleteLabel', { defaultValue: 'Delete {{name}}', name: a.filename })}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
@@ -176,19 +197,23 @@ export function AttachmentsList({ binId, attachments, canUpload, canDelete }: At
           className="flex h-20 w-52 flex-shrink-0 items-center justify-center gap-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] snap-start"
         >
           <Loader2 className="h-4 w-4 animate-spin text-[var(--text-tertiary)]" aria-hidden="true" />
-          <span className="text-[var(--text-xs)] text-[var(--text-tertiary)]">Uploading…</span>
+          <span className="text-[var(--text-xs)] text-[var(--text-tertiary)]">{t('uploading', { defaultValue: 'Uploading…' })}</span>
         </output>
       ))}
       {canUpload && (
-        <Tooltip content={`${ACCEPTED_TYPES_HINT} · up to ${MAX_MB} MB`}>
+        <Tooltip content={t('addTooltip', { defaultValue: '{{allowed}} · up to {{max}} MB', allowed: acceptedTypesHint, max: MAX_MB })}>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            aria-label={`Add attachment. Allowed types: ${ACCEPTED_TYPES_HINT}. Max ${MAX_MB} MB.`}
+            aria-label={t('addLabel', {
+              defaultValue: 'Add attachment. Allowed types: {{allowed}}. Max {{max}} MB.',
+              allowed: acceptedTypesHint,
+              max: MAX_MB,
+            })}
             className={`flex h-20 w-52 flex-shrink-0 items-center justify-center gap-2 rounded-[var(--radius-sm)] border-2 border-dashed border-[var(--border-subtle)] text-[var(--text-tertiary)] transition-colors duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)] snap-start ${focusRing}`}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            <span className="text-[var(--text-xs)] font-medium">Add File</span>
+            <span className="text-[var(--text-xs)] font-medium">{t('addFile', { defaultValue: 'Add File' })}</span>
           </button>
         </Tooltip>
       )}

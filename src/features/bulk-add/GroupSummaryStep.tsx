@@ -1,4 +1,5 @@
 import { AlertCircle, Check, Loader2, Pencil } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { resolveColor } from '@/lib/colorPalette';
 import { useTerminology } from '@/lib/terminology';
@@ -22,7 +23,8 @@ export function GroupSummaryStep({
   onCreateAll,
   onRetryFailed,
 }: GroupSummaryStepProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bulkAdd');
+  const term = useTerminology();
 
   const confirmed = groups.filter((g) =>
     ['reviewed', 'pending', 'creating', 'created'].includes(g.status),
@@ -40,25 +42,42 @@ export function GroupSummaryStep({
   const totalToCreate = createReady.length + failed.length;
   const showActions =
     !isCreating && (createReady.length > 0 || failed.length > 0);
+  const createTitle = t('summary.createTitle', {
+    count: createReady.length,
+    bin: term.Bin,
+    bins: term.Bins,
+    defaultValue_one: 'Create {{count}} {{bin}}',
+    defaultValue_other: 'Create {{count}} {{bins}}',
+  });
 
   return (
     <div className={cn('flex flex-1 flex-col gap-5', !showActions && 'pb-[calc(24px+var(--safe-bottom))]')}>
       <header className="space-y-1">
         <h2 className="text-[18px] font-semibold leading-tight text-[var(--text-primary)]">
           {isCreating
-            ? `Creating ${createdCount}/${totalToCreate}...`
+            ? t('summary.creatingProgress', {
+                defaultValue: 'Creating {{done}}/{{total}}...',
+                done: createdCount,
+                total: totalToCreate,
+              })
             : allCreated
-              ? `All ${t.bins} created!`
-              : `Create ${createReady.length} ${createReady.length !== 1 ? t.Bins : t.Bin}`}
+              ? t('summary.allCreated', { defaultValue: 'All {{bins}} created!', bins: term.bins })
+              : createTitle}
         </h2>
         {!isCreating && !allCreated && (
           <p className="text-[13px] leading-snug text-[var(--text-secondary)]">
-            Tap any {t.bin} to edit before creating.
+            {t('summary.tapToEdit', { defaultValue: 'Tap any {{bin}} to edit before creating.', bin: term.bin })}
             {unnamedCount > 0 && (
               <>
                 {' '}
                 <span className="text-[var(--text-tertiary)]">
-                  {unnamedCount} unnamed {unnamedCount === 1 ? t.bin : t.bins} won't be created.
+                  {t('summary.unnamedSkipped', {
+                    count: unnamedCount,
+                    bin: term.bin,
+                    bins: term.bins,
+                    defaultValue_one: "{{count}} unnamed {{bin}} won't be created.",
+                    defaultValue_other: "{{count}} unnamed {{bins}} won't be created.",
+                  })}
                 </span>
               </>
             )}
@@ -83,8 +102,10 @@ export function GroupSummaryStep({
           const colorPreset = group.color ? resolveColor(group.color) : undefined;
           const bgColor = colorPreset?.bgCss;
           const hasName = group.name.trim().length > 0;
-          const displayName = hasName ? group.name : 'Untitled bin';
-          const editLabel = hasName ? `Edit ${group.name}` : `Edit untitled bin ${realIndex + 1}`;
+          const displayName = hasName ? group.name : t('summary.untitled', { defaultValue: 'Untitled {{bin}}', bin: term.bin });
+          const editLabel = hasName
+            ? t('summary.editNamed', { defaultValue: 'Edit {{name}}', name: group.name })
+            : t('summary.editUntitled', { defaultValue: 'Edit untitled {{bin}} {{number}}', bin: term.bin, number: realIndex + 1 });
 
           return (
             <div
@@ -109,11 +130,24 @@ export function GroupSummaryStep({
                 </div>
                 <div className="text-[12px] text-[var(--text-secondary)] flex gap-2">
                   <span>
-                    {group.items.length} item{group.items.length !== 1 ? 's' : ''}
+                    {t('summary.itemCount', {
+                      count: group.items.length,
+                      defaultValue_one: '{{count}} item',
+                      defaultValue_other: '{{count}} items',
+                    })}
                   </span>
-                  {group.photos.length > 1 && <span>· {group.photos.length} photos</span>}
+                  {group.photos.length > 1 && (
+                    <span>
+                      {t('summary.photoCount', {
+                        defaultValue: '· {{photoCount}} photos',
+                        photoCount: group.photos.length,
+                      })}
+                    </span>
+                  )}
                   {!hasName && (
-                    <span className="text-[var(--text-tertiary)]">· needs a name</span>
+                    <span className="text-[var(--text-tertiary)]">
+                      {t('summary.needsName', { defaultValue: '· needs a name' })}
+                    </span>
                   )}
                 </div>
               </div>
@@ -149,7 +183,13 @@ export function GroupSummaryStep({
       {failed.length > 0 && (
         <div className="space-y-2">
           <p className="text-[13px] font-medium text-[var(--destructive)]">
-            Couldn't create {failed.length} {failed.length !== 1 ? t.bins : t.bin}
+            {t('summary.failedTitle', {
+              count: failed.length,
+              bin: term.bin,
+              bins: term.bins,
+              defaultValue_one: "Couldn't create {{count}} {{bin}}",
+              defaultValue_other: "Couldn't create {{count}} {{bins}}",
+            })}
           </p>
           {failed.map((group) => (
             <div
@@ -175,15 +215,21 @@ export function GroupSummaryStep({
             <Button
               onClick={onCreateAll}
               data-tour="bulk-add-confirm"
-              aria-label={`Create ${createReady.length} ${createReady.length !== 1 ? t.Bins : t.Bin}`}
+              aria-label={createTitle}
               className="w-full"
             >
-              Create All ({createReady.length} {createReady.length !== 1 ? t.bins : t.bin})
+              {t('summary.createAll', {
+                count: createReady.length,
+                bin: term.bin,
+                bins: term.bins,
+                defaultValue_one: 'Create All ({{count}} {{bin}})',
+                defaultValue_other: 'Create All ({{count}} {{bins}})',
+              })}
             </Button>
           )}
           {failed.length > 0 && (
             <Button variant="ghost" onClick={onRetryFailed} className="w-full">
-              Retry {failed.length} failed
+              {t('summary.retryFailed', { defaultValue: 'Retry {{failedCount}} failed', failedCount: failed.length })}
             </Button>
           )}
         </div>

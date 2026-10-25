@@ -1,8 +1,10 @@
 import { ChevronDown, FolderTree, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useDialogPortal } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useTerminology } from '@/lib/terminology';
 import { cn } from '@/lib/utils';
 import { CreateAreaDialog } from './AreaDialogs';
 import { buildAreaTree, flattenAreaTree, useAreaList } from './useAreas';
@@ -16,6 +18,8 @@ interface AreaPickerProps {
 }
 
 export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
+  const { t } = useTranslation('areas');
+  const term = useTerminology();
   const dialogPortal = useDialogPortal();
   const { areas } = useAreaList(locationId);
   const [open, setOpen] = useState(false);
@@ -28,6 +32,7 @@ export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
+  const noAreaLabel = t('picker.noArea', { defaultValue: 'No {{area}}', area: term.area });
   const selectedArea = areas.find((a) => a.id === value);
   const flatAreas = useMemo(() => flattenAreaTree(buildAreaTree(areas)), [areas]);
   const trimmed = search.trim().toLowerCase();
@@ -49,10 +54,10 @@ export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
       const vv = window.visualViewport;
       const vvTop = vv?.offsetTop ?? 0;
       const vvLeft = vv?.offsetLeft ?? 0;
-      const t = rect.bottom + 4 + vvTop;
+      const top = rect.bottom + 4 + vvTop;
       const l = rect.left + vvLeft;
       const w = rect.width;
-      setPos((prev) => prev && prev.top === t && prev.left === l && prev.width === w ? prev : { top: t, left: l, width: w });
+      setPos((prev) => prev && prev.top === top && prev.left === l && prev.width === w ? prev : { top, left: l, width: w });
     });
   }, []);
 
@@ -139,7 +144,7 @@ export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
           !selectedArea && 'text-[var(--text-tertiary)]'
         )}
       >
-        <span className="truncate">{selectedArea ? selectedArea.name : 'No area'}</span>
+        <span className="truncate">{selectedArea ? selectedArea.name : noAreaLabel}</span>
         <ChevronDown className={cn('h-4 w-4 text-[var(--text-tertiary)] shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
 
@@ -156,7 +161,7 @@ export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setHighlightIndex(-1); }}
                 onKeyDown={handleKeyDown}
-                placeholder="Search areas..."
+                placeholder={t('picker.search', { defaultValue: 'Search {{areas}}...', areas: term.areas })}
                 className="h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:shadow-none"
               />
             </div>
@@ -175,7 +180,7 @@ export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
                     : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]',
               )}
             >
-              No area
+              {noAreaLabel}
             </button>
             {filtered.map((area, i) => {
               const idx = i + 1;
@@ -216,7 +221,7 @@ export function AreaPicker({ locationId, value, onChange }: AreaPickerProps) {
               )}
             >
               <Plus className="h-3.5 w-3.5 flex-shrink-0 text-[var(--accent)]" />
-              <span>Create new area...</span>
+              <span>{t('picker.createNew', { defaultValue: 'Create new {{area}}...', area: term.area })}</span>
             </button>
           </div>
         </div>,

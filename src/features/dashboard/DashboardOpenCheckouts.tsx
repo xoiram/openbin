@@ -1,13 +1,15 @@
 import { PackageSearch, Undo2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { ReturnItemDialog } from '@/features/checkouts/ReturnItemDialog';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
 import { usePermissions } from '@/lib/usePermissions';
-import { cn, flatCard, relativeTime } from '@/lib/utils';
+import { cn, flatCard } from '@/lib/utils';
 import type { ItemCheckoutWithContext } from '@/types';
 import { SectionHeader } from './DashboardWidgets';
 
@@ -20,6 +22,8 @@ interface DashboardOpenCheckoutsProps {
 
 export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: DashboardOpenCheckoutsProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
+  const relativeTime = useRelativeTime();
   const { canWrite } = usePermissions();
   const [returning, setReturning] = useState<ItemCheckoutWithContext | null>(null);
 
@@ -33,8 +37,8 @@ export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: Das
       <SectionHeader
         id="dash-checkouts"
         icon={PackageSearch}
-        title={`Checked out (${checkouts.length})`}
-        action={overflow > 0 ? { label: 'View all', onClick: () => navigate('/checkouts') } : undefined}
+        title={t('checkouts.title', { defaultValue: 'Checked out ({{n}})', n: checkouts.length })}
+        action={overflow > 0 ? { label: t('viewAll', { defaultValue: 'View all' }), onClick: () => navigate('/checkouts') } : undefined}
       />
       <div className={cn(flatCard, 'p-2')}>
         <ul className="flex flex-col">
@@ -47,7 +51,12 @@ export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: Das
                 <div
                   role="button"
                   tabIndex={0}
-                  aria-label={`${co.item_name} checked out by ${co.checked_out_by_name} from ${co.origin_bin_name}`}
+                  aria-label={t('checkouts.rowLabel', {
+                    defaultValue: '{{item}} checked out by {{user}} from {{bin}}',
+                    item: co.item_name,
+                    user: co.checked_out_by_name,
+                    bin: co.origin_bin_name,
+                  })}
                   onClick={() => navigate(`/bin/${co.origin_bin_id}`)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -74,11 +83,11 @@ export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: Das
                     </span>
                   )}
                   {canWrite && (
-                    <Tooltip content="Return item">
+                    <Tooltip content={t('checkouts.returnItem', { defaultValue: 'Return item' })}>
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setReturning(co); }}
-                        aria-label={`Return ${co.item_name}`}
+                        aria-label={t('checkouts.returnNamed', { defaultValue: 'Return {{item}}', item: co.item_name })}
                         className="shrink-0 h-9 w-9 -my-1 flex items-center justify-center rounded-[var(--radius-sm)] text-[var(--text-tertiary)] hover:bg-[var(--bg-active)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         <Undo2 className="h-4 w-4" />

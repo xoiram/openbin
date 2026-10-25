@@ -1,5 +1,6 @@
 import { Check, ShoppingCart, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { Button } from '@/components/ui/button';
 import { Crossfade } from '@/components/ui/crossfade';
@@ -17,6 +18,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
+import { useTerminology } from '@/lib/terminology';
 import { useDebounce } from '@/lib/useDebounce';
 import { usePermissions } from '@/lib/usePermissions';
 import { useTableSearchParams } from '@/lib/useTableSearchParams';
@@ -50,6 +52,8 @@ function sortEntries(
 }
 
 export function ShoppingListPage() {
+  const { t } = useTranslation('shoppingList');
+  const term = useTerminology();
   const { activeLocationId } = useAuth();
   const { canWrite } = usePermissions();
   const { showToast } = useToast();
@@ -79,7 +83,7 @@ export function ShoppingListPage() {
       await addToShoppingList(locationId, name);
       setNewName('');
     } catch {
-      showToast({ message: 'Failed to add', variant: 'error' });
+      showToast({ message: t('toasts.addFailed', { defaultValue: 'Failed to add' }), variant: 'error' });
     }
   }
 
@@ -88,14 +92,16 @@ export function ShoppingListPage() {
       const result = await markAsBought(entry.id);
       if (result.restored) {
         showToast({
-          message: `Added back to ${entry.origin_bin_name ?? 'bin'}`,
+          message: entry.origin_bin_name
+            ? t('toasts.addedBackTo', { defaultValue: 'Added back to {{bin}}', bin: entry.origin_bin_name })
+            : t('toasts.addedBack', { defaultValue: 'Added back to {{bin}}', bin: term.bin }),
           variant: 'success',
         });
       } else {
-        showToast({ message: 'Marked bought' });
+        showToast({ message: t('toasts.markedBought', { defaultValue: 'Marked bought' }) });
       }
     } catch {
-      showToast({ message: 'Failed to mark bought', variant: 'error' });
+      showToast({ message: t('toasts.markBoughtFailed', { defaultValue: 'Failed to mark bought' }), variant: 'error' });
     }
   }
 
@@ -103,14 +109,14 @@ export function ShoppingListPage() {
     try {
       await removeFromShoppingList(entry.id);
     } catch {
-      showToast({ message: 'Failed to remove', variant: 'error' });
+      showToast({ message: t('toasts.removeFailed', { defaultValue: 'Failed to remove' }), variant: 'error' });
     }
   }
 
   return (
     <div className="page-content-wide">
       <PageHeader
-        title="Shopping List"
+        title={t('title', { defaultValue: 'Shopping List' })}
         actions={
           canWrite && locationId ? (
             <div className="flex items-center gap-2">
@@ -123,7 +129,7 @@ export function ShoppingListPage() {
                     void handleAdd();
                   }
                 }}
-                placeholder="Add an item…"
+                placeholder={t('addPlaceholder', { defaultValue: 'Add an item…' })}
                 className="max-w-xs"
               />
               <Button
@@ -131,7 +137,7 @@ export function ShoppingListPage() {
                 onClick={() => void handleAdd()}
                 disabled={!newName.trim()}
               >
-                Add
+                {t('add', { defaultValue: 'Add' })}
               </Button>
             </div>
           ) : undefined
@@ -143,7 +149,7 @@ export function ShoppingListPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={search ? () => setSearch('') : undefined}
-          placeholder="Search items..."
+          placeholder={t('searchPlaceholder', { defaultValue: 'Search items...' })}
         />
       )}
 
@@ -189,11 +195,17 @@ export function ShoppingListPage() {
         {visibleEntries.length === 0 ? (
           <EmptyState
             icon={ShoppingCart}
-            title={search ? 'No items match your search' : 'No items on your shopping list'}
+            title={search
+              ? t('empty.noMatchesTitle', { defaultValue: 'No items match your search' })
+              : t('empty.title', { defaultValue: 'No items on your shopping list' })}
             subtitle={
               search
-                ? 'Try a different search term'
-                : "When you remove an item from a bin, the undo toast offers an 'Add to list' shortcut. Items you add here also show up."
+                ? t('empty.noMatchesSubtitle', { defaultValue: 'Try a different search term' })
+                : t('empty.subtitle', {
+                    defaultValue:
+                      "When you remove an item from a {{bin}}, the undo toast offers an 'Add to list' shortcut. Items you add here also show up.",
+                    bin: term.bin,
+                  })
             }
             variant={search ? 'search' : undefined}
           />
@@ -201,7 +213,7 @@ export function ShoppingListPage() {
           <Table>
             <TableHeader>
               <SortHeader
-                label="Item"
+                label={t('columns.item', { defaultValue: 'Item' })}
                 column="alpha"
                 currentColumn={sortColumn}
                 currentDirection={sortDirection}
@@ -209,7 +221,7 @@ export function ShoppingListPage() {
                 className="flex-[2]"
               />
               <SortHeader
-                label="Bin"
+                label={t('columns.bin', { defaultValue: '{{Bin}}', Bin: term.Bin })}
                 column="bin"
                 currentColumn={sortColumn}
                 currentDirection={sortDirection}
@@ -256,11 +268,11 @@ export function ShoppingListPage() {
                   </div>
                   {canWrite && (
                     <div className="w-10 shrink-0 flex justify-end">
-                      <Tooltip content="Mark bought">
+                      <Tooltip content={t('markBought', { defaultValue: 'Mark bought' })}>
                         <button
                           type="button"
                           onClick={() => void handleBought(entry)}
-                          aria-label={`Mark ${entry.name} bought`}
+                          aria-label={t('markBoughtLabel', { defaultValue: 'Mark {{name}} bought', name: entry.name })}
                           className="h-9 w-9 rounded-[var(--radius-lg)] flex items-center justify-center text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"
                         >
                           <Check className="h-4 w-4" />
@@ -270,11 +282,11 @@ export function ShoppingListPage() {
                   )}
                   {canWrite && (
                     <div className="w-10 shrink-0 flex justify-end">
-                      <Tooltip content="Remove">
+                      <Tooltip content={t('remove', { defaultValue: 'Remove' })}>
                         <button
                           type="button"
                           onClick={() => void handleRemove(entry)}
-                          aria-label={`Remove ${entry.name}`}
+                          aria-label={t('removeLabel', { defaultValue: 'Remove {{name}}', name: entry.name })}
                           className="h-9 w-9 rounded-[var(--radius-lg)] flex items-center justify-center text-[var(--text-tertiary)] hover:bg-[var(--bg-active)] transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"
                         >
                           <X className="h-4 w-4" />

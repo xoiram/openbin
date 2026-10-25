@@ -1,0 +1,72 @@
+{
+  "binCount_one": "{{count}} {{bin}}",
+  "binCount_other": "{{count}} {{bins}}",
+  "card": {
+    "total": "({{n}} totalt)",
+    "unassigned": "Ikke tilordnet"
+  },
+  "create": {
+    "creating": "Oppretter...",
+    "description": "{{areas}} hjelper deg å organisere {{bins}} etter sone (f.eks. Garasje, Kjøkken, Skap).",
+    "nameExists": "Navnet på {{area}} finnes allerede",
+    "namePlaceholder": "Navn på {{area}}...",
+    "noParent": "Ingen overordnet (rot-{{area}})",
+    "parentLabel": "Overordnet {{area}}",
+    "submit": "Opprett",
+    "title": "Opprett {{area}}"
+  },
+  "delete": {
+    "and": "{{first}} og {{second}}",
+    "binCount_one": "{{count}} {{bin}}",
+    "binCount_other": "{{count}} {{bins}}",
+    "confirmName": "Slette «{{name}}»?",
+    "deleting": "Sletter...",
+    "subAreaCount_one": "{{count}} under-{{area}}",
+    "subAreaCount_other": "{{count}} under-{{areas}}",
+    "title": "Slette {{area}}?",
+    "withBins": "«{{name}}» har {{bins}}. De blir ikke lenger tilordnet.",
+    "withDescendants": "Dette sletter også {{parts}}. {{bins}} blir ikke lenger tilordnet."
+  },
+  "genericError": "Noe gikk galt",
+  "locationMenu": {
+    "customFields": "Egendefinerte felt",
+    "delete": "Slett {{location}}",
+    "leave": "Forlat",
+    "retention": "Lagringstid og roller",
+    "settings": "Innstillinger"
+  },
+  "menu": {
+    "moreActions": "Flere handlinger",
+    "rename": "Gi nytt navn"
+  },
+  "page": {
+    "areaCount_one": "{{count}} {{area}}",
+    "areaCount_other": "{{count}} {{areas}}",
+    "browseBins": "Bla gjennom {{bins}}",
+    "createLocation": "Opprett {{location}}",
+    "createLocationButton": "Opprett {{location}}",
+    "customFieldsUpgrade": "Definer egendefinerte felt for {{bins}}.",
+    "join": "Bli med",
+    "joinLocation": "Bli med i {{location}}",
+    "leaveDescription": "Du mister tilgang til alle {{bins}} og {{areas}} i «{{name}}». Du kan bli med igjen senere med en invitasjonskode.",
+    "leaveTitle": "Forlate {{location}}?",
+    "memberCount_one": "{{count}} medlem",
+    "memberCount_other": "{{count}} medlemmer",
+    "membersAndViewers": "{{members}}, {{viewers}}",
+    "noAreas": "Ingen {{areas}} ennå",
+    "noAreasAdminHint": "Opprett {{areas}} for å organisere {{bins}} etter sone",
+    "noAreasHint": "Dette {{location}} har ingen {{areas}} ennå",
+    "noLocations": "Ingen {{locations}} ennå",
+    "noLocationsHint": "Opprett et {{location}} eller bli med i et med en invitasjonskode",
+    "viewerCount_one": "{{count}} leser",
+    "viewerCount_other": "{{count}} lesere",
+    "viewMembers": "Vis {{members}}",
+    "viewMembersAndViewers": "Vis {{members}} og {{viewers}}",
+    "yourRole": "Din rolle: {{role}}"
+  },
+  "picker": {
+    "createNew": "Opprett nytt {{area}}...",
+    "noArea": "Ingen {{area}}",
+    "search": "Søk i {{areas}}..."
+  }
+}
