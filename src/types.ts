@@ -187,16 +187,6 @@ export interface TagColor extends TagColorSummary {
   updated_at: string;
 }
 
-export interface ExportedPhoto {
-  id: string;
-  binId: string;
-  dataBase64: string;
-  filename: string;
-  mimeType: string;
-  size: number;
-  createdAt: string;
-}
-
 /** V2 export format (current: discrete items + notes + optional location) */
 export interface ExportBinV2 {
   id: string;
@@ -211,6 +201,8 @@ export interface ExportBinV2 {
   visibility?: 'location' | 'private';
   customFields?: Record<string, string>;
   shortCode?: string;
+  /** Short code of the parent box (child boxes only; omitted when the parent isn't in the export). */
+  parentShortCode?: string;
   createdBy?: string;
   deletedAt?: string | null;
   createdAt: string;
@@ -228,8 +220,20 @@ export interface ExportBinPhoto {
   createdAt?: string;
 }
 
+/** Item inside an exported area or the unassigned bucket (string = name only). */
+export type ExportLooseItem = string | { name: string; quantity?: number | null };
+
+export interface ExportAreaEntry {
+  path: string;
+  createdBy?: string;
+  /** Items placed directly in this area (not in a box). */
+  items?: ExportLooseItem[];
+}
+
+/** Export format. Version 4 adds child boxes and loose items; 2 and 3 are still importable. */
 export interface ExportDataV2 {
-  version: 2;
+  /** Importers accept integers 2..4; a missing version is a legacy file. */
+  version?: number;
   exportedAt: string;
   locationName?: string;
   locationSettings?: {
@@ -243,13 +247,14 @@ export interface ExportDataV2 {
   };
   bins: ExportBinV2[];
   trashedBins?: ExportBinV2[];
-  areas?: Array<{ path: string; createdBy?: string }>;
+  areas?: ExportAreaEntry[];
+  /** Items that are in neither a box nor an area. */
+  unassignedItems?: ExportLooseItem[];
   tagColors?: Array<{ tag: string; color: string }>;
   customFieldDefinitions?: Array<{ name: string; position: number }>;
   pinnedBins?: Array<{ userId: string; binId: string; position: number }>;
   savedViews?: Array<{ userId: string; name: string; searchQuery: string; sort: string; filters: string }>;
   members?: Array<{ userId: string; email: string; role: string; joinedAt: string }>;
-  photos?: ExportedPhoto[];
 }
 
 export type ExportData = ExportDataV2;

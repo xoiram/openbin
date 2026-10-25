@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useTerminology } from '@/lib/terminology';
 import type { ExportData } from '@/types';
 import {
   countCSVBins,
@@ -24,6 +25,8 @@ function importErrorMessage(err: unknown, t: TFunction<'settings'>): string {
     switch (err.code) {
       case 'FILE_TOO_LARGE': return t('dataActions.fileTooLarge', { defaultValue: 'File is too large (max 100 MB)' });
       case 'INVALID_JSON': return t('dataActions.invalidJson', { defaultValue: 'File is not valid JSON' });
+      case 'VERSION_TOO_NEW': return t('dataActions.versionTooNew', { defaultValue: 'This file was created by a newer version of OpenBin. Update OpenBin to import it.' });
+      case 'VERSION_UNSUPPORTED': return t('dataActions.versionUnsupported', { defaultValue: 'Unsupported backup version. Supported versions are 2 to 4.' });
       case 'INVALID_FORMAT': return t('dataActions.invalidFormat', { defaultValue: 'Invalid backup file format' });
     }
   }
@@ -33,17 +36,25 @@ function importErrorMessage(err: unknown, t: TFunction<'settings'>): string {
 type ExportFormat = 'zip' | 'json' | 'csv';
 type ImportFormat = 'zip' | 'json' | 'csv';
 
-interface ImportPreview {
-  toCreate: { name: string; itemCount: number; tags: string[] }[];
-  toSkip: { name: string; reason: string }[];
+export interface ImportPreview {
+  /** JSON/ZIP entries carry trashed/isChild/parentShortCode; CSV entries don't. */
+  toCreate: { name: string; itemCount: number; tags: string[]; trashed?: boolean; isChild?: boolean; parentShortCode?: string }[];
+  toSkip: { name: string; reason: string; code?: 'exists' | 'unresolved_parent' }[];
   totalBins: number;
   totalItems: number;
+  totalTrashedBins?: number;
+  totalChildBins?: number;
+  binsSkippedUnresolvedParent?: number;
+  looseItemsTotal?: number;
+  looseItemsToCreate?: number;
+  looseItemsToSkip?: number;
 }
 
 export function useDataSectionActions() {
   const { activeLocationId } = useAuth();
   const { showToast } = useToast();
   const { t } = useTranslation('settings');
+  const term = useTerminology();
 
   function resolveLocationId(locationId?: string | null): string | null {
     return locationId ?? activeLocationId ?? null;
@@ -65,8 +76,10 @@ export function useDataSectionActions() {
   const [zipPending, setZipPending] = useState<{ file: File } | null>(null);
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
-  // Cache the merge-mode result so mode toggles don't re-upload files
-  const mergePreviewRef = useRef<ImportPreview | null>(null);
+  // Cache each mode's dry-run result so mode toggles don't re-upload files
+  const previewCacheRef = useRef<{ merge: ImportPreview | null; replace: ImportPreview | null }>({ merge: null, replace: null });
+
+  const modeRef = useRef<'merge' | 'replace'>('merge');
 
   async function fetchDryRun(
     source: { json: ExportData } | { file: File; format: 'csv' | 'zip' },
@@ -80,7 +93,14 @@ export function useDataSectionActions() {
       if ('json' in source) {
         result = await apiFetch<ImportPreview>(`/api/locations/${targetLocationId}/import`, {
           method: 'POST',
-          body: { bins: source.json.bins, mode, dryRun: true },
+          body: {
+            bins: source.json.bins,
+            trashedBins: source.json.trashedBins,
+            areas: source.json.areas,
+            unassignedItems: source.json.unassignedItems,
+            mode,
+            dryRun: true,
+          },
         });
       } else {
         const formData = new FormData();
@@ -92,8 +112,9 @@ export function useDataSectionActions() {
           { method: 'POST', body: formData },
         );
       }
-      if (mode === 'merge') mergePreviewRef.current = result;
-      setImportPreview(result);
+      previewCacheRef.current[mode] = result;
+      // Ignore a response for a mode the user has already toggled away from
+      if (modeRef.current === mode) setImportPreview(result);
     } catch {
       // silently ignore — fall back to count-only summary
     }
@@ -105,28 +126,24 @@ export function useDataSectionActions() {
     setCsvPending(null);
     setZipPending(null);
     setImportPreview(null);
-    mergePreviewRef.current = null;
+    previewCacheRef.current = { merge: null, replace: null };
   }
 
   function setImportMode(mode: 'merge' | 'replace') {
     setImportModeRaw(mode);
-    if (!importPreview) return;
+    modeRef.current = mode;
+    const hasFile = pendingData || csvPending || zipPending;
+    if (!hasFile) return;
 
-    if (mode === 'replace') {
-      // In replace mode all bins are created — derive client-side, no re-upload
-      const allBins = [...importPreview.toCreate, ...importPreview.toSkip.map(b => ({
-        name: b.name, itemCount: 0, tags: [] as string[],
-      }))];
-      setImportPreview({
-        toCreate: allBins,
-        toSkip: [],
-        totalBins: importPreview.totalBins,
-        totalItems: importPreview.totalItems,
-      });
-    } else if (mergePreviewRef.current) {
-      // Switching back to merge — use cached result
-      setImportPreview(mergePreviewRef.current);
-    } else if (importFormatRaw === 'json' && pendingData) {
+    // The dry run depends on the mode (replace creates everything in the file, so merge
+    // numbers would mislead): use the cached result for this mode or ask the server.
+    const cached = previewCacheRef.current[mode];
+    if (cached) {
+      setImportPreview(cached);
+      return;
+    }
+    setImportPreview(null);
+    if (importFormatRaw === 'json' && pendingData) {
       fetchDryRun({ json: pendingData }, mode);
     } else if (importFormatRaw === 'csv' && csvPending) {
       fetchDryRun({ file: csvPending.file, format: 'csv' }, mode);
@@ -141,8 +158,9 @@ export function useDataSectionActions() {
     setZipPending(null);
     setImportFormatRaw('zip');
     setImportModeRaw('merge');
+    modeRef.current = 'merge';
     setImportPreview(null);
-    mergePreviewRef.current = null;
+    previewCacheRef.current = { merge: null, replace: null };
   }
 
   // --- Export ---
@@ -192,6 +210,9 @@ export function useDataSectionActions() {
     const targetLocationId = resolveLocationId(locationId);
     if (!files?.[0] || !targetLocationId) return;
     const file = files[0];
+    // A new file invalidates every cached dry run
+    previewCacheRef.current = { merge: null, replace: null };
+    setImportPreview(null);
 
     if (importFormatRaw === 'zip') {
       if (!file.name.toLowerCase().endsWith('.zip')) {
@@ -242,10 +263,26 @@ export function useDataSectionActions() {
     if (result.photosImported) {
       parts.push(t('dataActions.photosCount', { count: result.photosImported, defaultValue: '{{count}} photo' }));
     }
+    if (result.looseItemsImported) {
+      parts.push(t('dataActions.looseItemsCount', { count: result.looseItemsImported, defaultValue: '{{count}} loose item' }));
+    }
     const main = parts.join(', ');
-    const skipped = !isReplace && result.binsSkipped
-      ? ` ${t('dataActions.skippedSuffix', { count: result.binsSkipped, defaultValue: '({{count}} skipped)' })}`
-      : '';
+    const skipped = [
+      !isReplace && result.binsSkipped
+        ? t('dataActions.skippedSuffix', { count: result.binsSkipped, defaultValue: '({{count}} skipped)' })
+        : '',
+      result.binsSkippedUnresolvedParent
+        ? t('dataActions.skippedNoParentSuffix', {
+            count: result.binsSkippedUnresolvedParent,
+            bin: term.bin,
+            bins: term.bins,
+            defaultValue: '({{count}} nested {{bin}} skipped: parent not found)',
+          })
+        : '',
+      result.looseItemsSkipped
+        ? t('dataActions.looseSkippedSuffix', { count: result.looseItemsSkipped, defaultValue: '({{count}} loose item skipped)' })
+        : '',
+    ].filter(Boolean).map((x) => ` ${x}`).join('');
     return isReplace
       ? t('dataActions.replacedAllData', { defaultValue: 'Replaced all data: {{summary}}', summary: main })
       : t('dataActions.imported', { defaultValue: 'Imported {{summary}}{{skipped}}', summary: main, skipped });
@@ -291,9 +328,17 @@ export function useDataSectionActions() {
         const result = await importCSV(targetLocationId, csvPending.file, importMode);
         const bins = t('dataActions.binsCount', { count: result.binsImported, defaultValue: '{{count}} bin' });
         const items = t('dataActions.itemsCount', { count: result.itemsImported, defaultValue: '{{count}} item' });
-        const skipped = result.binsSkipped
-          ? ` ${t('dataActions.skippedSuffix', { count: result.binsSkipped, defaultValue: '({{count}} skipped)' })}`
-          : '';
+        const skipped = [
+          result.binsSkipped
+            ? t('dataActions.skippedSuffix', { count: result.binsSkipped, defaultValue: '({{count}} skipped)' })
+            : '',
+          result.looseItemsImported
+            ? t('dataActions.looseItemsAddedSuffix', { count: result.looseItemsImported, defaultValue: '+ {{count}} loose item' })
+            : '',
+          result.looseItemsSkipped
+            ? t('dataActions.looseSkippedSuffix', { count: result.looseItemsSkipped, defaultValue: '({{count}} loose item skipped)' })
+            : '',
+        ].filter(Boolean).map((x) => ` ${x}`).join('');
         showToast({
           message: t('dataActions.importedWithItems', { defaultValue: 'Imported {{bins}} with {{items}}{{skipped}}', bins, items, skipped }),
         });

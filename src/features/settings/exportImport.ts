@@ -4,7 +4,28 @@ import type { ExportData } from '@/types';
 
 export const MAX_IMPORT_SIZE = 100 * 1024 * 1024;
 
-export type ImportErrorCode = 'INVALID_JSON' | 'INVALID_FORMAT' | 'FILE_TOO_LARGE';
+export type ImportErrorCode =
+  | 'INVALID_JSON'
+  | 'INVALID_FORMAT'
+  | 'FILE_TOO_LARGE'
+  | 'VERSION_TOO_NEW'
+  | 'VERSION_UNSUPPORTED';
+
+/** Export format versions this client (and the server) can import. */
+export const MIN_IMPORT_VERSION = 2;
+export const MAX_IMPORT_VERSION = 4;
+
+/**
+ * Check the `version` of a parsed backup the way the server does: missing/null is a legacy file,
+ * otherwise it must be an integer in MIN..MAX. Returns null when fine, else why it is rejected.
+ */
+export function getVersionProblem(version: unknown): 'too_new' | 'unsupported' | null {
+  if (version === undefined || version === null) return null;
+  if (typeof version !== 'number' || !Number.isInteger(version)) return 'unsupported';
+  if (version > MAX_IMPORT_VERSION) return 'too_new';
+  if (version < MIN_IMPORT_VERSION) return 'unsupported';
+  return null;
+}
 
 export class ImportError extends Error {
   code: ImportErrorCode;
@@ -51,7 +72,7 @@ function isISODate(s: unknown): boolean {
 export function validateExportData(data: unknown): data is ExportData {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
-  if (d.version !== 2) return false;
+  if (getVersionProblem(d.version) !== null) return false;
   if (typeof d.exportedAt !== 'string') return false;
   if (!Array.isArray(d.bins)) return false;
 
@@ -89,6 +110,15 @@ export async function parseImportFile(file: File): Promise<ExportData> {
   } catch {
     throw new ImportError('INVALID_JSON', 'File is not valid JSON');
   }
+  if (json && typeof json === 'object') {
+    const problem = getVersionProblem((json as Record<string, unknown>).version);
+    if (problem === 'too_new') {
+      throw new ImportError('VERSION_TOO_NEW', `Backup version is newer than supported (max ${MAX_IMPORT_VERSION})`);
+    }
+    if (problem === 'unsupported') {
+      throw new ImportError('VERSION_UNSUPPORTED', `Unsupported backup version (supported: ${MIN_IMPORT_VERSION}-${MAX_IMPORT_VERSION})`);
+    }
+  }
   if (!validateExportData(json)) {
     throw new ImportError('INVALID_FORMAT', 'File does not match the expected backup format');
   }
@@ -99,6 +129,13 @@ export interface ImportResult {
   binsImported: number;
   binsSkipped: number;
   trashedBinsImported?: number;
+  trashedBinsSkipped?: number;
+  /** Subset of binsImported that are nested inside another box. */
+  childBinsImported?: number;
+  /** Nested boxes skipped because their parent box could not be found. */
+  binsSkippedUnresolvedParent?: number;
+  looseItemsImported?: number;
+  looseItemsSkipped?: number;
   photosImported: number;
   photosSkipped: number;
   areasImported?: number;
@@ -123,6 +160,7 @@ export async function importData(
       customFieldDefinitions: data.customFieldDefinitions,
       locationSettings: data.locationSettings,
       areas: data.areas,
+      unassignedItems: data.unassignedItems,
       pinnedBins: data.pinnedBins,
       savedViews: data.savedViews,
       members: data.members,
@@ -134,6 +172,8 @@ export interface CSVImportResult {
   binsImported: number;
   binsSkipped: number;
   itemsImported: number;
+  looseItemsImported?: number;
+  looseItemsSkipped?: number;
 }
 
 /** Read CSV header (first line, handling quoted fields). */
@@ -178,7 +218,10 @@ function splitCSVLine(line: string): string[] {
   return fields;
 }
 
-/** Quick preview count: number of bins and items in the CSV. */
+/**
+ * Quick preview count: number of bins and items in the CSV.
+ * Rows with an empty Bin Name are loose items (or blank), never bins.
+ */
 export function countCSVBins(text: string): { bins: number; items: number } {
   const lines = text.split('\n');
   if (lines.length < 2) return { bins: 0, items: 0 };
@@ -196,6 +239,7 @@ export function countCSVBins(text: string): { bins: number; items: number } {
       const line = lines[i].trim();
       if (!line) continue;
       const parts = splitCSVLine(line);
+      if (!(parts[0] ?? '').trim()) continue;
       const key = `${parts[0] ?? ''}::${parts[1] ?? ''}`;
       seen.add(key);
       if ((parts[2] ?? '').trim()) items++;
@@ -209,8 +253,9 @@ export function countCSVBins(text: string): { bins: number; items: number } {
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
-    bins++;
     const parts = splitCSVLine(line);
+    if (!(parts[0] ?? '').trim()) continue;
+    bins++;
     const itemsCell = (parts[2] ?? '').trim();
     if (itemsCell) {
       items += itemsCell.split(';').filter(s => s.trim()).length;
