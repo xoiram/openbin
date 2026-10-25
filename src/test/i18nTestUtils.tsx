@@ -1,19 +1,20 @@
 import { type RenderResult, render } from '@testing-library/react';
-import i18next from 'i18next';
+import i18next, { type Resource } from 'i18next';
 import type { ReactElement } from 'react';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
-import enAi from '@/locales/en/ai.json';
-import enAuth from '@/locales/en/auth.json';
-import enCommon from '@/locales/en/common.json';
-import enOnboarding from '@/locales/en/onboarding.json';
-import enSettings from '@/locales/en/settings.json';
-import enTour from '@/locales/en/tour.json';
-import nbAi from '@/locales/nb/ai.json';
-import nbAuth from '@/locales/nb/auth.json';
-import nbCommon from '@/locales/nb/common.json';
-import nbOnboarding from '@/locales/nb/onboarding.json';
-import nbSettings from '@/locales/nb/settings.json';
-import nbTour from '@/locales/nb/tour.json';
+
+// Every namespace JSON under src/locales/{lng}/, loaded eagerly so new
+// namespaces are picked up without editing this file.
+const localeModules = import.meta.glob<{ default: Record<string, unknown> }>('../locales/*/*.json', { eager: true });
+const resources: Resource = {};
+for (const [path, mod] of Object.entries(localeModules)) {
+  const [, lng, ns] = path.match(/locales\/([^/]+)\/([^/]+)\.json$/) ?? [];
+  if (lng && ns) {
+    resources[lng] ??= {};
+    resources[lng][ns] = mod.default;
+  }
+}
+const namespaces = [...new Set(Object.values(resources).flatMap((r) => Object.keys(r)))];
 
 /**
  * A dedicated i18next instance (via createInstance(), not the shared default
@@ -27,12 +28,9 @@ function createTestI18n() {
   instance.use(initReactI18next).init({
     lng: 'en',
     fallbackLng: 'en',
-    ns: ['common', 'auth', 'onboarding', 'tour', 'settings', 'ai'],
+    ns: namespaces,
     defaultNS: 'common',
-    resources: {
-      en: { common: enCommon, auth: enAuth, onboarding: enOnboarding, tour: enTour, settings: enSettings, ai: enAi },
-      nb: { common: nbCommon, auth: nbAuth, onboarding: nbOnboarding, tour: nbTour, settings: nbSettings, ai: nbAi },
-    },
+    resources,
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   });
@@ -40,8 +38,8 @@ function createTestI18n() {
 }
 
 /**
- * Renders `ui` against a *real* i18next instance with the actual en/common
- * and en/auth JSON loaded synchronously (unlike the global test-setup mock,
+ * Renders `ui` against a *real* i18next instance with every real en/nb namespace
+ * JSON loaded synchronously (unlike the global test-setup mock,
  * which just echoes back key/defaultValue) — catches broken keys, missing
  * interpolation vars, and JSON typos that the mock wouldn't. Call
  * `vi.unmock('react-i18next')` at the top of a test file before using this,
