@@ -1,8 +1,21 @@
 import { d, query } from '../db.js';
-import { sanitizeBinForContext } from './aiSanitize.js';
+import { sanitizeBinForContext, sanitizeForPrompt } from './aiSanitize.js';
+import { createPathBuilder, type PathBuilder } from './binPath.js';
 import type { CommandRequest } from './commandParser.js';
 import { config } from './config.js';
 import type { InventoryContext } from './inventoryQuery.js';
+
+/** Max loose items sent to the model (also bounded by the token budget). */
+export const MAX_CONTEXT_LOOSE_ITEMS = 100;
+
+/** A loose item (in an area or unassigned) as shown to the model. READ-ONLY: no command can address it. */
+export interface ContextLooseItem {
+  name: string;
+  quantity?: number;
+  /** Area path ("Garage › Shelf A"); omitted when unassigned. */
+  area?: string;
+  checked_out_by?: string;
+}
 
 const AVAILABLE_COLORS = ['red', 'orange', 'amber', 'lime', 'green', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'purple', 'rose', 'pink', 'gray'];
 const AVAILABLE_ICONS = [
@@ -106,7 +119,9 @@ async function fetchLocationData(locationId: string, userId: string, binIds?: st
   let binsSql = `SELECT b.id, b.short_code, b.name,
         COALESCE((SELECT ${d.jsonGroupArray(d.jsonObject("'id'", 'bi.id', "'name'", 'bi.name', "'quantity'", 'bi.quantity'))} FROM (SELECT id, name, quantity FROM bin_items bi WHERE bi.bin_id = b.id AND bi.deleted_at IS NULL ORDER BY bi.position) bi), '[]') AS items,
         b.tags, b.area_id, COALESCE(a.name, '') AS area_name, b.notes, b.icon, b.color,
-        b.visibility,
+        b.visibility, b.parent_bin_id,
+        (SELECT pb2.short_code FROM bins pb2 WHERE pb2.id = b.parent_bin_id AND (pb2.visibility = 'location' OR pb2.created_by = $2)) AS parent_bin_code,
+        COALESCE((SELECT pb2.name FROM bins pb2 WHERE pb2.id = b.parent_bin_id AND (pb2.visibility = 'location' OR pb2.created_by = $2)), '') AS parent_bin_name,
         (SELECT COUNT(*) FROM photos WHERE photos.bin_id = b.id) AS photo_count,
         CASE WHEN pb.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_pinned
        FROM bins b
@@ -143,10 +158,18 @@ async function fetchLocationData(locationId: string, userId: string, binIds?: st
     checkoutParams.push(...inClause.params);
   }
 
-  const [binsResult, areasResult, trashResult, cfResult, checkoutResult] = await Promise.all([
+  // Loose items belong to the location, not to a box: they are not part of a bin selection.
+  const wantsLoose = !binIds?.length;
+  const looseSql = `SELECT bi.id, bi.name, bi.quantity, bi.area_id
+       FROM bin_items bi
+       WHERE bi.location_id = $1 AND bi.bin_id IS NULL AND bi.deleted_at IS NULL
+       ORDER BY bi.updated_at DESC, bi.id
+       LIMIT ${MAX_CONTEXT_LOOSE_ITEMS + 1}`;
+
+  const [binsResult, areasResult, trashResult, cfResult, checkoutResult, looseResult] = await Promise.all([
     query(binsSql, binsParams),
     query(
-      'SELECT id, name FROM areas WHERE location_id = $1',
+      'SELECT id, name, parent_id FROM areas WHERE location_id = $1',
       [locationId]
     ),
     query(
@@ -155,6 +178,9 @@ async function fetchLocationData(locationId: string, userId: string, binIds?: st
     ),
     query<{ bin_id: string; field_name: string; value: string }>(cfSql, cfParams),
     query<{ item_id: string; checked_out_by_name: string }>(checkoutSql, checkoutParams),
+    wantsLoose
+      ? query<{ id: string; name: string; quantity: number | string | null; area_id: string | null }>(looseSql, [locationId])
+      : Promise.resolve({ rows: [] as Array<{ id: string; name: string; quantity: number | string | null; area_id: string | null }> }),
   ]);
 
   const customFieldsByBin = new Map<string, Record<string, string>>();
@@ -169,7 +195,33 @@ async function fetchLocationData(locationId: string, userId: string, binIds?: st
     checkoutsByItem.set(row.item_id, row.checked_out_by_name);
   }
 
-  return { binsResult, areasResult, trashResult, customFieldsByBin, checkoutsByItem };
+  return { binsResult, areasResult, trashResult, customFieldsByBin, checkoutsByItem, looseResult, wantsLoose };
+}
+
+type FetchedLocationData = Awaited<ReturnType<typeof fetchLocationData>>;
+
+/** Loose items as the model sees them, plus whether every loose item was fetched. */
+function buildLooseContext(data: FetchedLocationData, paths: PathBuilder): { items: ContextLooseItem[]; fetchedAll: boolean } {
+  const rows = data.looseResult.rows;
+  const items = rows.slice(0, MAX_CONTEXT_LOOSE_ITEMS).map((r): ContextLooseItem => {
+    const out: ContextLooseItem = { name: sanitizeForPrompt(r.name) };
+    if (r.quantity != null) out.quantity = Number(r.quantity);
+    const area = paths.areaPath(r.area_id);
+    if (area) out.area = sanitizeForPrompt(area);
+    const by = data.checkoutsByItem.get(r.id);
+    if (by) out.checked_out_by = by;
+    return out;
+  });
+  return { items, fetchedAll: rows.length <= MAX_CONTEXT_LOOSE_ITEMS };
+}
+
+/** Areas as shown to the model: nested areas also carry their full path. */
+function buildAreasContext(data: FetchedLocationData, paths: PathBuilder): Array<{ id: string; name: string; path?: string }> {
+  return data.areasResult.rows.map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    ...(r.parent_id ? { path: paths.areaPath(r.id as string) } : {}),
+  }));
 }
 
 function truncateNotes(notes: unknown): string {
@@ -185,20 +237,36 @@ export function applyContextLimits<T extends { bin_code: string; name: string; i
   allBins: T[],
   userText?: string,
   scoped = false,
-): { bins: T[]; other_bins: Array<{ bin_code: string; name: string }>; complete: boolean } {
+  looseItems?: { items: ContextLooseItem[]; fetchedAll: boolean },
+): { bins: T[]; other_bins: Array<{ bin_code: string; name: string }>; complete: boolean; loose_items?: ContextLooseItem[] } {
   // PRE-FILTER DISABLED FOR TESTING — keyword pre-filter (filterRelevantBins)
   // dropped/reordered bins before the AI saw them. Skip straight to the token
   // budget so every bin reaches the model. userText is intentionally unused.
   void userText;
   const budgeted = budgetContext(allBins, []);
-  return { ...budgeted, complete: !scoped && budgeted.bins.length === allBins.length };
+  let complete = !scoped && budgeted.bins.length === allBins.length;
+  if (!looseItems) return { ...budgeted, complete };
+
+  // Loose items share the token budget with bins: bins get first claim.
+  let used = budgeted.bins.reduce((sum, b) => sum + estimateTokens(b), 0);
+  const loose: ContextLooseItem[] = [];
+  for (const item of looseItems.items.slice(0, MAX_CONTEXT_LOOSE_ITEMS)) {
+    const cost = estimateTokens(item);
+    if (used + cost > config.aiContextTokenBudget) break;
+    loose.push(item);
+    used += cost;
+  }
+  if (!looseItems.fetchedAll || loose.length < looseItems.items.length) complete = false;
+  return { ...budgeted, complete, loose_items: loose };
 }
 
 const REORDER_INTENT = /reorder|rearrange|sort|move.*(?:up|down|first|last|before|after)/i;
 
 /** Build context for command/execute endpoints. */
 export async function buildCommandContext(locationId: string, userId: string, binIds?: string[], userText?: string): Promise<CommandRequest['context']> {
-  const { binsResult, areasResult, trashResult, customFieldsByBin, checkoutsByItem } = await fetchLocationData(locationId, userId, binIds);
+  const data = await fetchLocationData(locationId, userId, binIds);
+  const { binsResult, trashResult, customFieldsByBin, checkoutsByItem } = data;
+  const paths = createPathBuilder(data.areasResult.rows as Array<{ id: string; name: string; parent_id: string | null }>);
 
   const needsItemIds = userText ? REORDER_INTENT.test(userText) : false;
 
@@ -211,8 +279,10 @@ export async function buildCommandContext(locationId: string, userId: string, bi
       name: r.name as string,
       items: rawItems,
       tags: r.tags as string[],
-      area_id: r.area_id as string | null,
-      area_name: r.area_name as string,
+      // A box inside another box has no area of its own (it follows its parent): omit it, carry the parent's code instead.
+      area_id: r.parent_bin_id ? null : (r.area_id as string | null),
+      area_name: r.parent_bin_id ? '' : (r.area_name as string),
+      ...(r.parent_bin_id && r.parent_bin_code ? { parent_bin_code: r.parent_bin_code as string } : {}),
       notes: truncateNotes(r.notes),
       icon: r.icon as string,
       color: r.color as string,
@@ -233,23 +303,22 @@ export async function buildCommandContext(locationId: string, userId: string, bi
     return compactBin({ ...sanitized, items });
   });
 
-  const areas = areasResult.rows.map((r) => ({
-    id: r.id as string,
-    name: r.name as string,
-  }));
+  const areas = buildAreasContext(data, paths);
 
   const trash_bins = trashResult.rows.map((r) => ({
     bin_code: r.short_code as string,
     name: r.name as string,
   }));
 
-  const budgeted = applyContextLimits(allBins, userText, !!binIds?.length);
+  const budgeted = applyContextLimits(allBins, userText, !!binIds?.length, data.wantsLoose ? buildLooseContext(data, paths) : undefined);
   return { ...budgeted, areas, trash_bins, availableColors: AVAILABLE_COLORS, availableIcons: AVAILABLE_ICONS };
 }
 
 /** Build context for the query (read-only) endpoint. */
 export async function buildInventoryContext(locationId: string, userId: string, binIds?: string[], userText?: string): Promise<InventoryContext> {
-  const { binsResult, areasResult, trashResult, customFieldsByBin, checkoutsByItem } = await fetchLocationData(locationId, userId, binIds);
+  const data = await fetchLocationData(locationId, userId, binIds);
+  const { binsResult, trashResult, customFieldsByBin, checkoutsByItem } = data;
+  const paths = createPathBuilder(data.areasResult.rows as Array<{ id: string; name: string; parent_id: string | null }>);
 
   const allBins = binsResult.rows.map((r) => {
     const binId = r.id as string;
@@ -259,7 +328,8 @@ export async function buildInventoryContext(locationId: string, userId: string, 
       name: r.name as string,
       items: r.items as Array<{ id: string; name: string; quantity: number | null }>,
       tags: r.tags as string[],
-      area_name: r.area_name as string,
+      area_name: r.parent_bin_id ? '' : (r.area_name as string),
+      ...(r.parent_bin_id && r.parent_bin_code ? { parent_bin_code: r.parent_bin_code as string } : {}),
       notes: truncateNotes(r.notes),
       visibility: (r.visibility as string) || 'location',
       is_pinned: !!(r.is_pinned as number),
@@ -272,17 +342,14 @@ export async function buildInventoryContext(locationId: string, userId: string, 
     });
   });
 
-  const areas = areasResult.rows.map((r) => ({
-    id: r.id as string,
-    name: r.name as string,
-  }));
+  const areas = buildAreasContext(data, paths);
 
   const trash_bins = trashResult.rows.map((r) => ({
     bin_code: r.short_code as string,
     name: r.name as string,
   }));
 
-  const budgeted = applyContextLimits(allBins, userText, !!binIds?.length);
+  const budgeted = applyContextLimits(allBins, userText, !!binIds?.length, data.wantsLoose ? buildLooseContext(data, paths) : undefined);
   return { ...budgeted, areas, trash_bins };
 }
 

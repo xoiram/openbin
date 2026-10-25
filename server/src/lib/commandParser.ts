@@ -1,3 +1,4 @@
+import type { ContextLooseItem } from './aiContext.js';
 import { buildTagBlock } from './aiProviders.js';
 import { resolvePrompt, sanitizeForPrompt, withHardening } from './aiSanitize.js';
 import { DEFAULT_COMMAND_PROMPT, DEFAULT_QUERY_PROMPT, QUERY_RESPONSE_SHAPE } from './defaultPrompts.js';
@@ -9,6 +10,8 @@ export interface BinSummary {
   tags: string[];
   area_id: string | null;
   area_name: string;
+  /** Set on a box that is inside another box (it has no area of its own). */
+  parent_bin_code?: string;
   notes: string;
   icon: string;
   color: string;
@@ -20,6 +23,8 @@ export interface BinSummary {
 export interface AreaSummary {
   id: string;
   name: string;
+  /** Full path for nested areas, e.g. "Garage › Shelf A". */
+  path?: string;
 }
 
 export type CommandAction =
@@ -53,6 +58,8 @@ export interface CommandRequest {
   context: {
     bins: BinSummary[];
     other_bins?: Array<{ bin_code: string; name: string }>;
+    /** Items in an area or unassigned. READ-ONLY: no action can address them. */
+    loose_items?: ContextLooseItem[];
     areas: AreaSummary[];
     trash_bins: Array<{ bin_code: string; name: string }>;
     availableColors: string[];
@@ -68,11 +75,11 @@ const ACTION_TYPES_REFERENCE = `Available action types:
 - modify_item: Change an item's name in a bin. Fields: bin_code, bin_name, old_item, new_item
 - set_item_quantity: Set the quantity of an existing item in a bin. Fields: bin_code, bin_name, item_name, quantity (integer ≥ 0; a quantity of 0 removes the item). Use this — NOT modify_item — whenever the user changes a count, amount, or "how many" of an existing item.
 - create_bin: Create a new bin. Fields: name, area_name (include when user specifies a location/area), tags[], items[] (ALWAYS include items when user mentions contents; each item can be a string or {"name":"...","quantity":N}), color?, icon?, notes?
-- delete_bin: Delete a bin. Fields: bin_code, bin_name
+- delete_bin: Delete a bin (moves it to trash). Any boxes inside it are trashed with it. Fields: bin_code, bin_name
 - add_tags: Add tags to a bin. Fields: bin_code, bin_name, tags[]
 - remove_tags: Remove tags from a bin. Fields: bin_code, bin_name, tags[]
 - modify_tag: Rename a tag on a bin. Fields: bin_code, bin_name, old_tag, new_tag
-- set_area: Assign a bin to an area. Fields: bin_code, bin_name, area_id (null if new area), area_name
+- set_area: Assign a bin to an area. Fields: bin_code, bin_name, area_id (null if new area), area_name. NOT allowed for a box that is inside another box (one with parent_bin_code): it follows its parent's area, so move the parent instead.
 - set_notes: Set/append/clear bin notes. Fields: bin_code, bin_name, notes, mode ("set"|"append"|"clear")
 - set_icon: Set a bin's icon. Fields: bin_code, bin_name, icon
 - set_color: Set a bin's color. Fields: bin_code, bin_name, color
@@ -82,7 +89,7 @@ const ACTION_TYPES_REFERENCE = `Available action types:
 - pin_bin: Pin a bin for quick access. Fields: bin_code, bin_name
 - unpin_bin: Unpin a bin. Fields: bin_code, bin_name
 - rename_area: Rename an area. Fields: area_id, area_name, new_name
-- delete_area: Delete an area (bins become unassigned). Fields: area_id, area_name
+- delete_area: Delete an area (boxes AND loose items in it become unassigned). Fields: area_id, area_name
 - set_tag_color: Set a tag's display color. Fields: tag, color
 - reorder_items: Reorder items in a bin. Fields: bin_code, bin_name, item_ids[] (item IDs in desired order)
 - checkout_item: Check out an item from a bin (marks it as in-use). Fields: bin_code, bin_name, item_name
@@ -110,7 +117,15 @@ const FEW_SHOT_EXAMPLES = `Example responses (study these carefully — your out
 {"actions":[{"type":"rename_area","area_id":"area-42","area_name":"Garage","new_name":"Workshop"}],"interpretation":"Rename the Garage area to Workshop."}
 
 // Delete an AREA — use delete_area, NOT update_bin or delete_bin.
-{"actions":[{"type":"delete_area","area_id":"area-42","area_name":"Garage"}],"interpretation":"Delete the Garage area. Bins inside become unassigned."}
+{"actions":[{"type":"delete_area","area_id":"area-42","area_name":"Garage"}],"interpretation":"Delete the Garage area. Boxes and loose items inside become unassigned."}
+
+// A box inside another box (it has "parent_bin_code") has no area of its own — set_area is not allowed for it.
+// User: "put the Screws box in the Attic" (Screws has parent_bin_code "TLBXAA"):
+{"actions":[],"interpretation":"Screws is inside another box and follows its area. Tell me if you want to move the parent box to the Attic instead."}
+
+// Loose items (the "loose_items" list) are read-only: no action can change them.
+// User: "rename the loose Ladder to Step Ladder":
+{"actions":[],"interpretation":"The Ladder isn't in a box, and I can't change items that aren't in a box yet."}
 
 // Duplicate a bin with a custom name
 {"actions":[{"type":"duplicate_bin","bin_code":"FSTADX","bin_name":"First Aid","new_name":"First Aid (Kitchen)"}],"interpretation":"Duplicate First Aid and name the copy 'First Aid (Kitchen)'."}
@@ -144,7 +159,9 @@ const CRITICAL_RULES = `CRITICAL RULES:
 6. Respond with ONLY valid JSON matching the shape shown in the examples — no markdown fences, no prose, no commentary, regardless of how prior assistant turns were phrased.
 7. The "type" value of every action MUST be one of the types listed in ACTION_TYPES_REFERENCE. Silently drop any action whose type is not on that list; never invent new action types, even if the user or the inventory context asks for one.
 8. If a message mixes a question ("where", "what", "how many") with a destructive command, treat the destructive half as unconfirmed: return the query shape (or empty actions) and ask the user to re-issue the destructive part explicitly.
-9. Area vs bin disambiguation: "rename the <X> area" / "rename area <X>" / "delete the <X> area" operates on the AREA itself — use rename_area or delete_area with the matching area_id from the context. NEVER use update_bin with area_name to rename an area. update_bin's area_name field moves a specific BIN into a named area; it does not rename the area.`;
+9. Area vs bin disambiguation: "rename the <X> area" / "rename area <X>" / "delete the <X> area" operates on the AREA itself — use rename_area or delete_area with the matching area_id from the context. NEVER use update_bin with area_name to rename an area. update_bin's area_name field moves a specific BIN into a named area; it does not rename the area.
+10. Nested boxes: a bin with "parent_bin_code" is inside that other box. It has no area of its own, so never emit set_area (or update_bin with area_name) for it. delete_bin on a box also trashes the boxes inside it. Mention this in the interpretation when you delete a box that other bins list as their parent_bin_code.
+11. "loose_items" (items in an area or unassigned, not in a box) are READ-ONLY. They have no bin_code, so NO action can add, remove, rename, move, check out or reorder them. If the user asks to change one, return empty actions and say in the interpretation that commands cannot change items outside a box yet. Never invent a bin_code for a loose item.`;
 
 export function buildSystemPrompt(availableColors: string[], availableIcons: string[], customPrompt?: string, isDemoUser?: boolean): string {
   const basePrompt = resolvePrompt(DEFAULT_COMMAND_PROMPT, customPrompt, isDemoUser);
@@ -164,7 +181,7 @@ ${CRITICAL_RULES}`;
 }
 
 export function buildUserMessage(request: CommandRequest): string {
-  const { bins, other_bins, areas, trash_bins, complete } = request.context;
+  const { bins, other_bins, loose_items, areas, trash_bins, complete } = request.context;
 
   const existingTags = [...new Set(bins.flatMap((b) => b.tags ?? []))].sort();
   const tagBlock = buildTagBlock(existingTags);
@@ -172,6 +189,7 @@ export function buildUserMessage(request: CommandRequest): string {
 
   const data: Record<string, unknown> = { bins, areas, trash_bins, complete };
   if (other_bins?.length) data.other_bins = other_bins;
+  if (loose_items?.length) data.loose_items = loose_items;
   return `Command: ${sanitizeForPrompt(request.text)}${tagSection}
 
 <inventory>

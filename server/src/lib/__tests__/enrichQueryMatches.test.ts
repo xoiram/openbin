@@ -272,4 +272,41 @@ describe('enrichQueryMatches', () => {
       await expectNoHierarchyViolations(loc.id);
     });
   });
+
+  describe('nested boxes', () => {
+    it('adds kind, bin_path and parent info from the DB, ignoring model-supplied path/name', async () => {
+      const { token, userId, locationId } = await setupBin([]);
+      const area = await createTestArea(app, token, locationId, 'Garage');
+      const parent = await createTestBin(app, token, locationId, { name: 'Toolbox' });
+      await request(app).put(`/api/bins/${parent.id}`).set('Authorization', `Bearer ${token}`).send({ areaId: area.id });
+      const kid = await createTestBin(app, token, locationId, { name: 'Parts Tray' });
+      await setParentBinByDb(kid.id, parent.id);
+
+      const result = await enrichQueryMatches(
+        [{ bin_code: kid.short_code, name: 'Invented', area_name: 'Invented', bin_path: 'Evil › Path', parent_bin_name: 'Evil', items: [], tags: [], relevance: 'x' } as never],
+        locationId,
+        userId,
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        kind: 'bin',
+        name: 'Parts Tray',
+        bin_path: 'Garage › Toolbox › Parts Tray',
+        parent_bin_id: parent.id,
+        parent_bin_name: 'Toolbox',
+      });
+      await expectNoHierarchyViolations(locationId);
+    });
+
+    it('top-level bin has an empty parent and a plain path', async () => {
+      const { userId, locationId, binCode } = await setupBin([]);
+      const result = await enrichQueryMatches(
+        [{ bin_code: binCode, name: 'x', area_name: '', items: [], tags: [], relevance: 'x' }],
+        locationId,
+        userId,
+      );
+      expect(result[0]).toMatchObject({ kind: 'bin', parent_bin_id: null, parent_bin_name: '' });
+      expect(result[0].bin_path).toBe(result[0].name);
+    });
+  });
 });

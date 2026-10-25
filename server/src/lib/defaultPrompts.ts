@@ -62,7 +62,7 @@ Other rules:
 2. Compound commands decompose into multiple actions. "Move X from A to B" = remove_items from A plus add_items to B (only when X actually exists in A — see Absolute Rule B). "Rename item X to Y in bin Z" = modify_item with old_item=X, new_item=Y.
 3. Items may carry a quantity. When the user mentions a count ("add 5 screwdrivers"), include "quantity": 5. Items in context may appear as "Item Name (×3)" — match by name regardless of format. ${QUANTITY_RULE} If the user's count is outside this range, omit the quantity field and note the ambiguity in the interpretation.
 4. Capitalize item names properly (Title Case).
-5. For set_area: use the matching existing area_id. Set area_id to null ONLY when the area does not exist and needs to be created.
+5. For set_area: use the matching existing area_id. Set area_id to null ONLY when the area does not exist and needs to be created. A box that is inside another box (it has "parent_bin_code") has no area of its own and follows its parent's area — NEVER emit set_area for it; return empty actions and suggest moving the parent box instead. Nested areas appear in "areas" with a "path" ("Garage › Shelf A"): match the user's wording against the path and use that entry's id.
 6. For set_color, set_icon, set_tag_color: use values from the available lists shown in the system prompt. Icon names are PascalCase.
 7. For create_bin: include only fields the user explicitly mentioned. If the user mentions contents, include "items". If the user mentions a location/room/area, include "area_name".
 8. For duplicate_bin: "new_name" is optional; it defaults to "Copy of <original>".
@@ -71,6 +71,7 @@ Other rules:
 11. For restore_bin: use bin_code from trash_bins (NOT bins). Trash bin codes are ONLY valid with restore_bin — never use them for any other action.
 12. For checkout_item: the item must appear in the bin's items list and must NOT already have a "checked_out_by" field. Only not-checked-out items can be checked out.
 13. For return_item: the item must be currently checked out. Optionally supply target_bin_code and target_bin_name to return it to a different bin.
+14. The inventory may include "loose_items": items that live in an area or nowhere, not in a box. They are READ-ONLY here. Commands cannot change them yet, and Absolute Rule C does NOT make them valid id sources: if the user asks to modify, move, remove or check out a loose item, return empty actions and explain that items outside a box can't be changed by commands yet.
 
 No-match handling (when the user references a bin that does not exist):
 
@@ -101,7 +102,9 @@ Core rules:
 11. The inventory's "complete" flag tells you whether "bins" is exhaustive. Branch your no-match phrasing on it (try fuzzy/token matching first):
     - complete=true → "bins" is everything the user can see. Answer "I couldn't find a bin matching '<name>'." with empty matches. If 1–3 bins share a token or prefix, append "Did you mean X, Y, or Z?".
     - complete=false → "bins" is a subset; trimmed entries may appear in "other_bins" as bin_code+name. Don't assert non-existence — answer "I can only see bins in your current view." with empty matches.
-12. For data the user cannot access (other users' private bins, other locations, server-wide — see security rule 2), answer "I can only see bins in your current view." with empty matches regardless of the flag. Never say "that's private" or "that belongs to another user".`;
+12. For data the user cannot access (other users' private bins, other locations, server-wide — see security rule 2), answer "I can only see bins in your current view." with empty matches regardless of the flag. Never say "that's private" or "that belongs to another user".
+13. Nesting: A bin with "parent_bin_code" is a box inside that other box and has no area of its own — it sits where its parent sits. When you tell the user where it is, give the full path: area, then parent box, then the box ("Garage › Toolbox › Parts box"). Nested areas appear in "areas" with a "path".
+14. Loose items: "loose_items" lists items that are not in any box (in an area, or unassigned, with the "area" path when it has one). Use them to answer where an item is ("Your ladder is loose in Garage, not in a box"), counts and checked-out questions, but they are NOT bins: mention them in "answer" only and never put them in "matches" (matches are bins).`;
 
 export const QUERY_RESPONSE_SHAPE = `{"answer":"...","matches":[{"bin_code":"...","name":"...","area_name":"...","items":["..."],"tags":["..."],"relevance":"...","is_trashed":false}]}`;
 
