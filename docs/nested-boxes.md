@@ -1,6 +1,6 @@
 # Nested boxes and items in areas
 
-Status: **in progress** (PR 1, the server core, is built; see "PR 1 implementation notes"). This extends `Location → Area → Bin → Item` in two ways:
+Status: **in progress**. PR 1 (server core) and PR 2 (export/import, AI awareness, MCP, API docs) are merged; the nested-box UI and the area/loose-item UI are still to build (see "Remaining"). This extends `Location → Area → Bin → Item` in two ways:
 
 1. a box can contain one more level of boxes (a "child box"),
 2. an area can contain items directly ("loose items"), without a box.
@@ -121,3 +121,17 @@ Decisions made while building the server core that the plan above didn't settle:
 ### Follow-ups for the frontend PRs
 - Re-add loose and unassigned items to the demo seed once the UI shows them.
 - PR 1 only hardens the existing item, checkout and shopping-list screens so a boxless item doesn't crash them; area UI, item move targets and nested-box UI are PRs 3 and 4.
+
+## PR 2 implementation notes
+
+- **Reorganize safety (merged first).** `assertTopLevelIds` rejects child boxes on both reorganize routes (422); the reorganize page and its selection only offer top-level boxes; apply never deletes a box that has children (it empties and keeps it). AI answer enrichment no longer returns other users' private boxes and takes name/area from the database, not the model.
+- **Export/import (format version 4).** JSON `version` and the ZIP manifest are 4; importers accept 2..4 (missing = legacy), 422 otherwise. Child boxes carry `parentShortCode` (omitted when the parent isn't in the export); loose items are `areas[].items` and `unassignedItems`; CSV encodes loose items as rows with an empty Bin Name and keeps child boxes flat. Import resolves parents in a second pass through one shared planning function (dry run == import); unresolvable children are skipped and counted, never flattened. Merge skips loose items that already exist (same name, same area); replace also removes loose and unassigned items. Checkouts and the shopping list are not exported. Backup/restore is physical, and restore re-runs the migrations.
+- **AI awareness.** Answers show `Area › Parent box › Box` paths (`binPath.ts`). The deterministic planner also returns loose items (`kind: 'loose_item'`, at most 10, never private, read-only in the UI); the legacy and command paths stay box-only. The model context lists child boxes (`parent_bin_code`) and loose items (read-only, capped, counted in the token budget). Commands cannot change loose items yet (no action handler can address an item without a box); prompts say so.
+- **MCP 1.1.0.** 55 tools: null-safe output for boxless items, parent/child and loose-item tools, `move_items`, loose checkout/return, location stats; batch lists all 24 server action types (no nesting or loose items in batch).
+- **OpenAPI/CLAUDE.md.** All PR 1 and PR 2 API changes are documented; `CLAUDE.md` data-model line corrected.
+
+### Remaining
+- **PR 3, nested-box UI:** parent picker on create/edit, breadcrumb and "Inside this box" section on the box page, "inside {parent}" labels and a hide-nested toggle in lists, bulk "move into box".
+- **PR 4, area/loose-item UI:** create/edit items in an area, area cards with counts and filtered links (settle the area-count vs. area-filter difference), items list location column, move dialogs with box/area/unassigned targets, checkout/return for loose items, shopping-list display, loose-item actions in Ask AI results, loose items in the demo seed.
+- **Known limitations:** CSV flattens child boxes; a child trashed in the same second as its parent is restored with it; batch/AI can't create nested boxes; a child count on the AI `delete_bin` preview.
+- **Pre-existing, found on the way:** replace-import deletes other users' private boxes that were never exported; export allows 5000 boxes but import rejects > 2000; an import with custom-field values but no definitions fails entirely; the root `npm run build` fails because `public/api-docs/openapi.yaml` is a symlink and `cp` refuses to copy a file onto itself.
