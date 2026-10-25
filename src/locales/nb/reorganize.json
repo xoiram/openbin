@@ -87,6 +87,8 @@
     "confirmLabel": "Ta i bruk reorganisering",
     "appliedKept": "{{n}} beholdt",
     "appliedCreated": "{{n}} opprettet",
+    "appliedEmptied_one": "{{count}} tømt, men beholdt (inneholder andre {{bins}})",
+    "appliedEmptied_other": "{{count}} tømt, men beholdt (inneholder andre {{bins}})",
     "applied": "Reorganisering tatt i bruk",
     "appliedWithSummary": "Reorganisering tatt i bruk — {{summary}}",
     "printLabels": "Skriv ut etiketter"
@@ -107,6 +109,8 @@
     "delete_other": "slette {{count}} {{bins}}",
     "create_one": "opprette {{count}} ny {{bin}}",
     "create_other": "opprette {{count}} nye {{bins}}",
+    "keepEmptied_one": "{{count}} {{bin}} som inneholder andre {{bins}} blir beholdt og tømt, ikke slettet.",
+    "keepEmptied_other": "{{count}} {{bins}} som inneholder andre {{bins}} blir beholdt og tømt, ikke slettet.",
     "none": "Dette tar i bruk reorganiseringen.",
     "one": "Dette vil {{a}}.",
     "two": "Dette vil {{a}} og {{b}}.",

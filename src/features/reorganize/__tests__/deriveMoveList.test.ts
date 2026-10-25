@@ -360,3 +360,33 @@ describe('buildReorganizePlan', () => {
     expect(plan.creations).toHaveLength(1);
   });
 });
+
+describe('buildReorganizePlan with nested boxes', () => {
+  it('never deletes an unmatched box that contains other boxes: it is emptied instead', () => {
+    const parent = makeBin({ id: 'p', name: 'Toolbox', child_count: 2, items: [{ id: 'i1', name: 'Hammer', quantity: null }] });
+    const plain = makeBin({ id: 'x', name: 'Misc', items: [{ id: 'i2', name: 'Tape', quantity: null }] });
+    const keep = makeBin({ id: 'k', name: 'Garage' });
+    const result: ReorgResponse = { bins: [{ name: 'Garage', items: ['Hammer', 'Tape'] }], summary: '' };
+    const plan = buildReorganizePlan([parent, plain, keep], result);
+    expect(plan.deletions).toEqual(['x']);
+    expect(plan.emptied).toEqual(['p']);
+    expect(plan.preservations.map((p) => p.sourceBinId)).toEqual(['k']);
+  });
+
+  it('a parent that is kept by name is preserved, not emptied', () => {
+    const parent = makeBin({ id: 'p', name: 'Toolbox', child_count: 1 });
+    const plan = buildReorganizePlan([parent], { bins: [{ name: 'Toolbox', items: [] }], summary: '' });
+    expect(plan.emptied).toEqual([]);
+    expect(plan.deletions).toEqual([]);
+    expect(plan.preservations).toHaveLength(1);
+  });
+
+  it('boxes without children (child_count 0 or undefined) are still deleted', () => {
+    const a = makeBin({ id: 'a', name: 'A', child_count: 0 });
+    const b = makeBin({ id: 'b', name: 'B' });
+    const plan = buildReorganizePlan([a, b], { bins: [{ name: 'C', items: [] }], summary: '' });
+    expect(plan.deletions).toEqual(['a', 'b']);
+    expect(plan.emptied).toEqual([]);
+  });
+});
+

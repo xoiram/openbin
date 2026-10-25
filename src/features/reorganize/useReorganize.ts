@@ -26,7 +26,7 @@ export interface ReorgOptions {
 }
 
 export type ApplyOutcome =
-  | { success: true; newBinIds: string[] }
+  | { success: true; newBinIds: string[]; emptiedCount: number }
   | { success: false };
 
 export function useReorganize() {
@@ -94,7 +94,9 @@ export function useReorganize() {
           ),
         );
 
-        // Phase 2 — delete unmatched sources
+        // Phase 2 — delete unmatched sources. Boxes that contain other boxes are never deleted (that would
+        // trash their children too); they are kept and emptied instead.
+        await Promise.all(plan.emptied.map((id) => updateBin(id, { items: [] })));
         await Promise.all(plan.deletions.map((id) => deleteBin(id)));
 
         // Phase 3 — create fresh destinations
@@ -112,7 +114,11 @@ export function useReorganize() {
 
         notify(Events.BINS);
         notify(Events.AREAS);
-        return { success: true, newBinIds: [...preservedIds, ...created.map((bin) => bin.id)] };
+        return {
+          success: true,
+          newBinIds: [...preservedIds, ...created.map((bin) => bin.id)],
+          emptiedCount: plan.emptied.length,
+        };
       } catch (err) {
         setApplyError(getErrorMessage(err, t('errors.applyFailed', { defaultValue: 'Failed to apply reorganization' })));
         return { success: false };
