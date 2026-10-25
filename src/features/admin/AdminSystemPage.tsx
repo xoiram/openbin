@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import {
   MapPin,
   Plus,
@@ -6,7 +7,8 @@ import {
   ShieldAlert,
   Trash2,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,13 +51,13 @@ type Tab = 'system' | 'audit' | 'locations';
 
 const PAGE_SIZE = 25;
 
-function formatUptime(seconds: number): string {
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (d > 0) return `${d}d ${h}h`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
+function formatUptime(seconds: number, t: TFunction<'admin'>): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (days > 0) return t('system.uptimeDays', { defaultValue: '{{days}}d {{hours}}h', days, hours });
+  if (hours > 0) return t('system.uptimeHours', { defaultValue: '{{hours}}h {{minutes}}m', hours, minutes });
+  return t('system.uptimeMinutes', { defaultValue: '{{minutes}}m', minutes });
 }
 
 function HealthCard({ label, value, tone, subtitle }: { label: string; value: string | number; tone?: 'default' | 'warning'; subtitle?: string }) {
@@ -76,6 +78,7 @@ function HealthCard({ label, value, tone, subtitle }: { label: string; value: st
 // ── System Tab ──────────────────────────────────────────────────────
 
 function SystemTab() {
+  const { t } = useTranslation('admin');
   const { showToast } = useToast();
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceStatus | null>(null);
@@ -87,6 +90,11 @@ function SystemTab() {
   const [newBannerOpen, setNewBannerOpen] = useState(false);
   const [bannerForm, setBannerForm] = useState({ text: '', type: 'info' as 'info' | 'warning' | 'critical' });
   const [bannerSaving, setBannerSaving] = useState(false);
+  const announcementTypeLabels = useMemo<Record<string, string>>(() => ({
+    info: t('system.announcements.types.info', { defaultValue: 'Info' }),
+    warning: t('system.announcements.types.warning', { defaultValue: 'Warning' }),
+    critical: t('system.announcements.types.critical', { defaultValue: 'Critical' }),
+  }), [t]);
 
   useEffect(() => {
     Promise.all([fetchSystemHealth(), fetchMaintenanceStatus()])
@@ -96,44 +104,46 @@ function SystemTab() {
         setMaintenanceMsg(m.message || '');
       })
       .catch((err) => {
-        showToast({ message: getErrorMessage(err, 'Failed to load system status'), variant: 'error' });
+        showToast({ message: getErrorMessage(err, t('system.loadFailed', { defaultValue: 'Failed to load system status' })), variant: 'error' });
       })
       .finally(() => setLoadingHealth(false));
-  }, [showToast]);
+  }, [showToast, t]);
 
   const handleToggleMaintenance = useCallback(async (enabled: boolean) => {
     try {
       const result = await toggleMaintenance(enabled, maintenanceMsg || undefined);
       setMaintenance(result);
-      showToast({ message: enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', variant: 'success' });
+      showToast({ message: enabled
+          ? t('system.maintenanceEnabled', { defaultValue: 'Maintenance mode enabled' })
+          : t('system.maintenanceDisabled', { defaultValue: 'Maintenance mode disabled' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to toggle maintenance'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('system.maintenanceFailed', { defaultValue: 'Failed to toggle maintenance' })), variant: 'error' });
     }
-  }, [maintenanceMsg, showToast]);
+  }, [maintenanceMsg, showToast, t]);
 
   const handleCreateBanner = useCallback(async () => {
     if (!bannerForm.text.trim()) return;
     setBannerSaving(true);
     try {
       await createAnnouncement({ text: bannerForm.text, type: bannerForm.type });
-      showToast({ message: 'Announcement created', variant: 'success' });
+      showToast({ message: t('system.announcements.created', { defaultValue: 'Announcement created' }), variant: 'success' });
       setNewBannerOpen(false);
       setBannerForm({ text: '', type: 'info' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to create announcement'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('system.announcements.createFailed', { defaultValue: 'Failed to create announcement' })), variant: 'error' });
     } finally {
       setBannerSaving(false);
     }
-  }, [bannerForm, createAnnouncement, showToast]);
+  }, [bannerForm, createAnnouncement, showToast, t]);
 
   const handleDeleteBanner = useCallback(async (id: string) => {
     try {
       await deleteAnnouncement(id);
-      showToast({ message: 'Announcement deleted', variant: 'success' });
+      showToast({ message: t('system.announcements.deleted', { defaultValue: 'Announcement deleted' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to delete announcement'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('system.announcements.deleteFailed', { defaultValue: 'Failed to delete announcement' })), variant: 'error' });
     }
-  }, [deleteAnnouncement, showToast]);
+  }, [deleteAnnouncement, showToast, t]);
 
   if (loadingHealth) {
     return (
@@ -159,16 +169,16 @@ function SystemTab() {
       {/* Health */}
       {health && (
         <Card>
-          <CardHeader><CardTitle>System Health</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('system.health.title', { defaultValue: 'System Health' })}</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-              <HealthCard label="DB Size" value={formatBytes(health.dbSizeBytes)} />
-              <HealthCard label="Total Users" value={health.userCount.total} />
-              <HealthCard label="Active Users" value={health.userCount.active} />
-              <HealthCard label="Deleted Users" value={health.userCount.deleted} />
-              <HealthCard label="Suspended Users" value={health.userCount.suspended} />
-              <HealthCard label="Active Sessions" value={health.activeSessions} />
-              <HealthCard label="Uptime" value={formatUptime(health.uptime)} />
+              <HealthCard label={t('system.health.dbSize', { defaultValue: 'DB Size' })} value={formatBytes(health.dbSizeBytes)} />
+              <HealthCard label={t('system.health.totalUsers', { defaultValue: 'Total Users' })} value={health.userCount.total} />
+              <HealthCard label={t('system.health.activeUsers', { defaultValue: 'Active Users' })} value={health.userCount.active} />
+              <HealthCard label={t('system.health.deletedUsers', { defaultValue: 'Deleted Users' })} value={health.userCount.deleted} />
+              <HealthCard label={t('system.health.suspendedUsers', { defaultValue: 'Suspended Users' })} value={health.userCount.suspended} />
+              <HealthCard label={t('system.health.activeSessions', { defaultValue: 'Active Sessions' })} value={health.activeSessions} />
+              <HealthCard label={t('system.health.uptime', { defaultValue: 'Uptime' })} value={formatUptime(health.uptime, t)} />
             </div>
           </CardContent>
         </Card>
@@ -176,7 +186,7 @@ function SystemTab() {
 
       {/* Account deletion lifecycle */}
       <Card>
-        <CardHeader><CardTitle>Account deletion lifecycle</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('system.deletion.title', { defaultValue: 'Account deletion lifecycle' })}</CardTitle></CardHeader>
         <CardContent>
           {diagnosticsLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -191,38 +201,38 @@ function SystemTab() {
           ) : diagnostics ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <HealthCard
-                label="Pending"
+                label={t('system.deletion.pending', { defaultValue: 'Pending' })}
                 value={diagnostics.pendingDeletionCount}
-                subtitle="in grace window"
+                subtitle={t('system.deletion.pendingSubtitle', { defaultValue: 'in grace window' })}
               />
               <HealthCard
-                label="Expired"
+                label={t('system.deletion.expired', { defaultValue: 'Expired' })}
                 value={diagnostics.expiredPendingCount}
-                subtitle="awaiting cleanup"
+                subtitle={t('system.deletion.expiredSubtitle', { defaultValue: 'awaiting cleanup' })}
                 tone={diagnostics.expiredPendingCount > 0 ? 'warning' : 'default'}
               />
               <HealthCard
-                label="Orphan callbacks"
+                label={t('system.deletion.orphans', { defaultValue: 'Orphan callbacks' })}
                 value={diagnostics.subscriptionOrphanCount30d}
-                subtitle="last 30 days"
+                subtitle={t('system.deletion.orphansSubtitle', { defaultValue: 'last 30 days' })}
               />
             </div>
           ) : (
-            <p className="text-[14px] text-[var(--text-tertiary)] py-2">Failed to load diagnostics.</p>
+            <p className="text-[14px] text-[var(--text-tertiary)] py-2">{t('system.deletion.loadFailed', { defaultValue: 'Failed to load diagnostics.' })}</p>
           )}
         </CardContent>
       </Card>
 
       {/* Maintenance */}
       <Card>
-        <CardHeader><CardTitle>Maintenance Mode</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('system.maintenance.title', { defaultValue: 'Maintenance Mode' })}</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3">
             <div className="row-spread">
               <div>
-                <span className="text-[14px] text-[var(--text-secondary)]">Maintenance mode</span>
+                <span className="text-[14px] text-[var(--text-secondary)]">{t('system.maintenance.label', { defaultValue: 'Maintenance mode' })}</span>
                 {maintenance?.enabled && (
-                  <p className="text-[12px] text-[var(--color-warning)]">Currently active</p>
+                  <p className="text-[12px] text-[var(--color-warning)]">{t('system.maintenance.active', { defaultValue: 'Currently active' })}</p>
                 )}
               </div>
               <Switch
@@ -230,18 +240,18 @@ function SystemTab() {
                 onCheckedChange={handleToggleMaintenance}
               />
             </div>
-            <FormField label="Message (shown to users)" htmlFor="maint-msg">
+            <FormField label={t('system.maintenance.messageLabel', { defaultValue: 'Message (shown to users)' })} htmlFor="maint-msg">
               <Input
                 id="maint-msg"
                 value={maintenanceMsg}
                 onChange={(e) => setMaintenanceMsg(e.target.value)}
-                placeholder="We are performing scheduled maintenance..."
+                placeholder={t('system.maintenance.messagePlaceholder', { defaultValue: 'We are performing scheduled maintenance...' })}
                 className="text-[14px]"
               />
             </FormField>
             {maintenanceMsg !== (maintenance?.message || '') && (
               <Button size="sm" className="self-start" onClick={() => handleToggleMaintenance(maintenance?.enabled ?? false)}>
-                Update Message
+                {t('system.maintenance.updateMessage', { defaultValue: 'Update Message' })}
               </Button>
             )}
           </div>
@@ -252,10 +262,10 @@ function SystemTab() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Announcements</CardTitle>
+            <CardTitle>{t('system.announcements.title', { defaultValue: 'Announcements' })}</CardTitle>
             <Button variant="outline" size="sm" onClick={() => setNewBannerOpen(true)}>
               <Plus className="h-3.5 w-3.5 mr-1.5" />
-              New
+              {t('system.announcements.new', { defaultValue: 'New' })}
             </Button>
           </div>
         </CardHeader>
@@ -268,14 +278,14 @@ function SystemTab() {
               ))}
             </div>
           ) : announcements.length === 0 ? (
-            <p className="text-[14px] text-[var(--text-tertiary)] py-2">No active announcements.</p>
+            <p className="text-[14px] text-[var(--text-tertiary)] py-2">{t('system.announcements.empty', { defaultValue: 'No active announcements.' })}</p>
           ) : (
             <div className="flex flex-col divide-y divide-[var(--border-subtle)]">
               {announcements.map((a) => (
                 <div key={a.id} className="row-spread py-2.5 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-2 min-w-0">
                     <Badge variant={a.type === 'critical' ? 'destructive' : a.type === 'warning' ? 'outline' : 'secondary'} className="text-[11px] shrink-0">
-                      {a.type}
+                      {announcementTypeLabels[a.type] ?? a.type}
                     </Badge>
                     <span className="text-[14px] text-[var(--text-primary)] truncate">{a.text}</span>
                   </div>
@@ -283,7 +293,7 @@ function SystemTab() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => handleDeleteBanner(a.id)}
-                    aria-label="Delete announcement"
+                    aria-label={t('system.announcements.deleteAria', { defaultValue: 'Delete announcement' })}
                     className="text-[var(--destructive)] hover:text-[var(--destructive)] shrink-0"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -299,36 +309,40 @@ function SystemTab() {
       <Dialog open={newBannerOpen} onOpenChange={(open) => !open && setNewBannerOpen(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New Announcement</DialogTitle>
-            <DialogDescription>Create a banner announcement visible to all users.</DialogDescription>
+            <DialogTitle>{t('system.announcements.dialog.title', { defaultValue: 'New Announcement' })}</DialogTitle>
+            <DialogDescription>{t('system.announcements.dialog.description', { defaultValue: 'Create a banner announcement visible to all users.' })}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <FormField label="Type" htmlFor="banner-type">
+            <FormField label={t('system.announcements.dialog.typeLabel', { defaultValue: 'Type' })} htmlFor="banner-type">
               <OptionGroup
                 options={[
-                  { key: 'info' as const, label: 'Info' },
-                  { key: 'warning' as const, label: 'Warning' },
-                  { key: 'critical' as const, label: 'Critical' },
+                  { key: 'info' as const, label: announcementTypeLabels.info },
+                  { key: 'warning' as const, label: announcementTypeLabels.warning },
+                  { key: 'critical' as const, label: announcementTypeLabels.critical },
                 ]}
                 value={bannerForm.type}
                 onChange={(type) => setBannerForm(f => ({ ...f, type }))}
                 size="sm"
               />
             </FormField>
-            <FormField label="Message" htmlFor="banner-text">
+            <FormField label={t('system.announcements.dialog.messageLabel', { defaultValue: 'Message' })} htmlFor="banner-text">
               <Textarea
                 id="banner-text"
                 value={bannerForm.text}
                 onChange={(e) => setBannerForm(f => ({ ...f, text: e.target.value }))}
-                placeholder="Announcement text..."
+                placeholder={t('system.announcements.dialog.messagePlaceholder', { defaultValue: 'Announcement text...' })}
                 rows={3}
               />
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNewBannerOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setNewBannerOpen(false)}>
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
+            </Button>
             <Button onClick={handleCreateBanner} disabled={!bannerForm.text.trim() || bannerSaving}>
-              {bannerSaving ? 'Creating...' : 'Create'}
+              {bannerSaving
+                ? t('system.announcements.dialog.creating', { defaultValue: 'Creating...' })
+                : t('system.announcements.dialog.create', { defaultValue: 'Create' })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -340,6 +354,7 @@ function SystemTab() {
 // ── Audit Log Tab ───────────────────────────────────────────────────
 
 function AuditLogTab() {
+  const { t } = useTranslation('admin');
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const { entries, count, isLoading } = useAuditLog(page, { action: actionFilter || undefined });
@@ -349,7 +364,7 @@ function AuditLogTab() {
     <>
       <div className="flex items-center gap-2">
         <SearchInput
-          placeholder="Filter by action..."
+          placeholder={t('system.audit.filterPlaceholder', { defaultValue: 'Filter by action...' })}
           value={actionFilter}
           onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
           onClear={actionFilter ? () => { setActionFilter(''); setPage(1); } : undefined}
@@ -380,27 +395,27 @@ function AuditLogTab() {
       ) : entries.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="No audit entries found"
-          subtitle={actionFilter ? 'Try a different filter' : undefined}
+          title={t('system.audit.empty', { defaultValue: 'No audit entries found' })}
+          subtitle={actionFilter ? t('system.audit.tryDifferentFilter', { defaultValue: 'Try a different filter' }) : undefined}
           variant="search"
         />
       ) : (
         <Table>
           <TableHeader>
             <div className="w-28">
-              <span className="ui-col-header">Time</span>
+              <span className="ui-col-header">{t('system.audit.time', { defaultValue: 'Time' })}</span>
             </div>
             <div className="w-24">
-              <span className="ui-col-header">Actor</span>
+              <span className="ui-col-header">{t('system.audit.actor', { defaultValue: 'Actor' })}</span>
             </div>
             <div className="w-28">
-              <span className="ui-col-header">Action</span>
+              <span className="ui-col-header">{t('system.audit.action', { defaultValue: 'Action' })}</span>
             </div>
             <div className="flex-1">
-              <span className="ui-col-header">Target</span>
+              <span className="ui-col-header">{t('system.audit.target', { defaultValue: 'Target' })}</span>
             </div>
             <div className="hidden lg:block flex-1">
-              <span className="ui-col-header">Details</span>
+              <span className="ui-col-header">{t('system.audit.details', { defaultValue: 'Details' })}</span>
             </div>
           </TableHeader>
           {entries.map((entry) => (
@@ -438,7 +453,7 @@ function AuditLogTab() {
         onPageChange={setPage}
         totalCount={count}
         pageSize={PAGE_SIZE}
-        itemLabel="entries"
+        itemLabel={t('system.audit.paginationLabel', { defaultValue: 'entries' })}
       />
     </>
   );
@@ -447,6 +462,7 @@ function AuditLogTab() {
 // ── Locations Tab ───────────────────────────────────────────────────
 
 function LocationsTab() {
+  const { t, i18n } = useTranslation('admin');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const { locations, count, isLoading } = useAdminLocations(search, page);
@@ -456,7 +472,7 @@ function LocationsTab() {
     <>
       <div className="flex items-center gap-2">
         <SearchInput
-          placeholder="Search locations..."
+          placeholder={t('system.locations.searchPlaceholder', { defaultValue: 'Search locations...' })}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           onClear={search ? () => { setSearch(''); setPage(1); } : undefined}
@@ -490,30 +506,30 @@ function LocationsTab() {
       ) : locations.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="No locations found"
-          subtitle={search ? 'Try a different search term' : undefined}
+          title={t('system.locations.empty', { defaultValue: 'No locations found' })}
+          subtitle={search ? t('system.locations.tryDifferentSearch', { defaultValue: 'Try a different search term' }) : undefined}
           variant="search"
         />
       ) : (
         <Table>
           <TableHeader>
             <div className="flex-1">
-              <span className="ui-col-header">Name</span>
+              <span className="ui-col-header">{t('system.locations.name', { defaultValue: 'Name' })}</span>
             </div>
             <div className="w-24">
-              <span className="ui-col-header">Owner</span>
+              <span className="ui-col-header">{t('system.locations.owner', { defaultValue: 'Owner' })}</span>
             </div>
             <div className="hidden sm:block w-16">
-              <span className="ui-col-header">Members</span>
+              <span className="ui-col-header">{t('system.locations.members', { defaultValue: 'Members' })}</span>
             </div>
             <div className="hidden sm:block w-14">
-              <span className="ui-col-header">Bins</span>
+              <span className="ui-col-header">{t('system.locations.bins', { defaultValue: 'Bins' })}</span>
             </div>
             <div className="hidden lg:block w-14">
-              <span className="ui-col-header">Areas</span>
+              <span className="ui-col-header">{t('system.locations.areas', { defaultValue: 'Areas' })}</span>
             </div>
             <div className="hidden sm:block w-24">
-              <span className="ui-col-header">Created</span>
+              <span className="ui-col-header">{t('system.locations.created', { defaultValue: 'Created' })}</span>
             </div>
           </TableHeader>
           {locations.map((loc) => (
@@ -528,7 +544,7 @@ function LocationsTab() {
               <div className="hidden sm:block w-14 text-[14px] text-[var(--text-secondary)] tabular-nums">{loc.binCount}</div>
               <div className="hidden lg:block w-14 text-[14px] text-[var(--text-secondary)] tabular-nums">{loc.areaCount}</div>
               <div className="hidden sm:block w-24">
-                <span className="text-[12px] text-[var(--text-tertiary)] whitespace-nowrap">{new Date(loc.createdAt).toLocaleDateString()}</span>
+                <span className="text-[12px] text-[var(--text-tertiary)] whitespace-nowrap">{new Date(loc.createdAt).toLocaleDateString(i18n.language)}</span>
               </div>
             </TableRow>
           ))}
@@ -541,7 +557,7 @@ function LocationsTab() {
         onPageChange={setPage}
         totalCount={count}
         pageSize={PAGE_SIZE}
-        itemLabel="locations"
+        itemLabel={t('system.locations.paginationLabel', { defaultValue: 'locations' })}
       />
     </>
   );
@@ -550,6 +566,7 @@ function LocationsTab() {
 // ── Main Page ───────────────────────────────────────────────────────
 
 export function AdminSystemPage() {
+  const { t } = useTranslation('admin');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -566,15 +583,15 @@ export function AdminSystemPage() {
   return (
     <div className="page-content-wide">
       <PageHeader
-        title="System"
+        title={t('system.pageTitle', { defaultValue: 'System' })}
         back
         backTo="/admin/users"
         actions={
           <OptionGroup
             options={[
-              { key: 'system' as const, label: 'System', icon: Server },
-              { key: 'audit' as const, label: 'Audit Log', icon: ShieldAlert },
-              { key: 'locations' as const, label: 'Locations', icon: MapPin },
+              { key: 'system' as const, label: t('system.tabSystem', { defaultValue: 'System' }), icon: Server },
+              { key: 'audit' as const, label: t('system.tabAudit', { defaultValue: 'Audit Log' }), icon: ShieldAlert },
+              { key: 'locations' as const, label: t('system.tabLocations', { defaultValue: 'Locations' }), icon: MapPin },
             ]}
             value={tab}
             onChange={setTab}

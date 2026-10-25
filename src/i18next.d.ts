@@ -1,5 +1,6 @@
 import 'i18next';
 import type activity from './locales/en/activity.json';
+import type admin from './locales/en/admin.json';
 import type ai from './locales/en/ai.json';
 import type areas from './locales/en/areas.json';
 import type attachments from './locales/en/attachments.json';
@@ -42,6 +43,7 @@ declare module 'i18next' {
       attachments: typeof attachments;
       shoppingList: typeof shoppingList;
       bins: typeof bins;
+      admin: typeof admin;
       dashboard: typeof dashboard;
       locations: typeof locations;
       areas: typeof areas;

@@ -1,4 +1,5 @@
 import { KeyRound, LogOut, ShieldOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -12,22 +13,26 @@ interface AdminUserSecurityCardProps {
 }
 
 export function AdminUserSecurityCard({ detail, isSelf, actions }: AdminUserSecurityCardProps) {
+  const { t, i18n } = useTranslation('admin');
   return (
     <Card>
-      <CardHeader><CardTitle>Security</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{t('detail.security.title', { defaultValue: 'Security' })}</CardTitle></CardHeader>
       <CardContent>
         <div className="flex flex-col divide-y divide-[var(--border-subtle)]">
           <div className="row-spread py-3 first:pt-0">
             <div>
-              <span className="text-[14px] text-[var(--text-secondary)]">Account status</span>
+              <span className="text-[14px] text-[var(--text-secondary)]">{t('detail.security.accountStatus', { defaultValue: 'Account status' })}</span>
               {detail.suspendedAt && (
                 <p className="text-[12px] text-[var(--destructive)]">
-                  Suspended {new Date(detail.suspendedAt).toLocaleString()}
+                  {t('detail.security.suspendedAt', {
+                    defaultValue: 'Suspended {{date}}',
+                    date: new Date(detail.suspendedAt).toLocaleString(i18n.language),
+                  })}
                 </p>
               )}
             </div>
             {detail.suspendedAt ? (
-              <Button variant="outline" size="sm" onClick={actions.handleReactivate}>Reactivate</Button>
+              <Button variant="outline" size="sm" onClick={actions.handleReactivate}>{t('detail.security.reactivate', { defaultValue: 'Reactivate' })}</Button>
             ) : (
               <Button
                 variant="outline"
@@ -37,21 +42,21 @@ export function AdminUserSecurityCard({ detail, isSelf, actions }: AdminUserSecu
                 className="text-[var(--destructive)] hover:text-[var(--destructive)]"
               >
                 <ShieldOff className="h-3.5 w-3.5 mr-1.5" />
-                Suspend
+                {t('detail.security.suspend', { defaultValue: 'Suspend' })}
               </Button>
             )}
           </div>
 
           <div className="row-spread py-3">
-            <span className="text-[14px] text-[var(--text-secondary)]">Revoke all sessions</span>
+            <span className="text-[14px] text-[var(--text-secondary)]">{t('detail.security.revokeAllSessions', { defaultValue: 'Revoke all sessions' })}</span>
             <Button variant="outline" size="sm" onClick={() => actions.setRevokeSessionsOpen(true)}>
               <LogOut className="h-3.5 w-3.5 mr-1.5" />
-              Revoke
+              {t('detail.security.revoke', { defaultValue: 'Revoke' })}
             </Button>
           </div>
 
           <div className="row-spread py-3">
-            <span className="text-[14px] text-[var(--text-secondary)]">Require password change</span>
+            <span className="text-[14px] text-[var(--text-secondary)]">{t('detail.security.requirePasswordChange', { defaultValue: 'Require password change' })}</span>
             <Switch
               checked={!!detail.stats.forcePasswordChange}
               onCheckedChange={actions.handleForcePasswordChange}
@@ -60,10 +65,10 @@ export function AdminUserSecurityCard({ detail, isSelf, actions }: AdminUserSecu
           </div>
 
           <div className="row-spread py-3 last:pb-0">
-            <span className="text-[14px] text-[var(--text-secondary)]">Revoke all API keys</span>
+            <span className="text-[14px] text-[var(--text-secondary)]">{t('detail.security.revokeAllApiKeys', { defaultValue: 'Revoke all API keys' })}</span>
             <Button variant="outline" size="sm" onClick={() => actions.setRevokeKeysOpen(true)}>
               <KeyRound className="h-3.5 w-3.5 mr-1.5" />
-              Revoke All
+              {t('detail.security.revokeAll', { defaultValue: 'Revoke All' })}
             </Button>
           </div>
         </div>
