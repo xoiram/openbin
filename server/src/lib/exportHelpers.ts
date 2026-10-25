@@ -283,15 +283,15 @@ export async function insertBinWithShortCode(
 }
 
 /** Insert items into bin_items. */
-export async function insertBinItems(binId: string, items: Array<string | { name: string; quantity?: number | null }>, tx?: TxQueryFn): Promise<void> {
+export async function insertBinItems(binId: string, locationId: string, items: Array<string | { name: string; quantity?: number | null }>, tx?: TxQueryFn): Promise<void> {
   const q = tx ?? query;
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const name = typeof item === 'string' ? item : item.name;
     const qty = typeof item === 'object' && item.quantity != null ? item.quantity : null;
     await q(
-      'INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)',
-      [generateUuid(), binId, name, qty, i]
+      'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+      [generateUuid(), binId, locationId, name, qty, i]
     );
   }
 }

@@ -25,12 +25,21 @@ router.get('/:locationId/areas', requireLocationMember('locationId'), asyncHandl
         FROM area_tree t
         LEFT JOIN bins b ON b.area_id = t.id AND b.deleted_at IS NULL
         GROUP BY t.root_id
+      ),
+      desc_item_counts AS (
+        SELECT t.root_id, COUNT(bi.id) AS cnt
+        FROM area_tree t
+        LEFT JOIN bin_items bi ON bi.area_id = t.id AND bi.deleted_at IS NULL
+        GROUP BY t.root_id
       )
     SELECT a.id, a.location_id, a.name, a.parent_id, a.created_by, a.created_at, a.updated_at,
       (SELECT COUNT(*) FROM bins WHERE area_id = a.id AND deleted_at IS NULL) AS bin_count,
-      COALESCE(dc.cnt, 0) AS descendant_bin_count
+      COALESCE(dc.cnt, 0) AS descendant_bin_count,
+      (SELECT COUNT(*) FROM bin_items WHERE area_id = a.id AND deleted_at IS NULL) AS item_count,
+      COALESCE(dic.cnt, 0) AS descendant_item_count
     FROM areas a
     LEFT JOIN desc_counts dc ON dc.root_id = a.id
+    LEFT JOIN desc_item_counts dic ON dic.root_id = a.id
     WHERE a.location_id = $1
     ORDER BY a.name ${d.nocase()}`,
     [locationId]

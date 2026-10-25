@@ -300,7 +300,7 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
         updatedAt: now,
       }, areaId, userId, tx);
 
-      await insertBinItems(binId, bin.items.map(i => ({ name: i.name, quantity: i.quantity })), tx);
+      await insertBinItems(binId, locationId, bin.items.map(i => ({ name: i.name, quantity: i.quantity })), tx);
       itemsImported += bin.items.length;
       binsImported++;
     }

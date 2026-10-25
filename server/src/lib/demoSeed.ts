@@ -2,8 +2,9 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import type { TxQueryFn } from '../db.js';
 import { d, generateUuid, isUniqueViolation, withTransaction } from '../db.js';
+import { childFieldsFromParent } from './binHierarchy.js';
 import { config } from './config.js';
-import type { BinUsageProfile, DemoActivityEntry, DemoBin, DemoMember, DemoShoppingListEntry } from './demoSeedData.js';
+import type { BinUsageProfile, DemoActivityEntry, DemoBin, DemoItem, DemoMember, DemoShoppingListEntry } from './demoSeedData.js';
 import {
   BIN_USAGE_PROFILES,
   CUSTOM_FIELD_DEFINITIONS,
@@ -208,8 +209,8 @@ async function createBins(
       const itemName = typeof item === 'string' ? item : item.name;
       const itemQuantity = typeof item === 'string' ? null : item.quantity;
       await tx(
-        'INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)',
-        [generateUuid(), binId, itemName, itemQuantity, i],
+        'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+        [generateUuid(), binId, locationId, itemName, itemQuantity, i],
       );
     }
   }
@@ -255,10 +256,124 @@ async function createTrashedBins(
       const itemName = typeof item === 'string' ? item : item.name;
       const itemQuantity = typeof item === 'string' ? null : item.quantity;
       await tx(
-        'INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)',
-        [generateUuid(), binId, itemName, itemQuantity, j],
+        'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+        [generateUuid(), binId, locationId, itemName, itemQuantity, j],
       );
     }
+  }
+}
+
+// Nested boxes and loose items (see docs/nested-boxes.md). Defined here rather than in demoSeedData.ts
+// so the demo shows the newer features without changing the shared demo catalogue.
+const DEMO_NESTED_PARENT = {
+  name: 'Tool Chest',
+  location: 'home' as const,
+  area: 'Workbench',
+  tags: ['tools'],
+  icon: 'Wrench',
+  color: '45:2',
+  cardStyle: '',
+  notes: 'Top drawer holds the bits; the socket rails live in the bottom drawer.',
+  createdBy: 'demo' as const,
+  items: ['Ratchet', 'Hex keys', 'Tape measure'] as DemoItem[],
+};
+
+const DEMO_NESTED_CHILDREN: Array<{ name: string; items: DemoItem[] }> = [
+  { name: 'Drill Bits', items: ['Brad point bits', 'Masonry bits', { name: 'Spade bits', quantity: 3 }] },
+  { name: 'Socket Set', items: [{ name: '10mm socket', quantity: 2 }, 'Extension bar', 'Socket adapter'] },
+];
+
+/** Loose items: directly in an area (no box), or unassigned in the location (neither box nor area). */
+const DEMO_LOOSE_ITEMS: Array<{ area: string | null; name: string; quantity?: number }> = [
+  { area: 'Garage', name: 'Extension cord' },
+  { area: 'Garage', name: 'Shop vac filters', quantity: 2 },
+  { area: null, name: 'Spare house keys', quantity: 2 },
+];
+
+async function insertDemoBinRow(
+  tx: TxQueryFn,
+  row: { name: string; locationId: string; areaId: string | null; parentId: string | null; visibility: 'location' | 'private'; createdBy: string; tags: string[]; icon: string; color: string; cardStyle: string; notes: string },
+): Promise<string> {
+  const binId = generateUuid();
+  for (let attempt = 0; attempt <= 10; attempt++) {
+    const shortCode = generateShortCode(row.name);
+    try {
+      await tx(
+        `INSERT INTO bins (id, short_code, location_id, name, area_id, parent_bin_id, notes, tags, icon, color, card_style, created_by, visibility)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        [binId, shortCode, row.locationId, row.name, row.areaId, row.parentId, row.notes, row.tags, row.icon, row.color, row.cardStyle, row.createdBy, row.visibility],
+      );
+      return binId;
+    } catch (err) {
+      if (isUniqueViolation(err) && attempt < 10) continue;
+      throw err;
+    }
+  }
+  throw new Error('Failed to generate unique short code');
+}
+
+async function insertDemoItems(tx: TxQueryFn, binId: string, locationId: string, items: DemoItem[]): Promise<void> {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const itemName = typeof item === 'string' ? item : item.name;
+    const itemQuantity = typeof item === 'string' ? null : item.quantity;
+    await tx(
+      'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+      [generateUuid(), binId, locationId, itemName, itemQuantity, i],
+    );
+  }
+}
+
+async function createNestedAndLooseItems(
+  tx: TxQueryFn,
+  homeLocationId: string,
+  areaMap: Map<string, string>,
+  userIdMap: Map<DemoMember, string>,
+  binIdMap: Map<string, string>,
+): Promise<void> {
+  // A parent with two child boxes. Children take the parent's area and visibility via childFieldsFromParent.
+  const parentAreaId = areaMap.get(DEMO_NESTED_PARENT.area) ?? null;
+  const parentFields = { area_id: parentAreaId, visibility: 'location' as const };
+  const parentId = await insertDemoBinRow(tx, {
+    name: DEMO_NESTED_PARENT.name,
+    locationId: homeLocationId,
+    areaId: parentFields.area_id,
+    parentId: null,
+    visibility: parentFields.visibility,
+    createdBy: userIdMap.get(DEMO_NESTED_PARENT.createdBy)!,
+    tags: DEMO_NESTED_PARENT.tags,
+    icon: DEMO_NESTED_PARENT.icon,
+    color: DEMO_NESTED_PARENT.color,
+    cardStyle: DEMO_NESTED_PARENT.cardStyle,
+    notes: DEMO_NESTED_PARENT.notes,
+  });
+  binIdMap.set(DEMO_NESTED_PARENT.name, parentId);
+  await insertDemoItems(tx, parentId, homeLocationId, DEMO_NESTED_PARENT.items);
+
+  for (const child of DEMO_NESTED_CHILDREN) {
+    const fields = childFieldsFromParent(parentFields);
+    const childId = await insertDemoBinRow(tx, {
+      name: child.name,
+      locationId: homeLocationId,
+      areaId: fields.area_id,
+      parentId,
+      visibility: fields.visibility,
+      createdBy: userIdMap.get('demo')!,
+      tags: DEMO_NESTED_PARENT.tags,
+      icon: 'Box',
+      color: '',
+      cardStyle: '',
+      notes: '',
+    });
+    binIdMap.set(child.name, childId);
+    await insertDemoItems(tx, childId, homeLocationId, child.items);
+  }
+
+  for (const loose of DEMO_LOOSE_ITEMS) {
+    await tx(
+      'INSERT INTO bin_items (id, bin_id, area_id, location_id, name, quantity, position) VALUES ($1, NULL, $2, $3, $4, $5, $6)',
+      [generateUuid(), loose.area ? (areaMap.get(loose.area) ?? null) : null, homeLocationId, loose.name, loose.quantity ?? null, 0],
+    );
   }
 }
 
@@ -758,6 +873,7 @@ export async function seedDemoData(): Promise<void> {
       const areaMap = await createAreas(tx, homeLocationId, storageLocationId, userId, homeAreaNames, nestedAreaDefs, storageAreaNames);
       const binIdMap = await createBins(tx, homeLocationId, storageLocationId, areaMap, userIdMap, bins);
       await createTrashedBins(tx, homeLocationId, storageLocationId, areaMap, userIdMap, binIdMap, trashedBinsList);
+      await createNestedAndLooseItems(tx, homeLocationId, areaMap, userIdMap, binIdMap);
 
       await seedTagColors(tx, homeLocationId, storageLocationId, tagColorDefs, tagHierarchyDefs);
       await seedPins(tx, userId, userIdMap.get('pat')!, binIdMap, pinnedNames, pinnedNamesPat);
