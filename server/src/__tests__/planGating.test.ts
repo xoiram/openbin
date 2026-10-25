@@ -177,7 +177,7 @@ describe('Export route plan gating', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.version).toBe(2);
+    expect(res.body.version).toBe(4);
   });
 
   it('GET /api/locations/:id/export/zip returns 403 PLAN_RESTRICTED for cloud FREE user', async () => {

@@ -6,11 +6,14 @@ import { VALID_ROLES } from './adminHelpers.js';
 import { BIN_SELECT_COLS } from './binQueries.js';
 import { config } from './config.js';
 import { replaceCustomFieldValues } from './customFieldHelpers.js';
+import { ValidationError } from './httpErrors.js';
+import { ITEM_FROM, itemScopePredicate } from './itemQueries.js';
 import { createLogger } from './logger.js';
 import { isPathSafe, safePath } from './pathSafety.js';
 import { generateShortCode } from './shortCode.js';
 import { storage } from './storage.js';
 import { MIME_TO_EXT, validateFileBuffer } from './uploadConfig.js';
+import { stripUnicodeControl } from './validation.js';
 
 const PHOTO_STORAGE_PATH = config.photoStoragePath;
 
@@ -21,6 +24,30 @@ const ALLOWED_PHOTO_EXTS = new Set(Object.values(MIME_TO_EXT));
 export const MAX_EXPORT_BINS = 5000;
 export const MAX_EXPORT_PHOTOS_PER_BIN = 50;
 export const MAX_EXPORT_TOTAL_PHOTOS = 1000;
+
+/** Current export format version, shared by the JSON export and the ZIP manifest. */
+export const EXPORT_FORMAT_VERSION = 4;
+const MIN_IMPORT_VERSION = 2;
+
+/**
+ * Validate the `version` of a JSON import body or a ZIP manifest. A missing version is a legacy file
+ * and is accepted; otherwise it must be an integer in 2..EXPORT_FORMAT_VERSION (422 for anything else).
+ */
+export function assertSupportedExportVersion(version: unknown): void {
+  if (version === undefined || version === null) return;
+  if (typeof version !== 'number' || !Number.isInteger(version)) {
+    throw new ValidationError(`Unsupported export version: expected an integer from ${MIN_IMPORT_VERSION} to ${EXPORT_FORMAT_VERSION}`);
+  }
+  if (version > EXPORT_FORMAT_VERSION) {
+    throw new ValidationError(`Unsupported export version ${version}: this server reads versions up to ${EXPORT_FORMAT_VERSION}. Update OpenBin to import this file.`);
+  }
+  if (version < MIN_IMPORT_VERSION) {
+    throw new ValidationError(`Unsupported export version ${version}: the oldest supported version is ${MIN_IMPORT_VERSION}`);
+  }
+}
+
+/** An item as written in exports: a bare name, or a name with a positive integer quantity. */
+export type ExportItem = string | { name: string; quantity?: number | null };
 
 export interface ExportBin {
   id: string;
@@ -35,6 +62,8 @@ export interface ExportBin {
   visibility?: 'location' | 'private';
   customFields?: Record<string, string>;
   shortCode?: string;
+  /** Short code of the box this bin sits inside. Only child boxes carry it; omitted when the parent isn't in the export. */
+  parentShortCode?: string;
   createdBy?: string;
   deletedAt?: string | null;
   createdAt: string;
@@ -74,6 +103,8 @@ export interface ExportLocationSettings {
 export interface ExportArea {
   path: string;
   createdBy?: string;
+  /** Loose items sitting directly in this area (not in a box). */
+  items?: ExportItem[];
 }
 
 export interface ExportPinnedBin {
@@ -120,6 +151,77 @@ async function fetchBinsForExport(locationId: string, userId: string | undefined
  */
 export async function fetchLocationBins(locationId: string, userId?: string) {
   return fetchBinsForExport(locationId, userId, false);
+}
+
+/** Loose items (no box) of a location in export shape, grouped by area id; unassigned items under `unassigned`. */
+export interface LooseItemExport {
+  byArea: Map<string, ExportItem[]>;
+  unassigned: ExportItem[];
+}
+
+/**
+ * Fetch the live loose items (in an area or unassigned) of a location. Loose items are visible to
+ * every member, so there is no per-user filtering beyond the shared item scope.
+ */
+export async function fetchLooseItems(locationId: string, userId: string): Promise<LooseItemExport> {
+  const result = await query<{ area_id: string | null; name: string; quantity: number | null }>(
+    `SELECT bi.area_id, bi.name, bi.quantity
+     FROM ${ITEM_FROM}
+     WHERE ${itemScopePredicate(1, 2)} AND bi.bin_id IS NULL
+     ORDER BY bi.position, bi.created_at, bi.name, bi.id`,
+    [locationId, userId],
+  );
+  const byArea = new Map<string, ExportItem[]>();
+  const unassigned: ExportItem[] = [];
+  for (const row of result.rows) {
+    const [item] = extractItemsWithQuantity([{ name: row.name, quantity: row.quantity }]);
+    if (row.area_id) {
+      const list = byArea.get(row.area_id) ?? [];
+      list.push(item);
+      byArea.set(row.area_id, list);
+    } else {
+      unassigned.push(item);
+    }
+  }
+  return { byArea, unassigned };
+}
+
+/** Export `areas` entries (every area, with its loose items when it has any). */
+export function buildAreaExportEntries(areaPathMap: Map<string, AreaPathInfo>, loose: LooseItemExport): ExportArea[] {
+  return Array.from(areaPathMap.entries()).map(([id, a]) => {
+    const entry: ExportArea = { path: a.path, createdBy: a.createdBy || undefined };
+    const items = loose.byArea.get(id);
+    if (items && items.length > 0) entry.items = items;
+    return entry;
+  });
+}
+
+/** Clamp an item quantity to a positive integer, or null when absent/invalid (same rule as the bin item routes). */
+export function normalizeQuantity(quantity: unknown): number | null {
+  if (typeof quantity !== 'number' || !Number.isFinite(quantity)) return null;
+  return Math.max(1, Math.floor(quantity));
+}
+
+export const MAX_IMPORT_LOOSE_ITEMS = 10000;
+
+/**
+ * Normalise a payload's item list (strings or {name, quantity}) into clean items: control characters
+ * stripped, names trimmed, empty names dropped, quantities clamped. Throws 422 on a malformed list.
+ */
+export function normalizeItemList(raw: unknown, label: string): Array<{ name: string; quantity: number | null }> {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) throw new ValidationError(`${label} must be an array`);
+  if (raw.length > MAX_IMPORT_LOOSE_ITEMS) throw new ValidationError(`${label} has too many items (max ${MAX_IMPORT_LOOSE_ITEMS})`);
+  const out: Array<{ name: string; quantity: number | null }> = [];
+  for (const entry of raw) {
+    const rawName = typeof entry === 'string' ? entry : (entry && typeof (entry as { name?: unknown }).name === 'string' ? (entry as { name: string }).name : null);
+    if (rawName === null) continue;
+    const name = stripUnicodeControl(rawName.trim());
+    if (!name) continue;
+    if (name.length > 500) throw new ValidationError('Item name too long (max 500 characters)');
+    out.push({ name, quantity: typeof entry === 'string' ? null : normalizeQuantity((entry as { quantity?: unknown }).quantity) });
+  }
+  return out;
 }
 
 /** Extract items with optional quantity from the items column. */
@@ -254,7 +356,7 @@ export async function buildAreaPathMap(locationId: string): Promise<Map<string, 
  */
 export async function insertBinWithShortCode(
   locationId: string,
-  bin: { name: string; notes: string; tags: string[]; icon: string; color: string; cardStyle?: string; visibility?: 'location' | 'private'; customFields?: Record<string, string>; shortCode?: string; deletedAt?: string | null; createdAt: string; updatedAt: string },
+  bin: { name: string; notes: string; tags: string[]; icon: string; color: string; cardStyle?: string; visibility?: 'location' | 'private'; customFields?: Record<string, string>; shortCode?: string; parentBinId?: string | null; deletedAt?: string | null; createdAt: string; updatedAt: string },
   areaId: string | null,
   userId: string,
   tx?: TxQueryFn,
@@ -267,9 +369,9 @@ export async function insertBinWithShortCode(
     const shortCode = attempt === 0 && validCode ? validCode : generateShortCode(bin.name);
     try {
       await q(
-        `INSERT INTO bins (id, short_code, location_id, name, area_id, notes, tags, icon, color, card_style, visibility, created_by, created_at, updated_at, deleted_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-        [id, shortCode, locationId, bin.name, areaId, bin.notes, bin.tags, bin.icon, bin.color, bin.cardStyle || '', bin.visibility || 'location', userId, bin.createdAt, bin.updatedAt, bin.deletedAt || null]
+        `INSERT INTO bins (id, short_code, location_id, name, area_id, notes, tags, icon, color, card_style, visibility, created_by, created_at, updated_at, deleted_at, parent_bin_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        [id, shortCode, locationId, bin.name, areaId, bin.notes, bin.tags, bin.icon, bin.color, bin.cardStyle || '', bin.visibility || 'location', userId, bin.createdAt, bin.updatedAt, bin.deletedAt || null, bin.parentBinId || null]
       );
       if (bin.customFields && Object.keys(bin.customFields).length > 0) {
         await replaceCustomFieldValues(id, bin.customFields, locationId, tx);
@@ -288,10 +390,26 @@ export async function insertBinItems(binId: string, locationId: string, items: A
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const name = typeof item === 'string' ? item : item.name;
-    const qty = typeof item === 'object' && item.quantity != null ? item.quantity : null;
+    const qty = typeof item === 'object' ? normalizeQuantity(item.quantity) : null;
     await q(
       'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
       [generateUuid(), binId, locationId, name, qty, i]
+    );
+  }
+}
+
+/** Insert loose items (no box): `area_id` is the area they sit in, or null for unassigned. Positions are the array index. */
+export async function insertLooseItems(
+  locationId: string,
+  areaId: string | null,
+  items: Array<{ name: string; quantity: number | null; position: number }>,
+  tx?: TxQueryFn,
+): Promise<void> {
+  const q = tx ?? query;
+  for (const item of items) {
+    await q(
+      'INSERT INTO bin_items (id, bin_id, area_id, location_id, name, quantity, position) VALUES ($1, NULL, $2, $3, $4, $5, $6)',
+      [generateUuid(), areaId, locationId, item.name, item.quantity, item.position],
     );
   }
 }
@@ -595,8 +713,8 @@ export async function importMembers(locationId: string, members: ExportMember[],
 }
 
 /**
- * Delete all bins (cascading to items, photos rows, custom field values)
- * and areas for a location. Also removes photo files from storage.
+ * Delete all bins (cascading to photos rows, custom field values), all items (including loose and
+ * unassigned ones) and areas for a location. Also removes photo files from storage.
  */
 export async function replaceCleanup(locationId: string, tx?: TxQueryFn): Promise<void> {
   const q = tx ?? query;
@@ -604,6 +722,8 @@ export async function replaceCleanup(locationId: string, tx?: TxQueryFn): Promis
     'SELECT storage_path FROM photos WHERE bin_id IN (SELECT id FROM bins WHERE location_id = $1)',
     [locationId]
   );
+  // Loose and unassigned items don't cascade from bins or areas (areas only SET NULL), so delete them explicitly.
+  await q('DELETE FROM bin_items WHERE location_id = $1', [locationId]);
   await q('DELETE FROM bins WHERE location_id = $1', [locationId]);
   await q('DELETE FROM areas WHERE location_id = $1', [locationId]);
   for (const photo of existingPhotos.rows) {
@@ -680,7 +800,7 @@ export function buildExportBinEntry(
   bin: Record<string, unknown>,
   fieldIdToName: Map<string, string>,
   areaPathMap: Map<string, AreaPathInfo>,
-  opts?: { includeTrashed?: boolean },
+  opts?: { includeTrashed?: boolean; parentShortCodes?: Map<string, string> },
 ): ExportBin {
   const customFields =
     bin.custom_fields && typeof bin.custom_fields === 'object' && Object.keys(bin.custom_fields as object).length > 0
@@ -702,10 +822,20 @@ export function buildExportBinEntry(
     visibility: bin.visibility !== 'location' ? (bin.visibility as 'private') : undefined,
     customFields,
     shortCode: bin.short_code as string,
+    parentShortCode: bin.parent_bin_id ? opts?.parentShortCodes?.get(bin.parent_bin_id as string) : undefined,
     createdBy: (bin.created_by as string) || undefined,
     deletedAt: opts?.includeTrashed ? (bin.deleted_at as string) : undefined,
     createdAt: bin.created_at as string,
     updatedAt: bin.updated_at as string,
     photos: [],
   };
+}
+
+/** Map of bin id -> short code over the bins being exported (so a child only references a parent that is in the export). */
+export function buildParentShortCodeMap(...binLists: Array<Array<Record<string, unknown>>>): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const list of binLists) {
+    for (const bin of list) map.set(bin.id as string, bin.short_code as string);
+  }
+  return map;
 }

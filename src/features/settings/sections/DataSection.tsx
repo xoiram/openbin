@@ -13,13 +13,14 @@ import {
 import { LocationSelectList } from '@/features/locations/LocationSelectList';
 import { useLocationList } from '@/features/locations/useLocations';
 import { useAuth } from '@/lib/auth';
+import { useTerminology } from '@/lib/terminology';
 
 import type { Location } from '@/types';
 import { SettingsPageHeader } from '../SettingsPageHeader';
 import { SettingsRadioCard } from '../SettingsRadioCard';
 import { SettingsRow } from '../SettingsRow';
 import { SettingsSection } from '../SettingsSection';
-import { useDataSectionActions } from '../useDataSectionActions';
+import { type ImportPreview, useDataSectionActions } from '../useDataSectionActions';
 
 function StepLabel({
   step,
@@ -70,10 +71,39 @@ function LocationPickerSection({
   );
 }
 
+function ImportPreviewNotes({ preview, bin, bins }: { preview: ImportPreview; bin: string; bins: string }) {
+  const { t } = useTranslation('settings');
+  const nested = preview.totalChildBins ?? 0;
+  const trashed = preview.totalTrashedBins ?? 0;
+  const looseCreate = preview.looseItemsToCreate ?? 0;
+  const looseSkip = preview.looseItemsToSkip ?? 0;
+  const unresolved = preview.binsSkippedUnresolvedParent ?? 0;
+  if (!nested && !trashed && !looseCreate && !looseSkip && !unresolved) return null;
+  return (
+    <ul className="space-y-0.5 text-[var(--text-xs)] text-[var(--text-secondary)]">
+      {nested > 0 && <li>{t('data.previewNested', { count: nested, bin, bins, defaultValue: '{{count}} nested {{bins}}' })}</li>}
+      {trashed > 0 && <li>{t('data.previewTrashed', { count: trashed, bin, bins, defaultValue: '{{count}} {{bins}} in the trash' })}</li>}
+      {looseCreate > 0 && <li>{t('data.previewLooseCreate', { count: looseCreate, defaultValue: '{{count}} loose items will be added' })}</li>}
+      {looseSkip > 0 && <li>{t('data.previewLooseSkip', { count: looseSkip, defaultValue: '{{count}} loose items already exist and will be skipped' })}</li>}
+      {unresolved > 0 && (
+        <li role="alert" className="text-[var(--color-warning)]">
+          {t('data.previewUnresolvedParent', {
+            count: unresolved,
+            bin,
+            bins,
+            defaultValue: '{{count}} nested {{bins}} will be skipped because their parent was not found',
+          })}
+        </li>
+      )}
+    </ul>
+  );
+}
+
 export function DataSection() {
   const navigate = useNavigate();
   const { activeLocationId } = useAuth();
   const { t } = useTranslation('settings');
+  const term = useTerminology();
 
   const actions = useDataSectionActions();
   const {
@@ -343,9 +373,10 @@ export function DataSection() {
               </Button>
               {dryRunPreview && (
                 <div className="max-h-48 overflow-y-auto space-y-1 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-input)] p-2 text-[var(--text-sm)]">
-                  {dryRunPreview.toCreate.map((b) => (
+                  {dryRunPreview.toCreate.map((b, i) => (
                     <div
-                      key={b.name}
+                      // biome-ignore lint/suspicious/noArrayIndexKey: names can repeat (e.g. nested boxes)
+                      key={`${i}-${b.name}`}
                       className="flex items-center gap-2 rounded-[var(--radius-xs)] px-2 py-1"
                     >
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-success)]" />
@@ -355,9 +386,10 @@ export function DataSection() {
                       </span>
                     </div>
                   ))}
-                  {dryRunPreview.toSkip.map((b) => (
+                  {dryRunPreview.toSkip.map((b, i) => (
                     <div
-                      key={`skip-${b.name}`}
+                      // biome-ignore lint/suspicious/noArrayIndexKey: names can repeat (e.g. nested boxes)
+                      key={`skip-${i}-${b.name}`}
                       className="flex items-center gap-2 rounded-[var(--radius-xs)] px-2 py-1 opacity-50"
                     >
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--text-tertiary)]" />
@@ -366,6 +398,9 @@ export function DataSection() {
                     </div>
                   ))}
                 </div>
+              )}
+              {dryRunPreview && (
+                <ImportPreviewNotes preview={dryRunPreview} bin={term.bin} bins={term.bins} />
               )}
               {importSummary && (
                 <p className="settings-row-desc">{importSummary}</p>

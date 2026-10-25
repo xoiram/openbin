@@ -4,22 +4,32 @@ import multer from 'multer';
 import { query, withTransaction } from '../../db.js';
 import { asyncHandler } from '../../lib/asyncHandler.js';
 import { isLocationAdmin, requireMemberOrAbove } from '../../lib/binAccess.js';
+import { validateBinFields } from '../../lib/binValidation.js';
 import { config } from '../../lib/config.js';
 import { csvEscape, parseCSV, parseCsvTags } from '../../lib/csvParser.js';
 import {
   buildAreaPathMap,
   extractItemsWithQuantity,
   fetchLocationBins,
+  fetchLooseItems,
   insertBinItems,
   insertBinWithShortCode,
+  normalizeQuantity,
   resolveArea,
 } from '../../lib/exportHelpers.js';
 import { ForbiddenError, NotFoundError, PlanRestrictedError, ValidationError } from '../../lib/httpErrors.js';
-import { lookupArea } from '../../lib/importTransaction.js';
+import {
+  executeLoosePlan,
+  type LooseGroup,
+  lookupArea,
+  normalizeAreaPath,
+  planLooseItems,
+} from '../../lib/importTransaction.js';
 import { safePath } from '../../lib/pathSafety.js';
 import { getUserBinCount, getUserFeatures } from '../../lib/planGate.js';
 import { importLimiter } from '../../lib/rateLimiters.js';
 import { logImportActivity } from '../../lib/routeHelpers.js';
+import { stripUnicodeControl, validateBinName } from '../../lib/validation.js';
 import { requireLocationMember } from '../../middleware/locationAccess.js';
 
 const router = Router();
@@ -35,9 +45,10 @@ router.get('/locations/:id/export/csv', requireLocationMember(), asyncHandler(as
     throw new NotFoundError('Location not found');
   }
 
-  const [bins, areaPathMap] = await Promise.all([
+  const [bins, areaPathMap, looseItems] = await Promise.all([
     fetchLocationBins(locationId, req.user!.id),
     buildAreaPathMap(locationId),
+    fetchLooseItems(locationId, req.user!.id),
   ]);
 
   const header = 'Bin Name,Area,Item,Quantity,Tags';
@@ -61,6 +72,19 @@ router.get('/locations/:id/export/csv', requireLocationMember(), asyncHandler(as
       }
     }
   }
+
+  // Loose items: empty Bin Name, the area path in Area (empty for unassigned items).
+  const pushLoose = (area: string, items: ReturnType<typeof extractItemsWithQuantity>) => {
+    for (const item of items) {
+      const name = typeof item === 'string' ? item : item.name;
+      const qty = typeof item === 'string' ? '' : String(item.quantity);
+      rows.push(['', csvEscape(area), csvEscape(name), qty, ''].join(','));
+    }
+  };
+  for (const [areaId, items] of looseItems.byArea) {
+    pushLoose(areaPathMap.get(areaId)?.path ?? '', items as ReturnType<typeof extractItemsWithQuantity>);
+  }
+  pushLoose('', looseItems.unassigned as ReturnType<typeof extractItemsWithQuantity>);
 
   const csv = [header, ...rows].join('\n');
 
@@ -123,6 +147,10 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
   }
 
   const pendingBins: PendingBin[] = [];
+  // Loose items (round-trip format only): rows with an empty Bin Name and an Item
+  const looseByPath = new Map<string, LooseGroup>();
+
+  let lastBin = null as PendingBin | null;
 
   if (isRoundTrip) {
     // Group consecutive rows with same Bin Name + Area
@@ -135,25 +163,42 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
       const qtyRaw = row[3].trim();
       const tagsRaw = row[4].trim();
 
-      if (!binName) continue;
-
       const quantity = qtyRaw ? Number.parseInt(qtyRaw, 10) : null;
+
+      if (!binName) {
+        // A loose item (in an area, or unassigned when Area is empty). It also ends the current bin group.
+        if (!itemName) continue;
+        const path = normalizeAreaPath(area);
+        let group = looseByPath.get(path);
+        if (!group) {
+          group = { path, items: [] };
+          looseByPath.set(path, group);
+        }
+        const looseName = stripUnicodeControl(itemName);
+        if (!looseName) continue;
+        if (looseName.length > 500) throw new ValidationError('Item name too long (max 500 characters)');
+        group.items.push({ name: looseName, quantity: normalizeQuantity(quantity), position: group.items.length });
+        lastBin = null;
+        continue;
+      }
+
       const item = itemName ? { name: itemName, quantity: Number.isNaN(quantity) ? null : quantity } : null;
 
       // Check if this row belongs to the same bin as previous
-      const prev = pendingBins.length > 0 ? pendingBins[pendingBins.length - 1] : null;
+      const prev: PendingBin | null = lastBin;
       if (prev && prev.name === binName && prev.area === area) {
         if (item) prev.items.push(item);
       } else {
         const tags = tagsRaw
           ? parseCsvTags(tagsRaw)
           : [];
-        pendingBins.push({
+        lastBin = {
           name: binName,
           area,
           items: item ? [item] : [],
           tags,
-        });
+        };
+        pendingBins.push(lastBin);
       }
     }
   } else {
@@ -197,9 +242,16 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
     throw new ValidationError('Too many bins in CSV import (max 2000)');
   }
 
+  for (const bin of pendingBins) {
+    validateBinName(bin.name);
+    validateBinFields({ items: bin.items, tags: bin.tags });
+  }
+  const looseGroups = Array.from(looseByPath.values());
+
   const dryRun = req.body?.dryRun === 'true' || req.body?.dryRun === true;
 
   if (dryRun) {
+    const loose = await planLooseItems(query, { locationId, mode: importMode, groups: looseGroups });
     const toCreate: { name: string; itemCount: number; tags: string[] }[] = [];
     const toSkip: { name: string; reason: string }[] = [];
     let totalItems = 0;
@@ -230,7 +282,16 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
       toCreate.push({ name: bin.name, itemCount: bin.items.length, tags: bin.tags });
     }
 
-    res.json({ preview: true, toCreate, toSkip, totalBins: pendingBins.length, totalItems });
+    res.json({
+      preview: true,
+      toCreate,
+      toSkip,
+      totalBins: pendingBins.length,
+      totalItems,
+      looseItemsTotal: loose.total,
+      looseItemsToCreate: loose.toCreate,
+      looseItemsToSkip: loose.toSkip,
+    });
     return;
   }
 
@@ -257,6 +318,8 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
         'SELECT storage_path FROM photos WHERE bin_id IN (SELECT id FROM bins WHERE location_id = $1)',
         [locationId]
       );
+      // Loose and unassigned items don't cascade from bins: delete them explicitly (areas are kept in CSV replace).
+      await tx('DELETE FROM bin_items WHERE location_id = $1', [locationId]);
       await tx('DELETE FROM bins WHERE location_id = $1', [locationId]);
       for (const photo of existingPhotos.rows) {
         try {
@@ -305,7 +368,10 @@ router.post('/locations/:id/import/csv', importLimiter, csvUpload, requireLocati
       binsImported++;
     }
 
-    return { binsImported, binsSkipped, itemsImported };
+    const loosePlan = await planLooseItems(tx, { locationId, mode: importMode, groups: looseGroups });
+    const looseItemsImported = await executeLoosePlan(loosePlan, locationId, userId, tx);
+
+    return { binsImported, binsSkipped, itemsImported, looseItemsImported, looseItemsSkipped: loosePlan.toSkip };
   });
 
   logImportActivity(req, locationId, importMode, result.binsImported);

@@ -3,9 +3,13 @@ import { query } from '../../db.js';
 import { asyncHandler } from '../../lib/asyncHandler.js';
 import { isLocationAdmin, requireMemberOrAbove } from '../../lib/binAccess.js';
 import {
+  assertSupportedExportVersion,
+  buildAreaExportEntries,
   buildAreaPathMap,
   buildExportBinEntry,
   buildFieldIdToNameMap,
+  buildParentShortCodeMap,
+  EXPORT_FORMAT_VERSION,
   type ExportArea,
   type ExportBin,
   type ExportLocationSettings,
@@ -19,6 +23,7 @@ import {
   fetchLocationSavedViews,
   fetchLocationSettings,
   fetchLocationTagColors,
+  fetchLooseItems,
   fetchTrashedBins,
   loadBinPhotosBase64,
   MAX_EXPORT_BINS,
@@ -47,7 +52,7 @@ router.get('/locations/:id/export', requireLocationMember(), requireExportAccess
 
   const locationName = locationResult.rows[0].name;
   const userId = req.user!.id;
-  const [bins, trashedBinsRaw, tagColors, fieldDefs, fieldIdToName, areaPathMap, locationSettings, pinnedBins, savedViews, members] = await Promise.all([
+  const [bins, trashedBinsRaw, tagColors, fieldDefs, fieldIdToName, areaPathMap, locationSettings, pinnedBins, savedViews, members, looseItems] = await Promise.all([
     fetchLocationBins(locationId, userId),
     fetchTrashedBins(locationId, userId),
     fetchLocationTagColors(locationId),
@@ -58,7 +63,9 @@ router.get('/locations/:id/export', requireLocationMember(), requireExportAccess
     fetchLocationPinnedBins(locationId, userId),
     fetchLocationSavedViews(locationId, userId),
     fetchLocationMembers(locationId),
+    fetchLooseItems(locationId, userId),
   ]);
+  const parentShortCodes = buildParentShortCodeMap(bins, trashedBinsRaw);
 
   if (bins.length + trashedBinsRaw.length > MAX_EXPORT_BINS) {
     throw new ValidationError(`Export limited to ${MAX_EXPORT_BINS} bins. Use filters or export in batches.`);
@@ -68,7 +75,7 @@ router.get('/locations/:id/export', requireLocationMember(), requireExportAccess
   res.setHeader('Content-Disposition', `attachment; filename="openbin-export-${locationId}.json"`);
 
   // Write opening fields
-  res.write(`{"version":2,"exportedAt":${JSON.stringify(new Date().toISOString())},"locationName":${JSON.stringify(locationName)}`);
+  res.write(`{"version":${EXPORT_FORMAT_VERSION},"exportedAt":${JSON.stringify(new Date().toISOString())},"locationName":${JSON.stringify(locationName)}`);
   if (locationSettings) {
     res.write(`,"locationSettings":${JSON.stringify(locationSettings)}`);
   }
@@ -81,7 +88,7 @@ router.get('/locations/:id/export', requireLocationMember(), requireExportAccess
     res.write(`,"${key}":[`);
     for (let i = 0; i < rows.length; i++) {
       if (i > 0) res.write(',');
-      const entry = buildExportBinEntry(rows[i], fieldIdToName, areaPathMap, opts);
+      const entry = buildExportBinEntry(rows[i], fieldIdToName, areaPathMap, { ...opts, parentShortCodes });
       if (totalPhotosStreamed < MAX_EXPORT_TOTAL_PHOTOS) {
         let photos = await loadBinPhotosBase64(rows[i].id);
         if (photos.length > MAX_EXPORT_PHOTOS_PER_BIN) {
@@ -107,8 +114,9 @@ router.get('/locations/:id/export', requireLocationMember(), requireExportAccess
   }
 
   // Remaining fields are small metadata — safe to buffer
-  const allAreaPaths: ExportArea[] = Array.from(areaPathMap.values()).map(a => ({ path: a.path, createdBy: a.createdBy || undefined }));
+  const allAreaPaths: ExportArea[] = buildAreaExportEntries(areaPathMap, looseItems);
   if (allAreaPaths.length > 0) res.write(`,"areas":${JSON.stringify(allAreaPaths)}`);
+  if (looseItems.unassigned.length > 0) res.write(`,"unassignedItems":${JSON.stringify(looseItems.unassigned)}`);
   if (tagColors.length > 0) res.write(`,"tagColors":${JSON.stringify(tagColors)}`);
   if (fieldDefs.length > 0) res.write(`,"customFieldDefinitions":${JSON.stringify(fieldDefs)}`);
   if (pinnedBins.length > 0) res.write(`,"pinnedBins":${JSON.stringify(pinnedBins)}`);
@@ -123,9 +131,10 @@ router.post('/locations/:id/import', importLimiter, express.json({ limit: '50mb'
   const locationId = req.params.id;
   await requireMemberOrAbove(locationId, req.user!.id, 'import JSON');
   const {
-    bins, trashedBins, mode, tagColors, customFieldDefinitions,
-    locationSettings, areas, pinnedBins, savedViews, members, dryRun,
+    version, bins, trashedBins, mode, tagColors, customFieldDefinitions,
+    locationSettings, areas, unassignedItems, pinnedBins, savedViews, members, dryRun,
   } = req.body as {
+    version?: unknown;
     bins: ExportBin[];
     trashedBins?: ExportBin[];
     mode: 'merge' | 'replace';
@@ -133,14 +142,20 @@ router.post('/locations/:id/import', importLimiter, express.json({ limit: '50mb'
     customFieldDefinitions?: Array<{ name: string; position: number }>;
     locationSettings?: ExportLocationSettings;
     areas?: ExportArea[];
+    unassignedItems?: unknown;
     pinnedBins?: ExportPinnedBin[];
     savedViews?: ExportSavedView[];
     members?: ExportMember[];
     dryRun?: boolean;
   };
 
+  assertSupportedExportVersion(version);
+
   if (!bins || !Array.isArray(bins)) {
     throw new ValidationError('bins array is required');
+  }
+  if (trashedBins !== undefined && trashedBins !== null && !Array.isArray(trashedBins)) {
+    throw new ValidationError('trashedBins must be an array');
   }
   const totalBins = bins.length + (trashedBins?.length || 0);
   if (totalBins > 2000) {
@@ -151,7 +166,7 @@ router.post('/locations/:id/import', importLimiter, express.json({ limit: '50mb'
   const userId = req.user!.id;
 
   if (dryRun) {
-    res.json(await buildDryRunPreview(bins, importMode, locationId));
+    res.json(await buildDryRunPreview(bins, importMode, locationId, { trashedBins: trashedBins ?? [], areas, unassignedItems, userId }));
     return;
   }
 
@@ -166,6 +181,7 @@ router.post('/locations/:id/import', importLimiter, express.json({ limit: '50mb'
     customFieldDefinitions,
     locationSettings,
     areas,
+    unassignedItems,
     pinnedBins,
     savedViews,
     members,
