@@ -126,6 +126,11 @@ async function enrichOneMatch(
     log.debug('Bin not found', { bin_id: binId });
     return null;
   }
+  // Same predicate as VISIBILITY_FILTER in inventoryMatcher: a private bin is visible only to its creator.
+  if (bin.visibility === 'private' && bin.created_by !== userId) {
+    log.debug('Bin not visible to user', { bin_id: binId });
+    return null;
+  }
   if (bin.location_id !== locationId) {
     log.debug('Bin in different location', {
       bin_id: binId,
@@ -172,8 +177,8 @@ async function enrichOneMatch(
 
   return {
     bin_id: binId,
-    name: match.name,
-    area_name: match.area_name,
+    name: bin.name,
+    area_name: bin.area_name ?? '',
     items,
     total_item_count: rawBinItems.length,
     tags: match.tags,

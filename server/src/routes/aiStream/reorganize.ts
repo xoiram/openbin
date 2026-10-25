@@ -5,6 +5,7 @@ import { aiRouteHandler } from '../../lib/aiRouteHandler.js';
 import { TagProposalSchema } from '../../lib/aiSchemas.js';
 import { initSseResponse, streamAiToWriter } from '../../lib/aiStream.js';
 import { resolveUserModel, streamOpts } from '../../lib/aiStreamHandler.js';
+import { assertTopLevelIds } from '../../lib/binHierarchy.js';
 import { buildTagSuggestionPrompt, type TagSuggestionBin } from '../../lib/buildTagSuggestionPrompt.js';
 import { config, isDemoUser } from '../../lib/config.js';
 import { ValidationError } from '../../lib/httpErrors.js';
@@ -20,7 +21,7 @@ const router = Router();
 
 // POST /api/ai/reorganize/stream
 router.post('/reorganize/stream', ...aiRateLimiters, requirePlusOrAbove(), requireAiAccess(), checkAiCredits((req) => reorganizeWeight(reorganizeBinCountFromReq(req))), requireLocationMemberOrAbove(), aiRouteHandler('stream reorganization', async (req, res) => {
-  const { bins: inputBins, maxBins, areaName, userNotes, strictness, granularity,
+  const { bins: inputBins, locationId, maxBins, areaName, userNotes, strictness, granularity,
     ambiguousPolicy, duplicates, outliers, minItemsPerBin, maxItemsPerBin } = req.body;
 
   if (!Array.isArray(inputBins) || inputBins.length === 0) {
@@ -30,6 +31,8 @@ router.post('/reorganize/stream', ...aiRateLimiters, requirePlusOrAbove(), requi
     throw new ValidationError('maxBins must be a positive number');
   }
   await assertReorganizeBinLimit(req.user!.id, inputBins.length, res.locals.planInfo);
+  // Server-side guard: the bins array is client-supplied. Only live top-level bins of this location may be reorganized.
+  await assertTopLevelIds(query, locationId, inputBins.map((b: { id?: unknown }) => b?.id));
 
   const { settings, model } = await resolveUserModel(req.user!.id, 'reorganization', isDemoUser(req));
   const { system, userContent } = buildReorganizePrompt({
@@ -112,6 +115,8 @@ router.post('/reorganize-tags/stream', ...aiRateLimiters, requirePlusOrAbove(), 
   if (maxTagsPerBin != null && (typeof maxTagsPerBin !== 'number' || maxTagsPerBin < 1 || maxTagsPerBin > 10)) {
     throw new ValidationError('maxTagsPerBin must be between 1 and 10');
   }
+
+  await assertTopLevelIds(query, locationId, inputBins.map((b: { id?: unknown }) => b?.id));
 
   const bins: TagSuggestionBin[] = inputBins.map((b: any) => ({
     id: String(b.id ?? ''),

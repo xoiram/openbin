@@ -91,11 +91,12 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
   );
 
   const planCounts = useMemo(() => {
-    if (!result) return { kept: 0, deleted: 0, created: 0 };
+    if (!result) return { kept: 0, deleted: 0, created: 0, emptied: 0 };
     const plan = buildReorganizePlan(selection.selectedBins, result);
     return {
       kept: plan.preservations.length,
       deleted: plan.deletions.length,
+      emptied: plan.emptied.length,
       created: plan.creations.length,
     };
   }, [result, selection.selectedBins]);
@@ -136,6 +137,16 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
       if (planCounts.created > 0) {
         parts.push(t('binsPanel.appliedCreated', { defaultValue: '{{n}} created', n: planCounts.created }));
       }
+      if (outcome.emptiedCount > 0) {
+        parts.push(
+          t('binsPanel.appliedEmptied', {
+            count: outcome.emptiedCount,
+            bins: term.bins,
+            defaultValue_one: '{{count}} emptied but kept (contains other {{bins}})',
+            defaultValue_other: '{{count}} emptied but kept (contain other {{bins}})',
+          }),
+        );
+      }
       showToast({
         message:
           parts.length > 0
@@ -155,7 +166,7 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
       });
       navigate('/bins');
     });
-  }, [apply, selection.selectedBins, selectedAreaId, navigate, showToast, planCounts, t]);
+  }, [apply, selection.selectedBins, selectedAreaId, navigate, showToast, planCounts, term.bins, t]);
 
   const handleCancel = useCallback(() => {
     if (isStreaming) cancel();

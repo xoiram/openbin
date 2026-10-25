@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,9 +37,11 @@ export function ReorganizePage() {
   const { canWrite, isLoading: permissionsLoading } = usePermissions();
   const { isGated, isSelfHosted, planInfo } = usePlan();
   const reorganizeGated = !isSelfHosted && isGated('reorganize');
-  const { bins: allBins, isLoading } = useBinList(undefined, 'name');
+  const { bins: everyBin, isLoading } = useBinList(undefined, 'name');
+  // Only top-level boxes can be reorganized: merging or deleting a box that holds other boxes would trash them too.
+  const allBins = useMemo(() => everyBin.filter((b) => !b.parent_bin_id), [everyBin]);
   const { areas } = useAreaList(activeLocationId);
-  const selection = useBinSelection(allBins);
+  const selection = useBinSelection(allBins, { topLevelOnly: true });
 
   const [binsExpanded, setBinsExpanded] = useState(true);
   const { mode, setMode } = useReorganizeMode();

@@ -57,8 +57,13 @@ export interface ReorganizeOutputBin {
 export interface ReorganizePlan {
   /** Source bins whose name matches a destination — updated in place. */
   preservations: Array<{ sourceBinId: string; destBin: ReorganizeOutputBin }>;
-  /** Source bin ids that should be deleted (unmatched sources). */
+  /** Source bin ids that should be deleted (unmatched sources without nested boxes). */
   deletions: string[];
+  /**
+   * Unmatched sources that contain other boxes (`child_count > 0`). Deleting them would trash their
+   * children too, so apply keeps them and only empties their items.
+   */
+  emptied: string[];
   /** Destination bins with no matching source — created fresh. */
   creations: ReorganizeOutputBin[];
 }
@@ -263,9 +268,10 @@ export function buildReorganizePlan(
     });
   }
 
-  const deletions: string[] = inputBins
-    .filter((b) => !claimed.has(b.id))
-    .map((b) => b.id);
+  const unclaimed = inputBins.filter((b) => !claimed.has(b.id));
+  const hasChildren = (b: Bin) => (b.child_count ?? 0) > 0;
+  const deletions: string[] = unclaimed.filter((b) => !hasChildren(b)).map((b) => b.id);
+  const emptied: string[] = unclaimed.filter(hasChildren).map((b) => b.id);
 
-  return { preservations, deletions, creations };
+  return { preservations, deletions, emptied, creations };
 }
