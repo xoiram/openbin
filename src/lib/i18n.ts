@@ -27,7 +27,7 @@ i18next
   .use(initReactI18next)
   .init({
     fallbackLng: 'en',
-    ns: ['common', 'errors'],
+    ns: ['common'],
     defaultNS: 'common',
     // Without these, a browser reporting a region-tagged locale (e.g. "en-US",
     // "nb-NO") is accepted verbatim by the detector instead of being matched

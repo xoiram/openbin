@@ -1,0 +1,28 @@
+{
+  "deletePhoto": "Delete photo",
+  "deleteDialog": {
+    "title": "Delete photo?",
+    "description": "This photo will be permanently deleted. This action cannot be undone."
+  },
+  "gallery": {
+    "label": "Photos",
+    "view": "View {{name}}",
+    "addPhoto": "Add Photo",
+    "addPhotoAria": "Add photo. Allowed types: {{types}}.",
+    "unsupportedOne": "\"{{name}}\" is not a supported image type. Allowed: {{types}}.",
+    "unsupportedMany": "{{fileCount}} files have unsupported types. Allowed: {{types}}.",
+    "uploadFailed_one": "Failed to upload {{count}} photo",
+    "uploadFailed_other": "Failed to upload {{count}} photos",
+    "deleted": "Deleted photo",
+    "deleteFailed": "Failed to delete photo"
+  },
+  "lightbox": {
+    "dialogLabel": "Photo {{index}} of {{total}}: {{name}}",
+    "close": "Close",
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "navigation": "Photo navigation",
+    "goTo": "Go to photo {{index}}",
+    "goToCurrent": "Go to photo {{index}} (current)"
+  }
+}

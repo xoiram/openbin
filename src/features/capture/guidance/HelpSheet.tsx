@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTerminology } from '@/lib/terminology';
 import { CAMERA_TIPS } from './tips';
 
 interface HelpSheetProps {
@@ -8,11 +10,13 @@ interface HelpSheetProps {
 }
 
 export function HelpSheet({ isOpen, onClose }: HelpSheetProps) {
+	const { t } = useTranslation('capture');
+  const term = useTerminology();
 	return (
 		<Dialog open={isOpen} onOpenChange={(next) => { if (!next) onClose(); }}>
 			<DialogContent className="max-w-sm" centered>
 				<DialogHeader>
-					<DialogTitle>Photo tips</DialogTitle>
+					<DialogTitle>{t('tips.title', { defaultValue: 'Photo tips' })}</DialogTitle>
 				</DialogHeader>
 				<ul className="flex flex-col gap-3">
 					{CAMERA_TIPS.map((tip) => {
@@ -26,7 +30,7 @@ export function HelpSheet({ isOpen, onClose }: HelpSheetProps) {
 									<Icon className="h-5 w-5" strokeWidth={2} />
 								</span>
 								<p className="text-[15px] leading-snug text-[var(--text-primary)]">
-									{tip.headline}
+									{t(`tips.items.${tip.id}`, { defaultValue: tip.headline, bin: term.bin })}
 								</p>
 							</li>
 						);
@@ -39,7 +43,7 @@ export function HelpSheet({ isOpen, onClose }: HelpSheetProps) {
 						onClick={onClose}
 						className="w-full sm:w-auto"
 					>
-						Got it
+						{t('tips.gotIt', { defaultValue: 'Got it' })}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

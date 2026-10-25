@@ -1,4 +1,5 @@
 import { ArrowUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { AiCreditDisplay } from '@/features/ai/AiCreditDisplay';
 import { visionWeight } from '@/lib/aiCreditCost';
@@ -28,6 +29,7 @@ export function AiCorrectionWidget({
   onSubmit,
   onReanalyze,
 }: AiCorrectionWidgetProps) {
+  const { t } = useTranslation('bulkAdd');
   const trimmed = text.trim();
   const cost = trimmed ? 1 : visionWeight(photoCount);
 
@@ -35,7 +37,7 @@ export function AiCorrectionWidget({
     <div className="animate-fade-in space-y-1.5">
       {correctionCount >= MAX_CORRECTIONS ? (
         <p className="text-[12px] text-[var(--text-tertiary)] italic">
-          You can still edit any field below.
+          {t('correction.limitReached', { defaultValue: 'You can still edit any field below.' })}
         </p>
       ) : (
         <div className="row">
@@ -48,13 +50,14 @@ export function AiCorrectionWidget({
                 onSubmit();
               }
             }}
-            placeholder="Optionally describe what to fix..."
+            placeholder={t('correction.placeholder', { defaultValue: 'Optionally describe what to fix...' })}
             className="flex-1 h-9 text-[13px]"
           />
           {trimmed ? (
             <button
               type="button"
               onClick={onSubmit}
+              aria-label={t('correction.submit', { defaultValue: 'Submit correction' })}
               className="shrink-0 p-2 rounded-[var(--radius-lg)] bg-[var(--ai-accent)] text-[var(--text-on-accent)] hover:bg-[var(--ai-accent-hover)] transition-colors"
             >
               <ArrowUp className="h-4 w-4" />
@@ -65,7 +68,7 @@ export function AiCorrectionWidget({
               onClick={onReanalyze}
               className="shrink-0 h-9 px-3 rounded-[var(--radius-lg)] bg-[var(--ai-accent)] text-[var(--text-on-accent)] hover:bg-[var(--ai-accent-hover)] transition-colors text-[13px] font-medium"
             >
-              Reanalyze
+              {t('correction.reanalyze', { defaultValue: 'Reanalyze' })}
             </button>
           )}
         </div>

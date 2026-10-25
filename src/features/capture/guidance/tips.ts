@@ -3,11 +3,12 @@ import { Eye, Images, Lightbulb, type LucideIcon, ScanSearch } from 'lucide-reac
 export interface CameraTip {
 	id: "visibility" | "light" | "angles" | "labels";
 	icon: LucideIcon;
+	/** English default; rendered via the `capture:tips.items.<id>` translation key. */
 	headline: string;
 }
 
 export const CAMERA_TIPS: CameraTip[] = [
-	{ id: "visibility", icon: Eye, headline: "Open the bin so contents are visible" },
+	{ id: "visibility", icon: Eye, headline: "Open the {{bin}} so contents are visible" },
 	{ id: "light", icon: Lightbulb, headline: "Use bright, even light" },
 	{ id: "angles", icon: Images, headline: "Take 2–3 angles" },
 	{ id: "labels", icon: ScanSearch, headline: "Get close to labels" },

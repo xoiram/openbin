@@ -1,5 +1,6 @@
 import { HelpCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn, focusRing } from '@/lib/utils';
 import { HelpSheet } from './HelpSheet';
 import { PHOTO_TIPS_SEEN_KEY } from './tips';
@@ -39,12 +40,13 @@ export function FirstRunCoachmark({ isStreaming }: { isStreaming: boolean }) {
 }
 
 export function HelpButton({ className }: { className?: string }) {
+	const { t } = useTranslation('capture');
 	const [isOpen, setIsOpen] = useState(false);
 	return (
 		<>
 			<button
 				type="button"
-				aria-label="Photo tips"
+				aria-label={t('tips.title', { defaultValue: 'Photo tips' })}
 				onClick={() => setIsOpen(true)}
 				className={cn(
 					focusRing,

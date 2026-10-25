@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,8 +31,9 @@ interface Props {
 }
 
 export function ReorganizeTagsActionPanel({ selection, form, tagsHook }: Props) {
+  const { t } = useTranslation('reorganize');
   const navigate = useNavigate();
-  const t = useTerminology();
+  const term = useTerminology();
   const { showToast } = useToast();
   const { isPlus, planInfo } = usePlan();
 
@@ -65,7 +67,7 @@ export function ReorganizeTagsActionPanel({ selection, form, tagsHook }: Props) 
       form.selections,
     );
     if (ok) {
-      showToast({ message: 'Tag suggestions applied', variant: 'success' });
+      showToast({ message: t('tagsPanel.applied', { defaultValue: 'Tag suggestions applied' }), variant: 'success' });
       navigate('/tags');
     }
   };
@@ -88,15 +90,25 @@ export function ReorganizeTagsActionPanel({ selection, form, tagsHook }: Props) 
         fullWidth
       >
         <Sparkles className="h-5 w-5 mr-2.5" />
-        Suggest tags for {selection.selectedIds.size}{' '}
-        {selection.selectedIds.size === 1 ? t.bin : t.bins}
+        {t('tagsPanel.submit', {
+          count: selection.selectedIds.size,
+          bin: term.bin,
+          bins: term.bins,
+          defaultValue_one: 'Suggest tags for {{count}} {{bin}}',
+          defaultValue_other: 'Suggest tags for {{count}} {{bins}}',
+        })}
       </Button>
 
       {selection.selectedIds.size >= 1 && !overCap && (
         <div className="text-[12px] text-[var(--text-tertiary)] text-center -mt-2 flex flex-col items-center gap-0.5">
           <span>
-            {itemCount} item{itemCount !== 1 ? 's' : ''} across {selection.selectedIds.size}{' '}
-            {t.bins}
+            {t('itemsAcross', {
+              count: itemCount,
+              binCount: selection.selectedIds.size,
+              bins: term.bins,
+              defaultValue_one: '{{count}} item across {{binCount}} {{bins}}',
+              defaultValue_other: '{{count}} items across {{binCount}} {{bins}}',
+            })}
           </span>
           {__EE__ ? (
             <Suspense fallback={<CreditCost cost={reorganizeWeight(selection.selectedIds.size)} />}>
@@ -127,8 +139,8 @@ export function ReorganizeTagsActionPanel({ selection, form, tagsHook }: Props) 
           complete={false}
           label={
             tagsHook.retryCount > 0
-              ? `Retrying (attempt ${tagsHook.retryCount + 1} of 3)`
-              : 'Analyzing tags'
+              ? t('retrying', { defaultValue: 'Retrying (attempt {{attempt}} of 3)', attempt: tagsHook.retryCount + 1 })
+              : t('tagsPanel.progress', { defaultValue: 'Analyzing tags' })
           }
           onCancel={tagsHook.cancel}
         />
@@ -153,16 +165,23 @@ export function ReorganizeTagsActionPanel({ selection, form, tagsHook }: Props) 
         </Card>
       ) : showEmpty ? (
         <ReorganizeEmptyState
-          message={`Select ${t.bins} and click Suggest tags to let AI propose a better taxonomy.`}
+          message={t('tagsPanel.emptyState', {
+            defaultValue: 'Select {{bins}} and click Suggest tags to let AI propose a better taxonomy.',
+            bins: term.bins,
+          })}
         />
       ) : null}
 
       <ReorganizeConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Apply tag suggestions?"
-        description={`This will update the selected ${t.bins} and create/rename tags. This can't be undone automatically.`}
-        confirmLabel="Apply"
+        title={t('tagsPanel.confirmTitle', { defaultValue: 'Apply tag suggestions?' })}
+        description={t('tagsPanel.confirmDescription', {
+          defaultValue:
+            "This will update the selected {{bins}} and create/rename tags. This can't be undone automatically.",
+          bins: term.bins,
+        })}
+        confirmLabel={t('apply', { defaultValue: 'Apply' })}
         isApplying={tagsHook.isApplying}
         onConfirm={handleConfirmApply}
       />

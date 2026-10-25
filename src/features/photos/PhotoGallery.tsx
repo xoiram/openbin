@@ -1,5 +1,6 @@
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -35,6 +36,7 @@ interface PhotoGalleryProps {
 }
 
 export function PhotoGallery({ binId, variant = 'card' }: PhotoGalleryProps) {
+  const { t } = useTranslation('photos');
   const { photos } = usePhotos(binId);
   const { showToast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +57,18 @@ export function PhotoGallery({ binId, variant = 'card' }: PhotoGalleryProps) {
     }
     if (rejected.length > 0) {
       showToast({
-        message: `${rejected.length === 1 ? `"${rejected[0]}" is not a supported image type` : `${rejected.length} files have unsupported types`}. Allowed: ${ACCEPTED_PHOTO_HINT}.`,
+        message:
+          rejected.length === 1
+            ? t('gallery.unsupportedOne', {
+                defaultValue: '"{{name}}" is not a supported image type. Allowed: {{types}}.',
+                name: rejected[0],
+                types: ACCEPTED_PHOTO_HINT,
+              })
+            : t('gallery.unsupportedMany', {
+                defaultValue: '{{fileCount}} files have unsupported types. Allowed: {{types}}.',
+                fileCount: rejected.length,
+                types: ACCEPTED_PHOTO_HINT,
+              }),
         variant: 'error',
       });
     }
@@ -94,32 +107,39 @@ export function PhotoGallery({ binId, variant = 'card' }: PhotoGalleryProps) {
     notifyPhotosChanged();
     if (errorCount > 0) {
       showToast({
-        message: `Failed to upload ${errorCount} photo${errorCount > 1 ? 's' : ''}`,
+        message: t('gallery.uploadFailed', {
+          count: errorCount,
+          defaultValue_one: 'Failed to upload {{count}} photo',
+          defaultValue_other: 'Failed to upload {{count}} photos',
+        }),
         variant: 'error',
       });
     }
     if (inputRef.current) inputRef.current.value = '';
-  }, [binId, showToast]);
+  }, [binId, showToast, t]);
 
   const handleDelete = useCallback(async (photo: Photo) => {
     try {
       await deletePhoto(photo.id);
-      showToast({ message: 'Deleted photo', variant: 'success' });
+      showToast({ message: t('gallery.deleted', { defaultValue: 'Deleted photo' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to delete photo'), variant: 'error' });
+      showToast({
+        message: getErrorMessage(err, t('gallery.deleteFailed', { defaultValue: 'Failed to delete photo' })),
+        variant: 'error',
+      });
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const content = (
     <>
-      {variant !== 'inline' && <Label>Photos</Label>}
+      {variant !== 'inline' && <Label>{t('gallery.label', { defaultValue: 'Photos' })}</Label>}
       <div className={cn('flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory', variant !== 'inline' && 'mt-2.5')}>
         {photos.map((photo, index) => (
           <div key={photo.id} className="relative group flex-shrink-0">
             <button
               type="button"
               onClick={() => setLightboxIndex(index)}
-              aria-label={`View ${photo.filename}`}
+              aria-label={t('gallery.view', { defaultValue: 'View {{name}}', name: photo.filename })}
               className={cn(
                 'block w-20 h-20 rounded-[var(--radius-sm)] overflow-hidden bg-[var(--bg-input)] snap-start',
                 focusRing,
@@ -133,13 +153,13 @@ export function PhotoGallery({ binId, variant = 'card' }: PhotoGalleryProps) {
                 className="w-full h-full object-cover"
               />
             </button>
-            <Tooltip content="Delete photo">
+            <Tooltip content={t('deletePhoto', { defaultValue: 'Delete photo' })}>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setPhotoToDelete(photo)}
                 className="absolute top-1 right-1 h-8 w-8 rounded-[var(--radius-xs)] bg-[var(--overlay-button)] text-white opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity hover:bg-[var(--overlay-button-hover)] hover:text-[var(--destructive)]"
-                aria-label="Delete photo"
+                aria-label={t('deletePhoto', { defaultValue: 'Delete photo' })}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
@@ -161,14 +181,19 @@ export function PhotoGallery({ binId, variant = 'card' }: PhotoGalleryProps) {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            aria-label={`Add photo. Allowed types: ${ACCEPTED_PHOTO_HINT}.`}
+            aria-label={t('gallery.addPhotoAria', {
+              defaultValue: 'Add photo. Allowed types: {{types}}.',
+              types: ACCEPTED_PHOTO_HINT,
+            })}
             className={cn(
               'flex flex-col items-center justify-center w-20 h-20 flex-shrink-0 rounded-[var(--radius-sm)] border-2 border-dashed border-[var(--border-subtle)] text-[var(--text-tertiary)] transition-colors duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)] snap-start',
               focusRing,
             )}
           >
             <Plus className="h-5 w-5" aria-hidden="true" />
-            <span className="mt-0.5 text-[11px] font-medium">Add Photo</span>
+            <span className="mt-0.5 text-[11px] font-medium">
+              {t('gallery.addPhoto', { defaultValue: 'Add Photo' })}
+            </span>
           </button>
         </Tooltip>
       </div>

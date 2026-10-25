@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { OptionGroup } from '@/components/ui/option-group';
@@ -28,8 +29,10 @@ const UpgradePrompt = __EE__
   : ((() => null) as React.FC<Record<string, unknown>>);
 
 export function ReorganizePage() {
+  const { t } = useTranslation('reorganize');
   const navigate = useNavigate();
-  const t = useTerminology();
+  const term = useTerminology();
+  const pageTitle = t('page.title', { defaultValue: 'Reorganize' });
   const { activeLocationId } = useAuth();
   const { canWrite, isLoading: permissionsLoading } = usePermissions();
   const { isGated, isSelfHosted, planInfo } = usePlan();
@@ -67,12 +70,15 @@ export function ReorganizePage() {
   if (reorganizeGated) {
     return (
       <div className="page-content max-w-6xl">
-        <PageHeader title="Reorganize" back />
+        <PageHeader title={pageTitle} back />
         {__EE__ && (
           <Suspense fallback={null}>
             <UpgradePrompt
-              feature="Reorganize"
-              description={`AI-powered ${t.bin} reorganization is available on the Pro plan.`}
+              feature={pageTitle}
+              description={t('page.upgradeDescription', {
+                defaultValue: 'AI-powered {{bin}} reorganization is available on the Pro plan.',
+                bin: term.bin,
+              })}
               upgradeAction={planInfo.upgradeAction}
             />
           </Suspense>
@@ -84,7 +90,7 @@ export function ReorganizePage() {
   if (isLoading) {
     return (
       <div className="page-content max-w-6xl">
-        <PageHeader title="Reorganize" back />
+        <PageHeader title={pageTitle} back />
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:items-start gap-4">
           <div className="flex flex-col gap-4">
             {[1, 2].map((i) => (
@@ -116,15 +122,15 @@ export function ReorganizePage() {
 
   return (
     <div className="page-content max-w-6xl">
-      <PageHeader title="Reorganize" back actions={<TourLauncher tourId="reorganize" />} />
+      <PageHeader title={pageTitle} back actions={<TourLauncher tourId="reorganize" />} />
 
       <div className="flex flex-col lg:grid lg:grid-cols-2 lg:items-start gap-4">
         <div className="flex flex-col gap-4">
           <div data-tour="reorganize-mode">
             <OptionGroup
               options={[
-                { key: 'bins', label: t.bins[0].toUpperCase() + t.bins.slice(1) },
-                { key: 'tags', label: 'Tags' },
+                { key: 'bins', label: term.bins[0].toUpperCase() + term.bins.slice(1) },
+                { key: 'tags', label: t('page.tagsMode', { defaultValue: 'Tags' }) },
               ]}
               value={mode}
               onChange={(v) => setMode(v as ReorganizeMode)}

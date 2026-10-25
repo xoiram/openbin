@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Disclosure } from '@/components/ui/disclosure';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,7 +48,8 @@ export function GroupReviewForm({
   aiEnabled,
   afterName,
 }: GroupReviewFormProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bulkAdd');
+  const term = useTerminology();
   const nameFilled = aiFill.filled.has('name');
   const itemsFilled = aiFill.filled.has('items');
 
@@ -59,7 +61,7 @@ export function GroupReviewForm({
         style={aiFill.styleFor('name', 0)}
       >
         <div className="flex items-center justify-between">
-          <Label htmlFor={`name-${group.id}`}>Name</Label>
+          <Label htmlFor={`name-${group.id}`}>{t('form.name', { defaultValue: 'Name' })}</Label>
           {nameFilled && <AiBadge onUndo={() => onUndoAiField('name')} />}
         </div>
         <Input
@@ -68,7 +70,7 @@ export function GroupReviewForm({
           onChange={(e) =>
             dispatch({ type: 'UPDATE_GROUP', id: group.id, changes: { name: e.target.value } })
           }
-          placeholder="e.g., Holiday Decorations"
+          placeholder={t('form.namePlaceholder', { defaultValue: 'e.g., Holiday Decorations' })}
           className="font-medium"
         />
       </div>
@@ -100,7 +102,7 @@ export function GroupReviewForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Area</Label>
+        <Label>{term.Area}</Label>
         <AreaPicker
           locationId={locationId ?? undefined}
           value={group.areaId}
@@ -111,25 +113,25 @@ export function GroupReviewForm({
       </div>
 
       <Disclosure
-        label="More options"
+        label={t('form.moreOptions', { defaultValue: 'More options' })}
         labelClassName="py-2 text-[var(--accent)] cursor-pointer"
       >
         <div className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor={`notes-${group.id}`}>Notes</Label>
+            <Label htmlFor={`notes-${group.id}`}>{t('form.notes', { defaultValue: 'Notes' })}</Label>
             <Textarea
               id={`notes-${group.id}`}
               value={group.notes}
               onChange={(e) =>
                 dispatch({ type: 'UPDATE_GROUP', id: group.id, changes: { notes: e.target.value } })
               }
-              placeholder={`Notes about this ${t.bin}...`}
+              placeholder={t('form.notesPlaceholder', { defaultValue: 'Notes about this {{bin}}...', bin: term.bin })}
               rows={2}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <Label>{t('form.tags', { defaultValue: 'Tags' })}</Label>
             <TagInput
               tags={group.tags}
               onChange={(tags) =>
@@ -140,7 +142,7 @@ export function GroupReviewForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Icon</Label>
+            <Label>{t('form.icon', { defaultValue: 'Icon' })}</Label>
             <IconPicker
               value={group.icon}
               onChange={(icon) =>
@@ -150,7 +152,7 @@ export function GroupReviewForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Color</Label>
+            <Label>{t('form.color', { defaultValue: 'Color' })}</Label>
             <ColorPicker
               value={group.color}
               onChange={(color) =>

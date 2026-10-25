@@ -1,5 +1,7 @@
 import { X } from 'lucide-react';
 import { memo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useTerminology } from '@/lib/terminology';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { useLongPress } from '@/lib/useLongPress';
 import { cn, focusRing } from '@/lib/utils';
@@ -12,6 +14,8 @@ interface ThumbnailItemProps {
 }
 
 function ThumbnailItemImpl({ photo, groupIdx, photoIdx, onRemove }: ThumbnailItemProps) {
+  const { t } = useTranslation('capture');
+  const term = useTerminology();
   const [showRemove, setShowRemove] = useState(false);
   const liRef = useRef<HTMLLIElement>(null);
 
@@ -21,7 +25,12 @@ function ThumbnailItemImpl({ photo, groupIdx, photoIdx, onRemove }: ThumbnailIte
   return (
     <li
       ref={liRef}
-      aria-label={`Bin ${groupIdx + 1}, photo ${photoIdx + 1}`}
+      aria-label={t('thumbnail.label', {
+        defaultValue: '{{Bin}} {{group}}, photo {{photo}}',
+        Bin: term.Bin,
+        group: groupIdx + 1,
+        photo: photoIdx + 1,
+      })}
       className="h-11 w-11 flex-shrink-0 relative"
       onPointerDown={longPress.onTouchStart}
       onPointerUp={longPress.onTouchEnd}
@@ -41,7 +50,7 @@ function ThumbnailItemImpl({ photo, groupIdx, photoIdx, onRemove }: ThumbnailIte
             setShowRemove(false);
             onRemove(photo.id);
           }}
-          aria-label="Remove photo"
+          aria-label={t('thumbnail.remove', { defaultValue: 'Remove photo' })}
           className={cn(
             focusRing,
             'absolute inset-0 flex items-center justify-center bg-black/60 rounded-[var(--radius-sm)] focus-visible:ring-offset-2 focus-visible:ring-offset-black',

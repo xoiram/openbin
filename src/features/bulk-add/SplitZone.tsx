@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useTerminology } from '@/lib/terminology';
 import { cn } from '@/lib/utils';
 
@@ -7,7 +8,8 @@ interface SplitZoneProps {
 }
 
 export function SplitZone({ visible, active }: SplitZoneProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bulkAdd');
+  const term = useTerminology();
   return (
     <div
       aria-hidden={!visible}
@@ -27,7 +29,7 @@ export function SplitZone({ visible, active }: SplitZoneProps) {
         )}
         style={{ padding: 16, fontSize: 12, fontWeight: 500 }}
       >
-        Drop here to put this photo in its own {t.bin}
+        {t('grid.splitZone', { defaultValue: 'Drop here to put this photo in its own {{bin}}', bin: term.bin })}
       </div>
     </div>
   );

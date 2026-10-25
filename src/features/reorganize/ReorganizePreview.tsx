@@ -1,6 +1,8 @@
+import type { TFunction } from 'i18next';
 import { ArrowRight, Loader2, Package, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -41,7 +43,8 @@ export function ReorganizePreview({
   onRegenerate,
   onPrint,
 }: ReorganizePreviewProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('reorganize');
+  const term = useTerminology();
   const source = result ?? partialResult;
   const derivation = useMemo(() => deriveMoveList(inputBins, source), [inputBins, source]);
   const summary = result?.summary ?? partialResult.summary;
@@ -65,31 +68,41 @@ export function ReorganizePreview({
     <div className="space-y-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <Label className="text-[15px] font-semibold text-[var(--text-primary)]">
-          Proposal
+          {t('preview.proposal', { defaultValue: 'Proposal' })}
         </Label>
         <div className="flex items-center gap-2 text-[12px] text-[var(--text-tertiary)] tabular-nums flex-wrap">
           <span>
             <span className="font-medium text-[var(--text-secondary)]">{originalCount}</span>
             <ArrowRight className="inline h-3 w-3 mx-1 -mt-0.5" aria-hidden="true" />
             <span className="font-medium text-[var(--text-secondary)]">{totalDestinationBins}</span>
-            {' '}{totalDestinationBins === 1 ? t.bin : t.bins}
+            {' '}
+            {t('preview.binWord', {
+              count: totalDestinationBins,
+              defaultValue_one: '{{bin}}',
+              defaultValue_other: '{{bins}}',
+              bin: term.bin,
+              bins: term.bins,
+            })}
           </span>
           <span aria-hidden="true" className="text-[var(--text-quaternary)]">·</span>
           <span>
             <span className="font-medium text-[var(--text-secondary)]">{totalItems}</span>
-            {' '}item{totalItems !== 1 ? 's' : ''}
+            {' '}
+            {t('preview.itemWord', { count: totalItems, defaultValue_one: 'item', defaultValue_other: 'items' })}
           </span>
           <span aria-hidden="true" className="text-[var(--text-quaternary)]">·</span>
           <span>
             <span className="font-medium text-[var(--text-secondary)]">{totalMoves}</span>
-            {' '}move{totalMoves !== 1 ? 's' : ''}
+            {' '}
+            {t('preview.moveWord', { count: totalMoves, defaultValue_one: 'move', defaultValue_other: 'moves' })}
           </span>
           {binsKept > 0 && (
             <>
               <span aria-hidden="true" className="text-[var(--text-quaternary)]">·</span>
               <span>
                 <span className="font-medium text-[var(--text-secondary)]">{binsKept}</span>
-                {' '}kept
+                {' '}
+                {t('preview.keptWord', { defaultValue: 'kept' })}
               </span>
             </>
           )}
@@ -100,7 +113,10 @@ export function ReorganizePreview({
         <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">{summary}</p>
       )}
 
-      <ul className="flex flex-col gap-3" aria-label="Source bins with outgoing moves">
+      <ul
+        className="flex flex-col gap-3"
+        aria-label={t('preview.sourceListLabel', { defaultValue: 'Source {{bins}} with outgoing moves', bins: term.bins })}
+      >
         {sourceCards.map((card, idx) => (
           <SourceCardRow key={card.sourceBin.id} card={card} delay={idx * 40} />
         ))}
@@ -112,24 +128,24 @@ export function ReorganizePreview({
             {isApplying ? (
               <>
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                Applying…
+                {t('applying', { defaultValue: 'Applying…' })}
               </>
             ) : (
-              buildAcceptLabel(itemsMoving, binsKept, binsCreated, t.bin, t.bins)
+              buildAcceptLabel(t, itemsMoving, binsKept, binsCreated, term.bin, term.bins)
             )}
           </Button>
           <div className="flex gap-2 justify-center flex-wrap">
             {onPrint && (
               <Button variant="ghost" size="sm" onClick={onPrint} disabled={isApplying}>
-                Print move list
+                {t('preview.printMoveList', { defaultValue: 'Print move list' })}
               </Button>
             )}
             <Button variant="ghost" size="sm" onClick={onRegenerate} disabled={isApplying}>
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-              Regenerate
+              {t('regenerate', { defaultValue: 'Regenerate' })}
             </Button>
             <Button variant="ghost" size="sm" onClick={onCancel} disabled={isApplying}>
-              Start over
+              {t('preview.startOver', { defaultValue: 'Start over' })}
             </Button>
           </div>
         </div>
@@ -154,16 +170,25 @@ export function ReorganizePreview({
 }
 
 function SourceCardRow({ card, delay }: { card: SourceCard; delay: number }) {
+  const { t } = useTranslation('reorganize');
   const Icon = card.sourceBin.icon ? resolveIcon(card.sourceBin.icon) : Package;
   const colorPreset = card.sourceBin.color ? resolveColor(card.sourceBin.color) : undefined;
   const chipBg = colorPreset?.bg ?? 'var(--bg-hover)';
   const itemTotal = card.outgoingClusters.reduce((sum, c) => sum + c.items.length, 0);
   const destinationCount = card.outgoingClusters.length;
-  const statusText = card.preserved ? 'will be kept' : 'will be emptied';
+  const statusText = card.preserved
+    ? t('willBeKept', { defaultValue: 'will be kept' })
+    : t('willBeEmptied', { defaultValue: 'will be emptied' });
 
   return (
     <li
-      aria-label={`${card.sourceBin.name}: ${itemTotal} item${itemTotal !== 1 ? 's' : ''}, ${statusText}`}
+      aria-label={t('preview.sourceCardLabel', {
+        count: itemTotal,
+        name: card.sourceBin.name,
+        status: statusText,
+        defaultValue_one: '{{name}}: {{count}} item, {{status}}',
+        defaultValue_other: '{{name}}: {{count}} items, {{status}}',
+      })}
       className="ai-stagger-item rounded-[var(--radius-md)] border border-[var(--border-flat)] bg-[var(--bg-flat)] overflow-hidden"
       style={{ animationDelay: `${delay}ms` }}
     >
@@ -180,8 +205,9 @@ function SourceCardRow({ card, delay }: { card: SourceCard; delay: number }) {
             {card.sourceBin.name || '…'}
           </div>
           <div className="text-[12px] text-[var(--text-tertiary)] mt-0.5 tabular-nums">
-            {itemTotal} item{itemTotal !== 1 ? 's' : ''}
-            {destinationCount > 1 && ` → ${destinationCount} destinations`}
+            {t('itemCount', { count: itemTotal, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })}
+            {destinationCount > 1 &&
+              t('preview.destinations', { defaultValue: ' → {{n}} destinations', n: destinationCount })}
           </div>
         </div>
         <span
@@ -206,6 +232,8 @@ function SourceCardRow({ card, delay }: { card: SourceCard; delay: number }) {
 }
 
 function ClusterRow({ cluster }: { cluster: SourceCard['outgoingClusters'][number] }) {
+  const { t } = useTranslation('reorganize');
+  const term = useTerminology();
   const [expanded, setExpanded] = useState(false);
   const hasOverflow = cluster.items.length > COLLAPSED_ITEM_LIMIT;
   const visibleItems = expanded ? cluster.items : cluster.items.slice(0, COLLAPSED_ITEM_LIMIT);
@@ -234,10 +262,12 @@ function ClusterRow({ cluster }: { cluster: SourceCard['outgoingClusters'][numbe
               cluster.destinationKept ? 'bg-[var(--color-success)]' : 'bg-[var(--text-tertiary)]',
             )}
           />
-          {cluster.destinationKept ? 'Existing bin' : 'New bin'}
+          {cluster.destinationKept
+            ? t('preview.existingBin', { defaultValue: 'Existing {{bin}}', bin: term.bin })
+            : t('preview.newBin', { defaultValue: 'New {{bin}}', bin: term.bin })}
         </span>
         <span className="ml-auto shrink-0 text-[11px] text-[var(--text-tertiary)] tabular-nums">
-          {itemCount} item{itemCount !== 1 ? 's' : ''}
+          {t('itemCount', { count: itemCount, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })}
         </span>
       </div>
 
@@ -251,7 +281,10 @@ function ClusterRow({ cluster }: { cluster: SourceCard['outgoingClusters'][numbe
         </div>
       )}
 
-      <ul className="pl-5 space-y-1" aria-label={`Items moving to ${cluster.destinationName}`}>
+      <ul
+        className="pl-5 space-y-1"
+        aria-label={t('preview.itemsMovingTo', { defaultValue: 'Items moving to {{name}}', name: cluster.destinationName })}
+      >
         {visibleItems.map((item, idx) => (
           <ItemRow key={`${item.name}-${idx}`} item={item} />
         ))}
@@ -263,7 +296,9 @@ function ClusterRow({ cluster }: { cluster: SourceCard['outgoingClusters'][numbe
           onClick={() => setExpanded((v) => !v)}
           className="ml-5 text-[12px] font-medium text-[var(--accent)] hover:opacity-80"
         >
-          {expanded ? 'Show less' : `Show ${hiddenCount} more`}
+          {expanded
+            ? t('preview.showLess', { defaultValue: 'Show less' })
+            : t('preview.showMore', { defaultValue: 'Show {{n}} more', n: hiddenCount })}
         </button>
       )}
     </li>
@@ -271,6 +306,7 @@ function ClusterRow({ cluster }: { cluster: SourceCard['outgoingClusters'][numbe
 }
 
 function ItemRow({ item }: { item: MoveListItem }) {
+  const { t } = useTranslation('reorganize');
   const hasQty = item.quantity != null && item.quantity !== 1;
   const multi = item.multiDestinationCount && item.multiDestinationCount > 1;
   return (
@@ -285,7 +321,10 @@ function ItemRow({ item }: { item: MoveListItem }) {
         {item.name}
         {multi && (
           <span className="text-[var(--text-tertiary)] ml-1 text-[12px]">
-            (×{item.multiDestinationCount} destinations)
+            {t('preview.multiDestination', {
+              defaultValue: '(×{{n}} destinations)',
+              n: item.multiDestinationCount,
+            })}
           </span>
         )}
       </span>
@@ -294,19 +333,41 @@ function ItemRow({ item }: { item: MoveListItem }) {
 }
 
 function buildAcceptLabel(
+  t: TFunction<'reorganize'>,
   itemsMoving: number,
   binsKept: number,
   binsCreated: number,
   binWord: string,
   binsWord: string,
 ): string {
+  const terms = { bin: binWord, bins: binsWord };
   const parts: string[] = [];
-  parts.push(`Move ${itemsMoving} item${itemsMoving !== 1 ? 's' : ''}`);
+  parts.push(
+    t('preview.accept.move', {
+      count: itemsMoving,
+      defaultValue_one: 'Move {{count}} item',
+      defaultValue_other: 'Move {{count}} items',
+    }),
+  );
   if (binsKept > 0) {
-    parts.push(`keep ${binsKept} ${binsKept === 1 ? binWord : binsWord}`);
+    parts.push(
+      t('preview.accept.keep', {
+        count: binsKept,
+        ...terms,
+        defaultValue_one: 'keep {{count}} {{bin}}',
+        defaultValue_other: 'keep {{count}} {{bins}}',
+      }),
+    );
   }
   if (binsCreated > 0) {
-    parts.push(`create ${binsCreated} ${binsCreated === 1 ? binWord : binsWord}`);
+    parts.push(
+      t('preview.accept.create', {
+        count: binsCreated,
+        ...terms,
+        defaultValue_one: 'create {{count}} {{bin}}',
+        defaultValue_other: 'create {{count}} {{bins}}',
+      }),
+    );
   }
-  return `Accept — ${parts.join(', ')}`;
+  return t('preview.accept.label', { defaultValue: 'Accept — {{parts}}', parts: parts.join(', ') });
 }
