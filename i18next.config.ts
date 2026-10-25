@@ -1,77 +1,11 @@
 import { defineConfig } from 'i18next-cli';
 
-// Foundation PR (see docs/i18n.md): only `common` and `auth` exist so far,
-// covering src/features/auth/** and src/features/layout/**. The extract/lint
-// input glob is deliberately scoped to those two folders rather than all of
-// src/** — the other ~25 feature folders (~200 files) still have hardcoded
-// English strings by design (see plan §14) and aren't ready to be linted
-// until their own follow-up PR adds a namespace for them. Each follow-up PR
-// should widen this glob to include the folder(s) it migrates.
-//
-// `src/features/settings/` is split across multiple PRs (see docs/i18n.md's
-// Roadmap): shell + general prefs, then account/security, then data
-// export/import, then settings/sections/AiSection.tsx (the AI provider-
-// config page) + its direct dependencies, then InlineAiSetup.tsx +
-// AiSetupDialog.tsx, then EmptyConversationState.tsx + ConversationScopePill.tsx,
-// then CommandInput.tsx's dialog chrome, all under the `ai` namespace — the
-// Ask AI chat UI is large enough (~50 files) that it's its own sequence of
-// PRs within the roadmap. This one is "chat PR 1 of 7": the composer itself
-// (ConversationComposer.tsx, TranscriptionMicButton.tsx) plus
-// ConversationUI.tsx (fixes a useTerminology()-as-`t` naming collision in
-// useBinNavigate — no translatable strings of its own) and a small fix to
-// useAiProviderSetup.ts's two toasts, which were missed when
-// InlineAiSetup.tsx (its only real caller) was migrated earlier. "Chat 2"
-// covers turn rendering + commandActionUtils.ts's describeAction() (AiTurnThinking,
-// AiTurnError, AiTurnCommandPreview, AiTurnExecutionResult, QueryAnswerBody,
-// CommandActionList, commandActionUtils.ts — AiTurnQueryResult.tsx, QueryIntroText.tsx,
-// and commandSelectedBins.ts have no strings of their own and are omitted). "Chat 3"
-// covers streaming/ask-flow hooks: useAiStream.ts, useStreamingAsk.ts (classifyResult()
-// takes `t` as a parameter for the same reason describeAction() does — it's a plain
-// function, not a hook, and is also called from useAskFlow.ts), and useAskFlow.ts.
-// StreamingText.tsx, useCommand.ts, useInventoryQuery.ts, and conversationTurns.ts have
-// no strings of their own and are omitted; AiStreamingPreview.tsx belongs to chat 5. "Chat 4"
-// covers bin/item display in query results: BinDisclosurePill.tsx, BinGroupHeader.tsx,
-// BinItemGroup.tsx, ItemActionMenu.tsx, ItemRow.tsx, ItemQueryResults.tsx,
-// ItemSelectionBar.tsx, and matchDisplay.ts (getMatchDisplay() takes an optional `t` —
-// omitted, it falls back to the pre-existing plain `pluralize()` behavior verbatim,
-// which keeps matchDisplay.test.ts's exact-string assertions untouched; its one call
-// site, BinItemGroup.tsx, always passes the real `t`). SelectionCheckbox.tsx and
-// useItemQuerySelection.ts have no strings of their own and are omitted. "Chat 5" covers
-// photo-analysis + AI suggestions: AiAnalyzeProgress.tsx, analyzeLabel.ts
-// (computeAnalyzeLabel() takes the same optional-`t` pattern as getMatchDisplay() — its
-// own exact-string test calls it with no `t`), AiSuggestionsPanel.tsx, AiStreamingPreview.tsx
-// (both its exports, AiStreamingPreview and AiAnalyzeError), and useTextStructuring.ts.
-// parsePartialAnalysis.ts and AiCreditDisplay.tsx have no strings of their own and are
-// omitted. "Chat 6" covers aiErrors.ts's mapAiError() (same optional-`t` pattern as
-// describeAction()/getMatchDisplay()/computeAnalyzeLabel() — useCommand.test.ts and
-// useTextStructuring.test.ts call it directly with no `t`) across its 7 real call
-// sites: useAiStream.ts, useAskFlow.ts, useTextStructuring.ts (already had `t` in
-// scope from earlier chats — just added as the 3rd arg), useCommandExecution.ts,
-// useGroupReviewAi.ts (src/features/bulk-add/ — reaches into the `ai` namespace since
-// its two mapAiError calls are the reason it's touched at all, not a bulk-add
-// migration), and src/lib/useTranscription.ts (same reasoning — only its mapAiError
-// fallback is translated, not its other unrelated hardcoded strings). "Chat 7" — the
-// last in the Ask AI chat sequence — covers AiSettingsSection.tsx (the bulk-add inline
-// AI settings surface, distinct from settings/sections/AiSection.tsx migrated earlier;
-// no dedicated test — GroupReviewStep.test.tsx mocks the whole component). Its prompt
-// tab labels reuse `settings:ai.promptTabs.*` (the same keys AiSection.tsx's identical
-// PROMPT_TAB_DEFAULTS already populates) rather than duplicating them under `ai`, and
-// its prompt help text now renders via promptHelpText.tsx's `<PromptHelpText>`
-// component instead of the plain-English `PROMPT_HELP_TEXT` map, which is deleted here
-// as its only remaining consumer. `useDefaultPrompts.ts` has no user-facing
-// strings, so it's omitted. `exportImport.ts`'s own thrown Error messages
-// are never surfaced to users as-is (callers either discard them for a
-// generic message or re-derive their own from the error `code`),
-// so it's omitted too. `useApiKeys.ts` has no user-facing strings either.
-//
-// This closes out the originally-sketched 7-PR Ask AI chat sequence, but NOT all of
-// src/features/ai/ — a few files turned up during chat 7's scoping that weren't in the
-// original breakdown and still need a future PR: ConversationThread.tsx, UserMessage.tsx,
-// useActionExecutor.ts, useAiSettings.ts, useConversation.ts, and useScopeInfo.ts.
-// (AiCreditDisplay.tsx, AiTurnQueryResult.tsx, QueryIntroText.tsx, SelectionCheckbox.tsx,
-// StreamingText.tsx, commandSelectedBins.ts, conversationTurns.ts, parsePartialAnalysis.ts,
-// useCommand.ts, useInventoryQuery.ts, and useItemQuerySelection.ts were already confirmed
-// string-free in earlier chats and are omitted for that reason, not because they're unscanned.)
+// Lint/extract scope is all of src/, minus tests and the folders that are
+// deliberately out of i18n scope (legal/ and the separately-licensed ee/).
+// Folders not yet migrated are covered by i18next-lint-baseline.json, so CI
+// (`npx i18next-cli lint`) fails only on *new* hardcoded strings. After
+// migrating strings, run `npx i18next-cli lint --update-baseline` to shrink it.
+// See docs/i18n.md for the migration status and roadmap.
 
 // CAUTION running `npx i18next-cli extract` locally: `common.json`'s
 // `actions.*`/`itemCount_*` keys were added pre-emptively (see docs/i18n.md)
@@ -87,74 +21,16 @@ import { defineConfig } from 'i18next-cli';
 export default defineConfig({
   locales: ['en', 'nb'],
   extract: {
-    input: [
-      'src/features/auth/**/*.{ts,tsx}',
-      'src/features/layout/**/*.{ts,tsx}',
-      'src/features/onboarding/**/*.{ts,tsx}',
-      'src/features/tour/**/*.{ts,tsx}',
-      'src/features/settings/SettingsPageHeader.tsx',
-      'src/features/settings/SettingsListRow.tsx',
-      'src/features/settings/SettingsCategoryList.tsx',
-      'src/features/settings/SettingsRow.tsx',
-      'src/features/settings/SettingsRadioCard.tsx',
-      'src/features/settings/SettingsSidebar.tsx',
-      'src/features/settings/SettingsSection.tsx',
-      'src/features/settings/SettingsLayout.tsx',
-      'src/features/settings/SettingsProfileHeader.tsx',
-      'src/features/settings/settingsCategories.ts',
-      'src/features/settings/useSettingsCategories.ts',
-      'src/features/settings/useSavedFlash.tsx',
-      'src/features/settings/sections/AboutSection.tsx',
-      'src/features/settings/sections/PersonalizationSection.tsx',
-      'src/features/settings/sections/PreferencesSection.tsx',
-      'src/features/settings/sections/AccountSection.tsx',
-      'src/features/settings/dialogs/DeleteAccountDialog.tsx',
-      'src/features/settings/dialogs/RecoverAccountDialog.tsx',
-      'src/features/settings/sections/DataSection.tsx',
-      'src/features/settings/useDataSectionActions.ts',
-      'src/features/settings/sections/AiSection.tsx',
-      'src/features/ai/aiConstants.ts',
-      'src/features/ai/promptHelpText.tsx',
-      'src/features/ai/TaskRoutingSection.tsx',
-      'src/features/ai/InlineAiSetup.tsx',
-      'src/features/ai/AiSetupDialog.tsx',
-      'src/features/ai/EmptyConversationState.tsx',
-      'src/features/ai/ConversationScopePill.tsx',
-      'src/features/ai/CommandInput.tsx',
-      'src/features/ai/ConversationComposer.tsx',
-      'src/features/ai/TranscriptionMicButton.tsx',
-      'src/features/ai/ConversationUI.tsx',
-      'src/features/ai/useAiProviderSetup.ts',
-      'src/features/ai/AiTurnThinking.tsx',
-      'src/features/ai/AiTurnError.tsx',
-      'src/features/ai/AiTurnCommandPreview.tsx',
-      'src/features/ai/AiTurnExecutionResult.tsx',
-      'src/features/ai/QueryAnswerBody.tsx',
-      'src/features/ai/CommandActionList.tsx',
-      'src/features/ai/commandActionUtils.ts',
-      'src/features/ai/useAiStream.ts',
-      'src/features/ai/useStreamingAsk.ts',
-      'src/features/ai/useAskFlow.ts',
-      'src/features/ai/BinDisclosurePill.tsx',
-      'src/features/ai/BinGroupHeader.tsx',
-      'src/features/ai/BinItemGroup.tsx',
-      'src/features/ai/ItemActionMenu.tsx',
-      'src/features/ai/ItemRow.tsx',
-      'src/features/ai/ItemQueryResults.tsx',
-      'src/features/ai/ItemSelectionBar.tsx',
-      'src/features/ai/matchDisplay.ts',
-      'src/features/ai/AiAnalyzeProgress.tsx',
-      'src/features/ai/analyzeLabel.ts',
-      'src/features/ai/AiSuggestionsPanel.tsx',
-      'src/features/ai/AiStreamingPreview.tsx',
-      'src/features/ai/useTextStructuring.ts',
-      'src/features/ai/aiErrors.ts',
-      'src/features/ai/useCommandExecution.ts',
-      'src/features/bulk-add/useGroupReviewAi.ts',
-      'src/lib/useTranscription.ts',
-      'src/features/ai/AiSettingsSection.tsx',
+    input: ['src/**/*.{ts,tsx}'],
+    ignore: [
+      '**/__tests__/**',
+      '**/*.test.{ts,tsx}',
+      '**/*.d.ts',
+      'src/test/**',
+      'src/test-setup.ts',
+      'src/features/legal/**',
+      'src/ee/**',
     ],
-    ignore: ['**/__tests__/**', '**/*.test.{ts,tsx}'],
     output: 'src/locales/{{language}}/{{namespace}}.json',
     primaryLanguage: 'en',
     secondaryLanguages: ['nb'],

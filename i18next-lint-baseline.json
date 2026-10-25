@@ -1,0 +1,910 @@
+{
+  "src/App.tsx": {
+    "hardcoded: An unexpected error occurred. Please reload the app to continue.": 1,
+    "hardcoded: Back to home": 1,
+    "hardcoded: Go Home": 1,
+    "hardcoded: Page not found": 1,
+    "hardcoded: Reload App": 1,
+    "hardcoded: Something went wrong": 2,
+    "hardcoded: This page encountered an error. You can try again or go back to the home page.": 1,
+    "hardcoded: Try Again": 1
+  },
+  "src/components/ui/command-palette.tsx": {
+    "hardcoded: Commands": 1,
+    "hardcoded: No matching commands": 1
+  },
+  "src/components/ui/dialog.tsx": {
+    "hardcoded: Close": 1
+  },
+  "src/components/ui/page-header.tsx": {
+    "hardcoded: Go back": 2
+  },
+  "src/components/ui/pagination.tsx": {
+    "hardcoded: Items per page": 1,
+    "hardcoded: Next page": 1,
+    "hardcoded: Page": 1,
+    "hardcoded: Pagination": 1,
+    "hardcoded: Previous page": 1,
+    "hardcoded: Showing": 1,
+    "hardcoded: of": 2,
+    "hardcoded: per page": 1
+  },
+  "src/components/ui/shortcuts-help.tsx": {
+    "hardcoded: then": 1
+  },
+  "src/components/ui/stepper.tsx": {
+    "hardcoded: Progress": 1
+  },
+  "src/components/ui/toast.tsx": {
+    "hardcoded: Dismiss": 1
+  },
+  "src/features/activity/ActivityFilterBar.tsx": {
+    "hardcoded: All users": 1
+  },
+  "src/features/activity/ActivityRowDetail.tsx": {
+    "hardcoded: Auth:": 1,
+    "hardcoded: Changes": 1,
+    "hardcoded: User:": 1,
+    "hardcoded: View": 1
+  },
+  "src/features/activity/ActivityTableView.tsx": {
+    "hardcoded: Action": 1,
+    "hardcoded: Description": 1,
+    "hardcoded: Time": 1,
+    "hardcoded: Type": 1,
+    "hardcoded: User": 1
+  },
+  "src/features/admin/AdminColumnVisibilityMenu.tsx": {
+    "hardcoded: Toggle column visibility": 1,
+    "hardcoded: Visible Columns": 1
+  },
+  "src/features/admin/AdminSystemPage.tsx": {
+    "hardcoded: Action": 1,
+    "hardcoded: Actor": 1,
+    "hardcoded: Announcement text...": 1,
+    "hardcoded: Areas": 1,
+    "hardcoded: Bins": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: Created": 1,
+    "hardcoded: Currently active": 1,
+    "hardcoded: Delete announcement": 1,
+    "hardcoded: Details": 1,
+    "hardcoded: Failed to load diagnostics.": 1,
+    "hardcoded: Maintenance mode": 1,
+    "hardcoded: Members": 1,
+    "hardcoded: Name": 1,
+    "hardcoded: New": 1,
+    "hardcoded: No active announcements.": 1,
+    "hardcoded: Owner": 1,
+    "hardcoded: Target": 1,
+    "hardcoded: Time": 1,
+    "hardcoded: Update Message": 1
+  },
+  "src/features/admin/AdminUserActionsCard.tsx": {
+    "hardcoded: Active until": 1,
+    "hardcoded: Admin role": 1,
+    "hardcoded: Delete": 1,
+    "hardcoded: Delete user": 1,
+    "hardcoded: Edit": 1,
+    "hardcoded: Edit details": 1,
+    "hardcoded: Plan tier": 1,
+    "hardcoded: Recover": 1,
+    "hardcoded: Recover account": 1,
+    "hardcoded: Regenerate": 1,
+    "hardcoded: Regenerate API key": 1,
+    "hardcoded: Save": 1,
+    "hardcoded: Scheduled for deletion on": 1,
+    "hardcoded: Send Reset": 1,
+    "hardcoded: Send password reset": 1,
+    "hardcoded: Subscription": 1
+  },
+  "src/features/admin/AdminUserCreditsCard.tsx": {
+    "hardcoded: Grant": 1,
+    "hardcoded: Grant credits": 1,
+    "hardcoded: Reset": 1,
+    "hardcoded: Reset credits to 0": 1
+  },
+  "src/features/admin/AdminUserDialogs.tsx": {
+    "hardcoded: Cancel": 2
+  },
+  "src/features/admin/AdminUserIdentityCard.tsx": {
+    "hardcoded: Active Until": 1,
+    "hardcoded: Created": 1,
+    "hardcoded: Display Name": 1,
+    "hardcoded: Email": 1,
+    "hardcoded: Updated": 1
+  },
+  "src/features/admin/AdminUserOverridesCard.tsx": {
+    "hardcoded: Clear All": 1,
+    "hardcoded: Override plan limits for this user. Leave blank to use plan defaults.": 1
+  },
+  "src/features/admin/AdminUserSecurityCard.tsx": {
+    "hardcoded: Account status": 1,
+    "hardcoded: Reactivate": 1,
+    "hardcoded: Require password change": 1,
+    "hardcoded: Revoke": 1,
+    "hardcoded: Revoke All": 1,
+    "hardcoded: Revoke all API keys": 1,
+    "hardcoded: Revoke all sessions": 1,
+    "hardcoded: Suspend": 1,
+    "hardcoded: Suspended": 1
+  },
+  "src/features/admin/AdminUsersPage.tsx": {
+    "hardcoded: Admin": 1,
+    "hardcoded: Cancel": 2,
+    "hardcoded: Create User": 1,
+    "hardcoded: Delete": 1,
+    "hardcoded: Locked by REGISTRATION_MODE env var": 1,
+    "hardcoded: Registration": 1,
+    "hardcoded: System": 1,
+    "hardcoded: Users": 1
+  },
+  "src/features/admin/AdminUsersTable.tsx": {
+    "hardcoded: Role": 1
+  },
+  "src/features/ai/CommandActionList.tsx": {
+    "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 1
+  },
+  "src/features/ai/ConversationThread.tsx": {
+    "hardcoded: New message": 1
+  },
+  "src/features/areas/AreaActionMenu.tsx": {
+    "hardcoded: Delete": 1,
+    "hardcoded: Rename": 1
+  },
+  "src/features/areas/AreaCard.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: More actions": 1,
+    "hardcoded: Save": 1,
+    "hardcoded: Unassigned": 1,
+    "hardcoded: total)": 1
+  },
+  "src/features/areas/AreaDialogs.tsx": {
+    "hardcoded: Cancel": 2,
+    "hardcoded: No parent (root": 1
+  },
+  "src/features/areas/AreaPicker.tsx": {
+    "hardcoded: Create new area...": 1,
+    "hardcoded: No area": 1
+  },
+  "src/features/areas/AreaRow.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: More actions": 1,
+    "hardcoded: Save": 1
+  },
+  "src/features/areas/AreasPage.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Create Location": 1,
+    "hardcoded: Join": 1,
+    "hardcoded: Join Location": 1,
+    "hardcoded: Leave": 1
+  },
+  "src/features/areas/LocationSettingsMenu.tsx": {
+    "hardcoded: Custom Fields": 1,
+    "hardcoded: Delete Location": 1,
+    "hardcoded: Leave": 2,
+    "hardcoded: Rename": 1,
+    "hardcoded: Retention & Roles": 1,
+    "hardcoded: Settings": 2
+  },
+  "src/features/attachments/AttachmentsList.tsx": {
+    "hardcoded: Add File": 1,
+    "hardcoded: Uploading…": 1
+  },
+  "src/features/bins/AiBadge.tsx": {
+    "hardcoded: AI": 1,
+    "hardcoded: Undo AI suggestion": 1
+  },
+  "src/features/bins/BinAiFillSection.tsx": {
+    "hardcoded: AI filled": 1,
+    "hardcoded: Reanalyze photos with AI": 1,
+    "hardcoded: Set up AI to auto-fill details": 1
+  },
+  "src/features/bins/BinAiSetupPanel.tsx": {
+    "hardcoded: Close AI setup": 1,
+    "hardcoded: Set up AI": 1
+  },
+  "src/features/bins/BinCard.tsx": {
+    "hardcoded: Select": 1
+  },
+  "src/features/bins/BinCompactCard.tsx": {
+    "hardcoded: Select": 1
+  },
+  "src/features/bins/BinCreateForm.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Name": 1,
+    "hardcoded: to analyze": 1,
+    "hardcoded: — tap": 1
+  },
+  "src/features/bins/BinCreateOnboardingFields.tsx": {
+    "hardcoded: Color": 1,
+    "hardcoded: Icon": 1,
+    "hardcoded: Style": 1
+  },
+  "src/features/bins/BinCreateSuccess.tsx": {
+    "hardcoded: All set": 1,
+    "hardcoded: Create another": 1,
+    "hardcoded: Done": 1
+  },
+  "src/features/bins/BinDetailActivitySection.tsx": {
+    "hardcoded: Activity": 1
+  },
+  "src/features/bins/BinDetailAppearanceTab.tsx": {
+    "hardcoded: Color": 1,
+    "hardcoded: Icon": 1,
+    "hardcoded: Preview": 1,
+    "hardcoded: Style": 1
+  },
+  "src/features/bins/BinDetailContent.tsx": {
+    "hardcoded: Dismiss": 1
+  },
+  "src/features/bins/BinDetailFilesTab.tsx": {
+    "hardcoded: Documents": 1,
+    "hardcoded: Photos": 1
+  },
+  "src/features/bins/BinDetailInformationTab.tsx": {
+    "hardcoded: Created": 1,
+    "hardcoded: Creator": 1,
+    "hardcoded: Details": 1,
+    "hardcoded: Last scanned": 1,
+    "hardcoded: Updated": 1,
+    "hardcoded: Usage": 1
+  },
+  "src/features/bins/BinDetailPage.tsx": {
+    "hardcoded: Back to": 1
+  },
+  "src/features/bins/BinDetailRail.tsx": {
+    "hardcoded: Add notes...": 1,
+    "hardcoded: Bin details": 1,
+    "hardcoded: Change code": 1,
+    "hardcoded: Code": 1,
+    "hardcoded: Copy code": 1,
+    "hardcoded: No area": 1,
+    "hardcoded: No notes": 1,
+    "hardcoded: No tags": 1,
+    "hardcoded: Notes": 1,
+    "hardcoded: Tags": 1,
+    "hardcoded: Visibility": 1
+  },
+  "src/features/bins/BinDetailToolbar.tsx": {
+    "hardcoded: Close": 1,
+    "hardcoded: Customize appearance": 2,
+    "hardcoded: Delete": 1,
+    "hardcoded: Duplicate": 1,
+    "hardcoded: More actions": 1,
+    "hardcoded: Move": 1,
+    "hardcoded: Next bin": 1,
+    "hardcoded: Previous bin": 1,
+    "hardcoded: Print label": 1,
+    "hardcoded: Share": 1
+  },
+  "src/features/bins/BinFilterDialog.tsx": {
+    "hardcoded: Clear": 1,
+    "hardcoded: No tags in this location": 1,
+    "hardcoded: Reset": 1,
+    "hardcoded: Save View": 1,
+    "hardcoded: Unused since": 1
+  },
+  "src/features/bins/BinListPage.tsx": {
+    "hardcoded: Add items": 1,
+    "hardcoded: Ask AI": 2,
+    "hardcoded: Create": 1,
+    "hardcoded: Print QR": 1,
+    "hardcoded: Scan QR code": 1
+  },
+  "src/features/bins/BinMoreOptionsSection.tsx": {
+    "hardcoded: Additional notes...": 1,
+    "hardcoded: Appearance": 1,
+    "hardcoded: Color": 1,
+    "hardcoded: Custom Fields": 1,
+    "hardcoded: Icon": 1,
+    "hardcoded: Notes": 1,
+    "hardcoded: Style": 1,
+    "hardcoded: Tags": 1,
+    "hardcoded: Visibility": 1
+  },
+  "src/features/bins/BinPreviewCard.tsx": {
+    "hardcoded: My bin": 1
+  },
+  "src/features/bins/BinTableView.tsx": {
+    "hardcoded: Created By": 1,
+    "hardcoded: Items": 1,
+    "hardcoded: Notes": 1,
+    "hardcoded: Select": 1,
+    "hardcoded: Tags": 1
+  },
+  "src/features/bins/BulkAppearanceDialog.tsx": {
+    "hardcoded: Color": 1,
+    "hardcoded: Icon": 1,
+    "hardcoded: Style": 1
+  },
+  "src/features/bins/BulkCustomFieldsDialog.tsx": {
+    "hardcoded: No custom fields defined for this location.": 1
+  },
+  "src/features/bins/BulkTagDialog.tsx": {
+    "hardcoded: Tags": 1
+  },
+  "src/features/bins/ChangeCodeDialog.tsx": {
+    "hardcoded: . You'll need to reprint labels before they scan to this bin again.": 1,
+    "hardcoded: Back": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: Change Code": 1,
+    "hardcoded: Change this bin's code from": 1,
+    "hardcoded: Changing the code will invalidate any printed QR labels pointing to": 1,
+    "hardcoded: Look Up": 1,
+    "hardcoded: This is already this bin's code.": 1,
+    "hardcoded: to": 1
+  },
+  "src/features/bins/ColorPicker.tsx": {
+    "hardcoded: Black": 1,
+    "hardcoded: Choose a color": 1,
+    "hardcoded: Color": 1,
+    "hardcoded: Gray": 1,
+    "hardcoded: White": 1
+  },
+  "src/features/bins/ColumnVisibilityMenu.tsx": {
+    "hardcoded: Toggle field visibility": 1,
+    "hardcoded: Visible Fields": 1
+  },
+  "src/features/bins/CustomFieldsDialog.tsx": {
+    "hardcoded: Add": 1,
+    "hardcoded: No custom fields yet. Add one below.": 1
+  },
+  "src/features/bins/DeleteBinDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/bins/DictationButton.tsx": {
+    "hardcoded: Add": 1,
+    "hardcoded: Cancel": 2,
+    "hardcoded: Heard:": 1,
+    "hardcoded: Parsing items": 1,
+    "hardcoded: Parsing items...": 1,
+    "hardcoded: Stop recording": 1,
+    "hardcoded: Transcribing audio": 1,
+    "hardcoded: Use this": 1,
+    "hardcoded: edit": 1,
+    "hardcoded: item": 1,
+    "hardcoded: parsed from dictation": 1
+  },
+  "src/features/bins/ItemList.tsx": {
+    "hardcoded: Actions": 1,
+    "hardcoded: Name": 1,
+    "hardcoded: No items match “": 1,
+    "hardcoded: Qty": 1
+  },
+  "src/features/bins/ItemListCheckoutSubline.tsx": {
+    "hardcoded: Out ·": 1
+  },
+  "src/features/bins/ItemListPagination.tsx": {
+    "hardcoded: Next page": 1,
+    "hardcoded: Page": 1,
+    "hardcoded: Pagination": 1,
+    "hardcoded: Previous page": 1,
+    "hardcoded: of": 2
+  },
+  "src/features/bins/ItemListRow.tsx": {
+    "hardcoded: Item name": 1
+  },
+  "src/features/bins/MoveBinDialog.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Move": 1
+  },
+  "src/features/bins/PhotoUploadSection.tsx": {
+    "hardcoded: Add from gallery": 1,
+    "hardcoded: Add more photos": 1,
+    "hardcoded: Add photos": 1,
+    "hardcoded: Camera": 1,
+    "hardcoded: Drag & drop or click to add photos": 1,
+    "hardcoded: More photos": 1,
+    "hardcoded: Multiple photos improve AI accuracy": 1,
+    "hardcoded: Tap to add photos": 1
+  },
+  "src/features/bins/QuickAddWidget.tsx": {
+    "hardcoded: Add": 1,
+    "hardcoded: Add item": 2,
+    "hardcoded: Back": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: List or describe items, e.g. 'three socks, AA batteries, winter jacket'": 1,
+    "hardcoded: Paste or type freely — AI will clean it up": 1
+  },
+  "src/features/bins/SaveViewDialog.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Save": 1
+  },
+  "src/features/bins/SearchBarOverflowMenu.tsx": {
+    "hardcoded: Fields": 1,
+    "hardcoded: View": 1,
+    "hardcoded: View settings": 1
+  },
+  "src/features/bins/ShareBinDialog.tsx": {
+    "hardcoded: 1 hour": 1,
+    "hardcoded: 24 hours": 1,
+    "hardcoded: 30 days": 1,
+    "hardcoded: 7 days": 1,
+    "hardcoded: Copy link": 1,
+    "hardcoded: Create a link that anyone can use to view this bin without logging in.": 1,
+    "hardcoded: Discoverable and visible to anyone": 1,
+    "hardcoded: Expiration": 1,
+    "hardcoded: Expires": 1,
+    "hardcoded: Never": 1,
+    "hardcoded: Only people with the link can view": 1,
+    "hardcoded: Public": 1,
+    "hardcoded: Unlisted": 1,
+    "hardcoded: Visibility": 1,
+    "hardcoded: view": 1
+  },
+  "src/features/bins/SharedBinPage.tsx": {
+    "hardcoded: Details": 1,
+    "hardcoded: Go to OpenBin": 1,
+    "hardcoded: Items": 1,
+    "hardcoded: Notes": 1,
+    "hardcoded: Photos": 1,
+    "hardcoded: Powered by OpenBin": 1,
+    "hardcoded: Tags": 1,
+    "hardcoded: The share link may have been revoked or the bin deleted.": 1,
+    "hardcoded: This link is no longer available": 1
+  },
+  "src/features/bins/StylePicker.tsx": {
+    "hardcoded: Backgrounds": 1,
+    "hardcoded: Border Style": 1,
+    "hardcoded: Position": 1,
+    "hardcoded: Thickness": 2,
+    "hardcoded: Your photos": 1
+  },
+  "src/features/bins/TagInput.tsx": {
+    "hardcoded: Create": 1
+  },
+  "src/features/bins/TrashPage.tsx": {
+    "hardcoded: Are you sure you want to permanently delete": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: Delete Forever": 1,
+    "hardcoded: Deleted": 1,
+    "hardcoded: Restore": 1,
+    "hardcoded: This action cannot be undone. All photos will also be deleted.": 1
+  },
+  "src/features/bulk-add/AddMoreTile.tsx": {
+    "hardcoded: Add": 1,
+    "hardcoded: Add more photos": 1
+  },
+  "src/features/bulk-add/AiCorrectionWidget.tsx": {
+    "hardcoded: Reanalyze": 1,
+    "hardcoded: You can still edit any field below.": 1
+  },
+  "src/features/bulk-add/AiRetryBand.tsx": {
+    "hardcoded: Continue manually": 1,
+    "hardcoded: Scan with AI": 1
+  },
+  "src/features/bulk-add/GroupReviewForm.tsx": {
+    "hardcoded: Area": 1,
+    "hardcoded: Color": 1,
+    "hardcoded: Icon": 1,
+    "hardcoded: Name": 1,
+    "hardcoded: Notes": 1,
+    "hardcoded: Tags": 1
+  },
+  "src/features/bulk-add/GroupReviewStep.tsx": {
+    "hardcoded: Adjust AI suggestions": 1,
+    "hardcoded: Done": 1,
+    "hardcoded: Set up AI": 1
+  },
+  "src/features/bulk-add/GroupSummaryStep.tsx": {
+    "hardcoded: Couldn't create": 1,
+    "hardcoded: Create All (": 1,
+    "hardcoded: Retry": 1,
+    "hardcoded: Tap any": 1,
+    "hardcoded: failed": 1,
+    "hardcoded: item": 1,
+    "hardcoded: photos": 1,
+    "hardcoded: to edit before creating.": 1,
+    "hardcoded: unnamed": 1,
+    "hardcoded: won't be created.": 1,
+    "hardcoded: · needs a name": 1
+  },
+  "src/features/bulk-add/PhotoGroupingGrid.tsx": {
+    "hardcoded: . Press another photo, or": 1,
+    "hardcoded: Back": 1,
+    "hardcoded: Continue": 1,
+    "hardcoded: Esc": 1,
+    "hardcoded: Move photo": 1,
+    "hardcoded: Moving photo": 1,
+    "hardcoded: One": 1,
+    "hardcoded: per stack": 1,
+    "hardcoded: to a new": 1,
+    "hardcoded: to cancel.": 1,
+    "hardcoded: · optional": 1
+  },
+  "src/features/bulk-add/SplitZone.tsx": {
+    "hardcoded: Drop here to put this photo in its own": 1
+  },
+  "src/features/capture/CameraStartScreen.tsx": {
+    "hardcoded: Camera not available": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: Go Back": 2,
+    "hardcoded: Ready to capture": 1,
+    "hardcoded: Start Camera": 1,
+    "hardcoded: Tap the button below to start the camera and take photos.": 1,
+    "hardcoded: Try Again": 1,
+    "hardcoded: Your browser does not support camera access. Make sure you are using HTTPS.": 1
+  },
+  "src/features/capture/CapturePageBulkGroup.tsx": {
+    "hardcoded: Bin #": 1,
+    "hardcoded: Close": 1,
+    "hardcoded: Done": 2,
+    "hardcoded: Next": 1,
+    "hardcoded: Next bin": 1,
+    "hardcoded: No photos yet": 1,
+    "hardcoded: Open photo library": 1,
+    "hardcoded: bin": 1
+  },
+  "src/features/capture/CaptureSingleBinPage.tsx": {
+    "hardcoded: Close": 1,
+    "hardcoded: Done": 1,
+    "hardcoded: Flip camera": 1,
+    "hardcoded: No photos yet": 1
+  },
+  "src/features/capture/guidance/CameraGuidance.tsx": {
+    "hardcoded: Photo tips": 1
+  },
+  "src/features/capture/guidance/HelpSheet.tsx": {
+    "hardcoded: Got it": 1
+  },
+  "src/features/capture/ShutterButton.tsx": {
+    "hardcoded: Take photo": 1
+  },
+  "src/features/capture/StatusBadge.tsx": {
+    "hardcoded: Retry upload": 1
+  },
+  "src/features/capture/ThumbnailItem.tsx": {
+    "hardcoded: Remove photo": 1
+  },
+  "src/features/checklist/DashboardChecklist.tsx": {
+    "hardcoded: Dismiss checklist": 1,
+    "hardcoded: Get started": 1,
+    "hardcoded: of": 1
+  },
+  "src/features/checkouts/BulkReturnOriginalDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/checkouts/CheckoutsPage.tsx": {
+    "hardcoded: Bin": 1,
+    "hardcoded: By": 1
+  },
+  "src/features/checkouts/ReturnItemDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/dashboard/DashboardActivityFeed.tsx": {
+    "hardcoded: No activity yet": 1
+  },
+  "src/features/dashboard/DashboardPage.tsx": {
+    "hardcoded: Ask AI": 2,
+    "hardcoded: Create": 1,
+    "hardcoded: Create your first": 1,
+    "hardcoded: Get started with": 1,
+    "hardcoded: No tags, area, or items": 1,
+    "hardcoded: Onboarding checklist": 1,
+    "hardcoded: Print labels": 1,
+    "hardcoded: Scan QR": 1,
+    "hardcoded: Scan QR code": 1,
+    "hardcoded: Turn on sections to see your data": 1,
+    "hardcoded: Your dashboard is empty": 1,
+    "hardcoded: and print a QR label — next time, just scan to see what's inside.": 1,
+    "hardcoded: need": 1,
+    "hardcoded: organizing": 1
+  },
+  "src/features/dashboard/DashboardSettingsMenu.tsx": {
+    "hardcoded: Dashboard settings": 1,
+    "hardcoded: Display": 1,
+    "hardcoded: Recent": 1,
+    "hardcoded: Reset to defaults": 1,
+    "hardcoded: Sections": 1,
+    "hardcoded: Timestamps": 1
+  },
+  "src/features/items/BulkCheckoutItemsDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/items/BulkDeleteItemsDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/items/ItemsPage.tsx": {
+    "hardcoded: Browse": 1
+  },
+  "src/features/locations/LocationDialogs.tsx": {
+    "hardcoded: Cancel": 4,
+    "hardcoded: Invite Code": 1,
+    "hardcoded: Name": 2
+  },
+  "src/features/locations/LocationInviteShare.tsx": {
+    "hardcoded: Anyone with this link can join": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: Copy invite code": 1,
+    "hardcoded: Copy invite link": 1,
+    "hardcoded: Download": 1,
+    "hardcoded: For typing manually in the Join dialog.": 1,
+    "hardcoded: Invite QR code": 1,
+    "hardcoded: Joins as": 1,
+    "hardcoded: Regenerate invite link": 1,
+    "hardcoded: Regenerate link": 1,
+    "hardcoded: Scan to join": 1,
+    "hardcoded: Share invite link": 1
+  },
+  "src/features/locations/LocationMembersDialog.tsx": {
+    "hardcoded: Cancel": 2,
+    "hardcoded: Copy reset link": 1,
+    "hardcoded: Leave Location": 1,
+    "hardcoded: More actions": 1,
+    "hardcoded: Remove member": 1,
+    "hardcoded: Reset password": 1,
+    "hardcoded: Share this link with the member to reset their password:": 1,
+    "hardcoded: You'll lose access to all content in this location. Continue?": 1
+  },
+  "src/features/locations/LocationRetentionDialog.tsx": {
+    "hardcoded: 7–365 days. Deleted": 1,
+    "hardcoded: 7–365 days. Entries older than this are automatically pruned.": 1,
+    "hardcoded: Activity log retention (days)": 1,
+    "hardcoded: Cancel": 1,
+    "hardcoded: Default role for new members": 1,
+    "hardcoded: Trash retention (days)": 1,
+    "hardcoded: are permanently purged after this period.": 1
+  },
+  "src/features/photos/DeletePhotoDialog.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Delete": 1
+  },
+  "src/features/photos/PhotoGallery.tsx": {
+    "hardcoded: Add Photo": 1,
+    "hardcoded: Delete photo": 1,
+    "hardcoded: Photos": 1
+  },
+  "src/features/photos/PhotoLightbox.tsx": {
+    "hardcoded: Close": 1,
+    "hardcoded: Delete photo": 1,
+    "hardcoded: Next photo": 1,
+    "hardcoded: Photo navigation": 1,
+    "hardcoded: Previous photo": 1
+  },
+  "src/features/print/BinSelectorCard.tsx": {
+    "hardcoded: All": 1,
+    "hardcoded: No": 1,
+    "hardcoded: None": 1,
+    "hardcoded: Select": 1,
+    "hardcoded: first.": 1,
+    "hardcoded: to print. Create some": 1
+  },
+  "src/features/print/ItemListOptionsCard.tsx": {
+    "hardcoded: List Options": 1
+  },
+  "src/features/print/ItemSheet.tsx": {
+    "hardcoded: Generating…": 1,
+    "hardcoded: Item": 1,
+    "hardcoded: No bins selected": 1,
+    "hardcoded: No items": 1,
+    "hardcoded: Notes": 1,
+    "hardcoded: Qty": 1
+  },
+  "src/features/print/LabelFormatCard.tsx": {
+    "hardcoded: Clear search": 1,
+    "hardcoded: Customize dimensions": 1,
+    "hardcoded: Label Format": 1,
+    "hardcoded: No matching label formats": 1,
+    "hardcoded: Orientation": 1,
+    "hardcoded: Save": 1,
+    "hardcoded: Save as Preset": 1,
+    "hardcoded: Saved Presets": 1,
+    "hardcoded: Units": 1
+  },
+  "src/features/print/LabelOptionsCard.tsx": {
+    "hardcoded: Font Size": 1,
+    "hardcoded: Label Direction": 1,
+    "hardcoded: Label Options": 1,
+    "hardcoded: Text Alignment": 1,
+    "hardcoded: Visible Elements": 1
+  },
+  "src/features/print/LabelSheet.tsx": {
+    "hardcoded: Generating labels…": 1
+  },
+  "src/features/print/NameCardOptionsCard.tsx": {
+    "hardcoded: Font Size": 1,
+    "hardcoded: Font Sizing": 1,
+    "hardcoded: Name Options": 1
+  },
+  "src/features/print/PreviewPanel.tsx": {
+    "hardcoded: 1 page": 1,
+    "hardcoded: Choose": 1,
+    "hardcoded: Next page": 1,
+    "hardcoded: No": 1,
+    "hardcoded: PDF": 1,
+    "hardcoded: Page": 1,
+    "hardcoded: Preview": 1,
+    "hardcoded: Previous page": 1,
+    "hardcoded: of": 1,
+    "hardcoded: selected": 1,
+    "hardcoded: to preview and print labels": 1
+  },
+  "src/features/print/QrStyleCard.tsx": {
+    "hardcoded: 0°": 2,
+    "hardcoded: 180°": 2,
+    "hardcoded: 270°": 2,
+    "hardcoded: 360°": 2,
+    "hardcoded: 90°": 2,
+    "hardcoded: QR Style": 1,
+    "hardcoded: QR preview": 1,
+    "hardcoded: Reset QR Style": 1,
+    "hardcoded: Rotation": 1
+  },
+  "src/features/qrcode/Html5QrcodePlugin.tsx": {
+    "hardcoded: Failed to start scanner": 1
+  },
+  "src/features/qrcode/QRCodeDisplay.tsx": {
+    "hardcoded: QR Code": 1
+  },
+  "src/features/qrcode/ScanDialog.tsx": {
+    "hardcoded: Create": 1,
+    "hardcoded: It may be restorable from the trash.": 1,
+    "hardcoded: Look Up": 1,
+    "hardcoded: Manual Lookup": 1,
+    "hardcoded: Not Found": 1,
+    "hardcoded: Not a": 1,
+    "hardcoded: Point your camera at a": 1,
+    "hardcoded: QR Code": 1,
+    "hardcoded: QR code": 1,
+    "hardcoded: Redirecting...": 1,
+    "hardcoded: Scan Again": 4,
+    "hardcoded: This": 2,
+    "hardcoded: This QR code points to a": 1,
+    "hardcoded: View Trash": 1,
+    "hardcoded: You need to join the location that owns this": 1,
+    "hardcoded: belongs to another location": 1,
+    "hardcoded: that doesn't exist yet.": 1,
+    "hardcoded: to view it.": 1,
+    "hardcoded: was deleted": 1
+  },
+  "src/features/reorganize/MoveListSheet.tsx": {
+    "hardcoded: Move List": 1,
+    "hardcoded: No source": 1,
+    "hardcoded: item": 3,
+    "hardcoded: move": 1,
+    "hardcoded: selected": 1
+  },
+  "src/features/reorganize/ReorganizeBinsOptions.tsx": {
+    "hardcoded: Additional instructions": 1,
+    "hardcoded: Items per": 1,
+    "hardcoded: Number of": 1,
+    "hardcoded: Options": 1,
+    "hardcoded: across selected": 1,
+    "hardcoded: e.g. Keep kitchen items separate from garage tools": 1,
+    "hardcoded: item": 1
+  },
+  "src/features/reorganize/ReorganizeBinsPanel.tsx": {
+    "hardcoded: Reorganize": 1,
+    "hardcoded: across": 1,
+    "hardcoded: item": 1
+  },
+  "src/features/reorganize/ReorganizeConfirmDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/reorganize/ReorganizePreview.tsx": {
+    "hardcoded: (×": 1,
+    "hardcoded: Applying…": 1,
+    "hardcoded: Print move list": 1,
+    "hardcoded: Proposal": 1,
+    "hardcoded: Regenerate": 1,
+    "hardcoded: Start over": 1,
+    "hardcoded: destinations)": 1,
+    "hardcoded: item": 3,
+    "hardcoded: kept": 1,
+    "hardcoded: move": 1
+  },
+  "src/features/reorganize/ReorganizeStatusCards.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Dismiss error": 1,
+    "hardcoded: No proposal yet": 1,
+    "hardcoded: Try again": 1,
+    "hardcoded: allows up to": 1,
+    "hardcoded: per\n              reorganize run. Deselect": 1,
+    "hardcoded: to continue": 1
+  },
+  "src/features/reorganize/ReorganizeTagsOptions.tsx": {
+    "hardcoded: Additional instructions": 1,
+    "hardcoded: Change level": 1,
+    "hardcoded: Max tags per": 1,
+    "hardcoded: Options": 1,
+    "hardcoded: Tag granularity": 1,
+    "hardcoded: e.g. emphasize kitchen categories": 1
+  },
+  "src/features/reorganize/ReorganizeTagsPanel.tsx": {
+    "hardcoded: Suggest tags for": 1,
+    "hardcoded: across": 1,
+    "hardcoded: item": 1
+  },
+  "src/features/reorganize/ReorganizeTagsPreview.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Merges": 1,
+    "hardcoded: New tags": 1,
+    "hardcoded: No tag changes suggested. Try a different change level or granularity.": 1,
+    "hardcoded: Parent moves": 1,
+    "hardcoded: Regenerate": 2,
+    "hardcoded: Renames": 1,
+    "hardcoded: Select all": 1,
+    "hardcoded: Select none": 1,
+    "hardcoded: checked": 1,
+    "hardcoded: of": 1
+  },
+  "src/features/settings/dialogs/DeleteAccountDialog.tsx": {
+    "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 5
+  },
+  "src/features/settings/dialogs/RecoverAccountDialog.tsx": {
+    "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 1
+  },
+  "src/features/shopping-list/ShoppingListPage.tsx": {
+    "hardcoded: Add": 1
+  },
+  "src/features/tags/BulkDeleteTagsDialog.tsx": {
+    "hardcoded: Cancel": 1
+  },
+  "src/features/tags/BulkMergeDialog.tsx": {
+    "hardcoded: Create new": 1,
+    "hardcoded: Merge into": 1,
+    "hardcoded: New tag name": 1,
+    "hardcoded: Select a tag…": 1,
+    "hardcoded: Use existing": 1
+  },
+  "src/features/tags/BulkSetParentDialog.tsx": {
+    "hardcoded: None": 1,
+    "hardcoded: Parent": 1
+  },
+  "src/features/tags/CreateTagDialog.tsx": {
+    "hardcoded: Cancel": 1,
+    "hardcoded: Color": 1,
+    "hardcoded: Name": 1,
+    "hardcoded: None": 1,
+    "hardcoded: Parent": 1,
+    "hardcoded: Preview": 2,
+    "hardcoded: Tag names are stored in lowercase.": 1,
+    "hardcoded: Will be grouped under:": 1
+  },
+  "src/features/tags/TagColorPicker.tsx": {
+    "hardcoded: Black": 2,
+    "hardcoded: Gray": 2,
+    "hardcoded: Hue": 1,
+    "hardcoded: None": 2,
+    "hardcoded: Pick tag color": 1,
+    "hardcoded: Preview": 1,
+    "hardcoded: White": 2
+  },
+  "src/features/tags/TagsPage.tsx": {
+    "hardcoded: Browse": 1,
+    "hardcoded: Cancel": 3,
+    "hardcoded: Create Tag": 2,
+    "hardcoded: New name": 1,
+    "hardcoded: None": 1,
+    "hardcoded: Parent": 1,
+    "hardcoded: Suggest with AI": 1
+  },
+  "src/features/tags/TagTableView.tsx": {
+    "hardcoded: Delete": 1,
+    "hardcoded: Rename": 1,
+    "hardcoded: Set Parent...": 1
+  },
+  "src/features/usage/BinUsageSection.tsx": {
+    "hardcoded: No activity yet. Choose which actions count in": 1,
+    "hardcoded: active": 1,
+    "hardcoded: in": 1
+  },
+  "src/features/usage/UsageHeatmap.tsx": {
+    "hardcoded: Try again": 1
+  },
+  "src/features/usage/YearChipPager.tsx": {
+    "hardcoded: Next year": 1,
+    "hardcoded: Previous year": 1
+  },
+  "src/lib/aiCreditCost.tsx": {
+    "hardcoded: Uses": 1
+  },
+  "src/lib/bulk/BulkActionBar.tsx": {
+    "hardcoded: Clear selection": 1,
+    "hardcoded: More actions": 1
+  },
+  "src/lib/bulk/BulkUpdateDialog.tsx": {
+    "hardcoded: Cancel": 1
+  }
+}
