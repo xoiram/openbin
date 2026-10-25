@@ -1,0 +1,121 @@
+{
+  "card": {
+    "select": "Select"
+  },
+  "fields": {
+    "area": "Area",
+    "created": "Created",
+    "createdBy": "Created By",
+    "customFields": "Custom Fields",
+    "icon": "Icon",
+    "items": "Items",
+    "notes": "Notes",
+    "tags": "Tags",
+    "updated": "Updated"
+  },
+  "filters": {
+    "apply": "Apply",
+    "applyWithCount": "Apply ({{active}})",
+    "area": "Area",
+    "asc": "Asc",
+    "clear": "Clear",
+    "desc": "Desc",
+    "hasItems": "Has items",
+    "hasNotes": "Has notes",
+    "needsOrganizing": "Needs organizing",
+    "noTags": "No tags in this location",
+    "reset": "Reset",
+    "saveView": "Save View",
+    "showLess": "Show less",
+    "showMore": "+{{hidden}} more",
+    "sort": "Sort",
+    "sortArea": "Area",
+    "sortCreated": "Created",
+    "sortLastUsed": "Last used",
+    "sortName": "Name",
+    "sortUpdated": "Updated",
+    "tagModeAll": "All",
+    "tagModeAny": "Any",
+    "tags": "Tags",
+    "title": "Filter Bins",
+    "unassigned": "Unassigned",
+    "unusedSince": "Unused since",
+    "usage": "Usage"
+  },
+  "list": {
+    "askAi": "Ask AI",
+    "createBin": "Create {{bin}}",
+    "emptySubtitle": "Create your first {{bin}} to get started",
+    "emptyTitle": "No {{bins}} yet",
+    "loadFailed": "Failed to load {{bins}}",
+    "manageLocations": "Manage {{locations}}",
+    "newBin": "New {{bin}}",
+    "noLocationSubtitle": "Create or join a {{location}} to start organizing {{bins}}",
+    "noLocationTitle": "No {{location}} selected",
+    "noMatches": "No {{bins}} match your filters",
+    "scanQrCode": "Scan QR code",
+    "selectedBinCount_one": "{{count}} {{bin}}",
+    "selectedBinCount_other": "{{count}} {{bins}}",
+    "stepAddItems": "Add items",
+    "stepCreate": "Create {{bin}}",
+    "stepPrintQr": "Print QR",
+    "styleApplied_one": "Style applied to {{count}} {{bin}}",
+    "styleApplied_other": "Style applied to {{count}} {{bins}}",
+    "styleCopied": "Style copied",
+    "upgradeAiDescription": "AI-powered commands, analysis, and suggestions are available on the Pro plan.",
+    "upgradeAiFeature": "AI Features"
+  },
+  "saveView": {
+    "namePlaceholder": "View name...",
+    "saved": "View saved",
+    "title": "Save Search"
+  },
+  "searchBar": {
+    "allTags": "All tags",
+    "anyTag": "Any tag",
+    "ariaLabel": "Search {{bins}}",
+    "clearSearch": "Clear search",
+    "clearSearchAndFilters": "Clear search and filters",
+    "filter": "Filter",
+    "filterBins": "Filter {{bins}}",
+    "placeholder": "Search {{bins}}...",
+    "removeAreaFilter": "Remove area filter {{area}}",
+    "removeHasItemsFilter": "Remove has items filter",
+    "removeHasNotesFilter": "Remove has notes filter",
+    "removeNeedsOrganizingFilter": "Remove needs organizing filter",
+    "removeTagFilter": "Remove tag filter {{tag}}"
+  },
+  "table": {
+    "name": "Name"
+  },
+  "trash": {
+    "confirmMessage": "Are you sure you want to permanently delete <strong>\"{{name}}\"</strong>?",
+    "confirmTitle": "Permanently Delete",
+    "confirmWarning": "This action cannot be undone. All photos will also be deleted.",
+    "deletedAgo": "Deleted {{time}}",
+    "deleteFailed": "Failed to delete {{bin}}",
+    "deleteForever": "Delete Forever",
+    "deleteForeverAria": "Permanently delete {{name}}",
+    "description_one": "Deleted {{bins}} are kept for {{count}} day before being permanently removed.",
+    "description_other": "Deleted {{bins}} are kept for {{count}} days before being permanently removed.",
+    "emptySubtitle": "Deleted {{bins}} will appear here",
+    "emptyTitle": "Trash is empty",
+    "permanentlyDeleted": "\"{{name}}\" permanently deleted",
+    "restore": "Restore",
+    "restored": "\"{{name}}\" restored",
+    "restoreFailed": "Failed to restore {{bin}}",
+    "title": "Trash"
+  },
+  "viewMenu": {
+    "fields": "Fields",
+    "toggleFieldVisibility": "Toggle field visibility",
+    "view": "View",
+    "viewSettings": "View settings",
+    "visibleFields": "Visible Fields"
+  },
+  "viewMode": {
+    "compact": "Compact",
+    "grid": "Grid",
+    "table": "Table"
+  }
+}

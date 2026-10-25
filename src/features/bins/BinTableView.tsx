@@ -1,5 +1,6 @@
 import { Lock } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { Highlight } from '@/components/ui/highlight';
@@ -13,6 +14,7 @@ import type { Bin, CustomField } from '@/types';
 import { areCommonBinCardPropsEqual } from './binMemoUtils';
 import { useBinCardInteraction } from './useBinCardInteraction';
 import type { BinFilters, SortOption } from './useBins';
+import { useFieldLabels } from './useFieldLabels';
 
 interface BinTableViewProps {
   bins: Bin[];
@@ -43,6 +45,8 @@ export function BinTableView({
   isVisible,
   customFields,
 }: BinTableViewProps) {
+  const { t } = useTranslation('bins');
+  const fieldLabels = useFieldLabels();
   const sortedCustomFields = React.useMemo(
     () => customFields ? [...customFields].sort((a, b) => a.position - b.position) : [],
     [customFields],
@@ -53,19 +57,19 @@ export function BinTableView({
       {/* Header */}
       <TableHeader>
         <div className="flex-[2] flex items-center gap-2">
-          <SortHeader label="Name" column="name" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-1" />
+          <SortHeader label={t('table.name', { defaultValue: 'Name' })} column="name" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-1" />
         </div>
         {isVisible?.('area') !== false && (
-          <SortHeader label="Area" column="area" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="hidden md:flex flex-1" />
+          <SortHeader label={fieldLabels.area} column="area" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="hidden md:flex flex-1" />
         )}
         {isVisible?.('items') !== false && (
-          <span className="hidden lg:block flex-[1.5] ui-col-header">Items</span>
+          <span className="hidden lg:block flex-[1.5] ui-col-header">{fieldLabels.items}</span>
         )}
         {isVisible?.('tags') !== false && (
-          <span className="hidden sm:block flex-1 ui-col-header">Tags</span>
+          <span className="hidden sm:block flex-1 ui-col-header">{fieldLabels.tags}</span>
         )}
         {isVisible?.('notes') && (
-          <span className="hidden lg:block flex-1 ui-col-header">Notes</span>
+          <span className="hidden lg:block flex-1 ui-col-header">{fieldLabels.notes}</span>
         )}
         {sortedCustomFields.map((field) =>
           isVisible?.(`cf_${field.id}`) && (
@@ -75,13 +79,13 @@ export function BinTableView({
           ),
         )}
         {isVisible?.('createdBy') && (
-          <span className="hidden md:block w-24 ui-col-header">Created By</span>
+          <span className="hidden md:block w-24 ui-col-header">{fieldLabels.createdBy}</span>
         )}
         {isVisible?.('created') && (
-          <SortHeader label="Created" column="created" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-20 justify-end" />
+          <SortHeader label={fieldLabels.created} column="created" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-20 justify-end" />
         )}
         {isVisible?.('updated') !== false && (
-          <SortHeader label="Updated" column="updated" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-20 justify-end" />
+          <SortHeader label={fieldLabels.updated} column="updated" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-20 justify-end" />
         )}
       </TableHeader>
 
@@ -133,6 +137,7 @@ const BinTableRow = React.memo(function BinTableRow({
   isVisible,
   customFields,
 }: BinTableRowProps) {
+  const { t } = useTranslation('bins');
   const getTagStyle = useTagStyle();
   const BinIcon = resolveIcon(bin.icon);
   const colorPreset = resolveColor(bin.color);
@@ -164,7 +169,7 @@ const BinTableRow = React.memo(function BinTableRow({
             tabIndex={-1}
             className="shrink-0 appearance-none bg-transparent p-0 border-none"
             onClick={(e) => { e.stopPropagation(); onSelect(bin.id, index, e.shiftKey); }}
-            aria-label="Select"
+            aria-label={t('card.select', { defaultValue: 'Select' })}
           >
             <BinIconBadge icon={BinIcon} colorPreset={colorPreset} selected={selectable ? selected : undefined} />
           </button>

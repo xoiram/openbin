@@ -1,5 +1,6 @@
 import { ApiError, readCsrfTokenFromCookie, tryRefresh } from './api';
 import { Events, notify } from './eventBus';
+import i18n from './i18n';
 
 export interface StreamDeltaEvent {
   type: 'delta';
@@ -85,7 +86,11 @@ export async function* apiStream(
 
       buffer += decoder.decode(value, { stream: true });
       if (buffer.length > 1024 * 1024) { // 1 MB safety limit
-        yield { type: 'error' as const, message: 'Response too large', code: 'STREAM_OVERFLOW' };
+        yield {
+          type: 'error' as const,
+          message: i18n.t('stream.responseTooLarge', { defaultValue: 'Response too large' }),
+          code: 'STREAM_OVERFLOW',
+        };
         reader.cancel();
         break;
       }

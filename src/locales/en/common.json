@@ -46,12 +46,167 @@
   },
   "plan": {
     "overLimitBanner": "You're over your plan limits. Reduce usage or upgrade to resume editing.",
-    "proBadge": "Pro"
+    "proBadge": "Pro",
+    "locked": {
+      "trialEnded": "Your trial has ended. Subscribe to continue using OpenBin.",
+      "expired": "Your subscription has expired. Resubscribe to continue using OpenBin.",
+      "inactive": "Your plan is inactive. Subscribe to continue using OpenBin.",
+      "subscribe": "Subscribe",
+      "resubscribe": "Resubscribe"
+    }
   },
   "tour": {
     "thisTour": "This tour",
     "needsContent": "{{title}} needs some content on this page first."
   },
   "itemCount_one": "{{count}} item",
-  "itemCount_other": "{{count}} items"
+  "itemCount_other": "{{count}} items",
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "appDescription": "An unexpected error occurred. Please reload the app to continue.",
+    "reloadApp": "Reload App",
+    "routeDescription": "This page encountered an error. You can try again or go back to the home page.",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "backHome": "Back to home"
+  },
+  "swUpdate": {
+    "available": "New version available",
+    "refresh": "Refresh"
+  },
+  "planError": {
+    "subscriptionExpired": "Your subscription has expired",
+    "resubscribe": "Resubscribe",
+    "overLimit": "You've exceeded a plan limit",
+    "requiresPro": "This feature requires a Pro plan"
+  },
+  "shortcuts": {
+    "title": "Keyboard Shortcuts",
+    "then": "then",
+    "categories": {
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "general": "General"
+    },
+    "items": {
+      "goHome": "Go to Home",
+      "goBins": "Go to Bins",
+      "scan": "Scan QR Code",
+      "goPrint": "Go to Print",
+      "goLocations": "Go to Locations",
+      "goItems": "Go to Items",
+      "goTags": "Go to Tags",
+      "goSettings": "Go to Settings",
+      "newBin": "New Bin",
+      "focusSearch": "Focus Search",
+      "selectAll": "Select All",
+      "askAi": "Ask AI",
+      "commandPalette": "Command Palette",
+      "toggleSidebar": "Toggle Sidebar",
+      "keyboardShortcuts": "Keyboard Shortcuts"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Type a command...",
+    "searchLabel": "Search commands",
+    "listLabel": "Commands",
+    "noMatches": "No matching commands"
+  },
+  "dialog": {
+    "close": "Close"
+  },
+  "pageHeader": {
+    "goBack": "Go back"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous page",
+    "next": "Next page",
+    "page": "Page {{page}}",
+    "pageOf": "Page {{page}} of {{total}}",
+    "summary": "Showing {{start}}–{{end}} of {{total}} {{label}}",
+    "itemsPerPage": "Items per page",
+    "perPage": "{{size}} per page",
+    "defaultItemLabel": "items"
+  },
+  "stepper": {
+    "progress": "Progress"
+  },
+  "toast": {
+    "dismiss": "Dismiss"
+  },
+  "avatar": {
+    "alt": "{{name}}'s avatar",
+    "fallback": "User avatar"
+  },
+  "password": {
+    "show": "Show password",
+    "hide": "Hide password",
+    "requirements": "Password requirements",
+    "checkMet": "{{label}} — met",
+    "checkNotMet": "{{label}} — not met",
+    "checks": {
+      "length": "At least 8 characters",
+      "uppercase": "Uppercase letter",
+      "lowercase": "Lowercase letter",
+      "digit": "Number"
+    }
+  },
+  "search": {
+    "clear": "Clear search"
+  },
+  "binPicker": {
+    "searchPlaceholder": "Search bins...",
+    "noMatches": "No matching bins",
+    "empty": "No other bins available"
+  },
+  "savedViews": {
+    "apply": "Apply saved view: {{name}}",
+    "remove": "Remove saved view {{name}}"
+  },
+  "sortHeader": {
+    "sortBy": "Sort by {{label}}",
+    "sortedAscending": "{{label}}, sorted ascending",
+    "sortedDescending": "{{label}}, sorted descending"
+  },
+  "bulk": {
+    "selected": "{{n}} selected",
+    "moreActions": "More actions",
+    "clearSelection": "Clear selection",
+    "apply": "Apply",
+    "applying": "Applying..."
+  },
+  "creditCost": {
+    "credits_one": "{{count}} credit",
+    "credits_other": "{{count}} credits",
+    "uses_one": "Uses {{count}} credit",
+    "uses_other": "Uses {{count}} credits",
+    "wouldExceedMonthly": "would exceed monthly limit",
+    "wouldExceedTrial": "would exceed trial credits",
+    "over": "over"
+  },
+  "dictation": {
+    "noItemsFound": "No items found in transcription",
+    "added_one": "Added {{count}} item from dictation",
+    "added_other": "Added {{count}} items from dictation",
+    "addFailed": "Failed to add items"
+  },
+  "list": {
+    "loadFailed": "Failed to load",
+    "loadMoreFailed": "Failed to load more"
+  },
+  "stream": {
+    "responseTooLarge": "Response too large"
+  },
+  "terms": {
+    "bin": "bin",
+    "bins": "bins",
+    "location": "location",
+    "locations": "locations",
+    "area": "area",
+    "areas": "areas"
+  }
 }

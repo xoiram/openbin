@@ -46,12 +46,167 @@
   },
   "plan": {
     "overLimitBanner": "Du har overskredet abonnementsgrensene. Reduser bruken eller oppgrader for å fortsette å redigere.",
-    "proBadge": "Pro"
+    "proBadge": "Pro",
+    "locked": {
+      "trialEnded": "Prøveperioden din er over. Abonner for å fortsette å bruke OpenBin.",
+      "expired": "Abonnementet ditt har utløpt. Forny abonnementet for å fortsette å bruke OpenBin.",
+      "inactive": "Abonnementet ditt er inaktivt. Abonner for å fortsette å bruke OpenBin.",
+      "subscribe": "Abonner",
+      "resubscribe": "Forny abonnementet"
+    }
   },
   "tour": {
     "thisTour": "Denne omvisningen",
     "needsContent": "{{title}} trenger litt innhold på denne siden først."
   },
   "itemCount_one": "{{count}} gjenstand",
-  "itemCount_other": "{{count}} gjenstander"
+  "itemCount_other": "{{count}} gjenstander",
+  "errorBoundary": {
+    "title": "Noe gikk galt",
+    "appDescription": "Det oppstod en uventet feil. Last inn appen på nytt for å fortsette.",
+    "reloadApp": "Last inn appen på nytt",
+    "routeDescription": "Det oppstod en feil på denne siden. Du kan prøve igjen eller gå tilbake til startsiden.",
+    "tryAgain": "Prøv igjen",
+    "goHome": "Til startsiden"
+  },
+  "notFound": {
+    "title": "Fant ikke siden",
+    "backHome": "Tilbake til startsiden"
+  },
+  "swUpdate": {
+    "available": "En ny versjon er tilgjengelig",
+    "refresh": "Oppdater"
+  },
+  "planError": {
+    "subscriptionExpired": "Abonnementet ditt har utløpt",
+    "resubscribe": "Forny abonnementet",
+    "overLimit": "Du har overskredet en grense i abonnementet ditt",
+    "requiresPro": "Denne funksjonen krever Pro-abonnement"
+  },
+  "shortcuts": {
+    "title": "Hurtigtaster",
+    "then": "deretter",
+    "categories": {
+      "navigation": "Navigasjon",
+      "actions": "Handlinger",
+      "general": "Generelt"
+    },
+    "items": {
+      "goHome": "Gå til Hjem",
+      "goBins": "Gå til Bokser",
+      "scan": "Skann QR-kode",
+      "goPrint": "Gå til Skriv ut",
+      "goLocations": "Gå til Steder",
+      "goItems": "Gå til Gjenstander",
+      "goTags": "Gå til Stikkord",
+      "goSettings": "Gå til Innstillinger",
+      "newBin": "Ny boks",
+      "focusSearch": "Gå til søk",
+      "selectAll": "Velg alle",
+      "askAi": "Spør AI",
+      "commandPalette": "Kommandopalett",
+      "toggleSidebar": "Vis/skjul sidepanel",
+      "keyboardShortcuts": "Hurtigtaster"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Skriv en kommando...",
+    "searchLabel": "Søk i kommandoer",
+    "listLabel": "Kommandoer",
+    "noMatches": "Ingen kommandoer samsvarer"
+  },
+  "dialog": {
+    "close": "Lukk"
+  },
+  "pageHeader": {
+    "goBack": "Gå tilbake"
+  },
+  "pagination": {
+    "label": "Sidenavigering",
+    "previous": "Forrige side",
+    "next": "Neste side",
+    "page": "Side {{page}}",
+    "pageOf": "Side {{page}} av {{total}}",
+    "summary": "Viser {{start}}–{{end}} av {{total}} {{label}}",
+    "itemsPerPage": "Elementer per side",
+    "perPage": "{{size}} per side",
+    "defaultItemLabel": "elementer"
+  },
+  "stepper": {
+    "progress": "Fremdrift"
+  },
+  "toast": {
+    "dismiss": "Lukk"
+  },
+  "avatar": {
+    "alt": "Profilbildet til {{name}}",
+    "fallback": "Profilbilde"
+  },
+  "password": {
+    "show": "Vis passord",
+    "hide": "Skjul passord",
+    "requirements": "Passordkrav",
+    "checkMet": "{{label}} – oppfylt",
+    "checkNotMet": "{{label}} – ikke oppfylt",
+    "checks": {
+      "length": "Minst 8 tegn",
+      "uppercase": "Stor bokstav",
+      "lowercase": "Liten bokstav",
+      "digit": "Tall"
+    }
+  },
+  "search": {
+    "clear": "Tøm søk"
+  },
+  "binPicker": {
+    "searchPlaceholder": "Søk i bokser...",
+    "noMatches": "Ingen bokser samsvarer",
+    "empty": "Ingen andre bokser tilgjengelig"
+  },
+  "savedViews": {
+    "apply": "Bruk lagret visning: {{name}}",
+    "remove": "Fjern lagret visning {{name}}"
+  },
+  "sortHeader": {
+    "sortBy": "Sorter etter {{label}}",
+    "sortedAscending": "{{label}}, sortert stigende",
+    "sortedDescending": "{{label}}, sortert synkende"
+  },
+  "bulk": {
+    "selected": "{{n}} valgt",
+    "moreActions": "Flere handlinger",
+    "clearSelection": "Fjern valg",
+    "apply": "Bruk",
+    "applying": "Bruker..."
+  },
+  "creditCost": {
+    "credits_one": "{{count}} kreditt",
+    "credits_other": "{{count}} kreditter",
+    "uses_one": "Bruker {{count}} kreditt",
+    "uses_other": "Bruker {{count}} kreditter",
+    "wouldExceedMonthly": "overskrider månedsgrensen",
+    "wouldExceedTrial": "overskrider prøvekredittene",
+    "over": "over grensen"
+  },
+  "dictation": {
+    "noItemsFound": "Fant ingen gjenstander i transkripsjonen",
+    "added_one": "La til {{count}} gjenstand fra diktering",
+    "added_other": "La til {{count}} gjenstander fra diktering",
+    "addFailed": "Kunne ikke legge til gjenstander"
+  },
+  "list": {
+    "loadFailed": "Kunne ikke laste inn",
+    "loadMoreFailed": "Kunne ikke laste inn flere"
+  },
+  "stream": {
+    "responseTooLarge": "Svaret er for stort"
+  },
+  "terms": {
+    "bin": "boks",
+    "bins": "bokser",
+    "location": "sted",
+    "locations": "steder",
+    "area": "område",
+    "areas": "områder"
+  }
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 const sizeClasses = {
@@ -16,13 +17,15 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ avatarUrl, displayName, size = 'sm', className }: UserAvatarProps) {
+  const { t } = useTranslation('common');
   const initial = displayName?.[0]?.toUpperCase() ?? '?';
+  const fallbackLabel = t('avatar.fallback', { defaultValue: 'User avatar' });
 
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
-        alt={displayName ? `${displayName}'s avatar` : 'User avatar'}
+        alt={displayName ? t('avatar.alt', { defaultValue: "{{name}}'s avatar", name: displayName }) : fallbackLabel}
         className={cn('rounded-full object-cover shrink-0', sizeClasses[size], className)}
       />
     );
@@ -31,7 +34,7 @@ export function UserAvatar({ avatarUrl, displayName, size = 'sm', className }: U
   return (
     <div
       role="img"
-      aria-label={displayName ?? 'User avatar'}
+      aria-label={displayName ?? fallbackLabel}
       className={cn(
         'rounded-full bg-[var(--bg-active)] flex items-center justify-center font-semibold text-[var(--text-secondary)] shrink-0',
         sizeClasses[size],

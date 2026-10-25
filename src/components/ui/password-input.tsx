@@ -1,12 +1,14 @@
 import { Eye, EyeOff } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn, inputBase } from '@/lib/utils';
 
 const PasswordInput = React.forwardRef<
   HTMLInputElement,
   Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'>
 >(({ className, ...props }, ref) => {
+  const { t } = useTranslation('common');
   const [visible, setVisible] = useState(false);
 
   return (
@@ -26,7 +28,9 @@ const PasswordInput = React.forwardRef<
         type="button"
         tabIndex={-1}
         onClick={() => setVisible((v) => !v)}
-        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-label={visible
+          ? t('password.hide', { defaultValue: 'Hide password' })
+          : t('password.show', { defaultValue: 'Show password' })}
         className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
       >
         {visible ? (

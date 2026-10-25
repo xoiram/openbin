@@ -1,0 +1,121 @@
+{
+  "card": {
+    "select": "Velg"
+  },
+  "fields": {
+    "area": "Område",
+    "created": "Opprettet",
+    "createdBy": "Opprettet av",
+    "customFields": "Egendefinerte felt",
+    "icon": "Ikon",
+    "items": "Gjenstander",
+    "notes": "Notater",
+    "tags": "Stikkord",
+    "updated": "Oppdatert"
+  },
+  "filters": {
+    "apply": "Bruk",
+    "applyWithCount": "Bruk ({{active}})",
+    "area": "Område",
+    "asc": "Stigende",
+    "clear": "Tøm",
+    "desc": "Synkende",
+    "hasItems": "Har gjenstander",
+    "hasNotes": "Har notater",
+    "needsOrganizing": "Trenger organisering",
+    "noTags": "Ingen stikkord på dette stedet",
+    "reset": "Tilbakestill",
+    "saveView": "Lagre visning",
+    "showLess": "Vis færre",
+    "showMore": "+{{hidden}} til",
+    "sort": "Sortering",
+    "sortArea": "Område",
+    "sortCreated": "Opprettet",
+    "sortLastUsed": "Sist brukt",
+    "sortName": "Navn",
+    "sortUpdated": "Oppdatert",
+    "tagModeAll": "Alle",
+    "tagModeAny": "Hvilken som helst",
+    "tags": "Stikkord",
+    "title": "Filtrer bokser",
+    "unassigned": "Uten område",
+    "unusedSince": "Ubrukt siden",
+    "usage": "Bruk"
+  },
+  "list": {
+    "askAi": "Spør AI",
+    "createBin": "Opprett {{bin}}",
+    "emptySubtitle": "Opprett din første {{bin}} for å komme i gang",
+    "emptyTitle": "Ingen {{bins}} ennå",
+    "loadFailed": "Kunne ikke laste {{bins}}",
+    "manageLocations": "Administrer {{locations}}",
+    "newBin": "Ny {{bin}}",
+    "noLocationSubtitle": "Opprett eller bli med i et {{location}} for å begynne å organisere {{bins}}",
+    "noLocationTitle": "Ingen {{location}} valgt",
+    "noMatches": "Ingen {{bins}} samsvarer med filtrene",
+    "scanQrCode": "Skann QR-kode",
+    "selectedBinCount_one": "{{count}} {{bin}}",
+    "selectedBinCount_other": "{{count}} {{bins}}",
+    "stepAddItems": "Legg til gjenstander",
+    "stepCreate": "Opprett {{bin}}",
+    "stepPrintQr": "Skriv ut QR",
+    "styleApplied_one": "Stil brukt på {{count}} {{bin}}",
+    "styleApplied_other": "Stil brukt på {{count}} {{bins}}",
+    "styleCopied": "Stil kopiert",
+    "upgradeAiDescription": "AI-drevne kommandoer, analyse og forslag er tilgjengelig i Pro-abonnementet.",
+    "upgradeAiFeature": "AI-funksjoner"
+  },
+  "saveView": {
+    "namePlaceholder": "Navn på visning...",
+    "saved": "Visning lagret",
+    "title": "Lagre søk"
+  },
+  "searchBar": {
+    "allTags": "Alle stikkord",
+    "anyTag": "Hvilket som helst stikkord",
+    "ariaLabel": "Søk i {{bins}}",
+    "clearSearch": "Tøm søk",
+    "clearSearchAndFilters": "Tøm søk og filtre",
+    "filter": "Filter",
+    "filterBins": "Filtrer {{bins}}",
+    "placeholder": "Søk i {{bins}}...",
+    "removeAreaFilter": "Fjern områdefilter {{area}}",
+    "removeHasItemsFilter": "Fjern filteret «har gjenstander»",
+    "removeHasNotesFilter": "Fjern filteret «har notater»",
+    "removeNeedsOrganizingFilter": "Fjern filteret «trenger organisering»",
+    "removeTagFilter": "Fjern stikkordfilter {{tag}}"
+  },
+  "table": {
+    "name": "Navn"
+  },
+  "trash": {
+    "confirmMessage": "Er du sikker på at du vil slette <strong>«{{name}}»</strong> permanent?",
+    "confirmTitle": "Slett permanent",
+    "confirmWarning": "Denne handlingen kan ikke angres. Alle bilder blir også slettet.",
+    "deletedAgo": "Slettet {{time}}",
+    "deleteFailed": "Kunne ikke slette {{bin}}",
+    "deleteForever": "Slett for alltid",
+    "deleteForeverAria": "Slett {{name}} permanent",
+    "description_one": "Slettede {{bins}} beholdes i {{count}} dag før de fjernes permanent.",
+    "description_other": "Slettede {{bins}} beholdes i {{count}} dager før de fjernes permanent.",
+    "emptySubtitle": "Slettede {{bins}} vises her",
+    "emptyTitle": "Papirkurven er tom",
+    "permanentlyDeleted": "«{{name}}» er slettet permanent",
+    "restore": "Gjenopprett",
+    "restored": "«{{name}}» er gjenopprettet",
+    "restoreFailed": "Kunne ikke gjenopprette {{bin}}",
+    "title": "Papirkurv"
+  },
+  "viewMenu": {
+    "fields": "Felt",
+    "toggleFieldVisibility": "Vis eller skjul felt",
+    "view": "Visning",
+    "viewSettings": "Visningsinnstillinger",
+    "visibleFields": "Synlige felt"
+  },
+  "viewMode": {
+    "compact": "Kompakt",
+    "grid": "Rutenett",
+    "table": "Tabell"
+  }
+}

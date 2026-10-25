@@ -1,5 +1,6 @@
 import { SlidersHorizontal } from 'lucide-react';
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DismissibleBadge } from '@/components/ui/dismissible-badge';
@@ -20,7 +21,7 @@ interface BinSearchBarProps {
   activeCount: number;
   hasBadges: boolean;
   onOpenFilter: () => void;
-  t: Terminology;
+  term: Terminology;
 }
 
 export function BinSearchBar({
@@ -34,8 +35,9 @@ export function BinSearchBar({
   activeCount,
   hasBadges,
   onOpenFilter,
-  t,
+  term,
 }: BinSearchBarProps) {
+  const { t } = useTranslation('bins');
   const showClear = hasBadges || Boolean(search);
   return (
     <div className="flex items-center gap-2.5">
@@ -43,11 +45,11 @@ export function BinSearchBar({
         data-shortcut-search
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder={`Search ${t.bins}...`}
-        aria-label={`Search ${t.bins}`}
+        placeholder={t('searchBar.placeholder', { defaultValue: 'Search {{bins}}...', bins: term.bins })}
+        aria-label={t('searchBar.ariaLabel', { defaultValue: 'Search {{bins}}', bins: term.bins })}
         containerClassName="flex-1"
         onClear={showClear ? clearAll : undefined}
-        clearLabel={hasBadges ? 'Clear search and filters' : 'Clear search'}
+        clearLabel={hasBadges ? t('searchBar.clearSearchAndFilters', { defaultValue: 'Clear search and filters' }) : t('searchBar.clearSearch', { defaultValue: 'Clear search' })}
       >
         {hasBadges && (
           <div className="row-tight overflow-x-auto scrollbar-hide min-w-0 shrink">
@@ -55,7 +57,7 @@ export function BinSearchBar({
               <DismissibleBadge
                 key={`tag-${tag}`}
                 onDismiss={() => setFilters({ ...filters, tags: filters.tags.filter((t2) => t2 !== tag) })}
-                ariaLabel={`Remove tag filter ${tag}`}
+                ariaLabel={t('searchBar.removeTagFilter', { defaultValue: 'Remove tag filter {{tag}}', tag })}
                 style={getTagStyle(tag)}
               >
                 {tag}
@@ -63,46 +65,46 @@ export function BinSearchBar({
             ))}
             {filters.tags.length >= 2 && (
               <Badge variant="outline" className="py-0.5 shrink-0 text-[11px] text-[var(--text-tertiary)]">
-                {filters.tagMode === 'all' ? 'All tags' : 'Any tag'}
+                {filters.tagMode === 'all' ? t('searchBar.allTags', { defaultValue: 'All tags' }) : t('searchBar.anyTag', { defaultValue: 'Any tag' })}
               </Badge>
             )}
             {filters.areas.map((areaKey) => {
-              const areaName = areaKey === '__unassigned__' ? 'Unassigned' : areas.find((a) => a.id === areaKey)?.name ?? areaKey;
+              const areaName = areaKey === '__unassigned__' ? t('filters.unassigned', { defaultValue: 'Unassigned' }) : areas.find((a) => a.id === areaKey)?.name ?? areaKey;
               return (
                 <DismissibleBadge
                   key={`area-${areaKey}`}
                   onDismiss={() => setFilters({ ...filters, areas: filters.areas.filter((a) => a !== areaKey) })}
-                  ariaLabel={`Remove area filter ${areaName}`}
+                  ariaLabel={t('searchBar.removeAreaFilter', { defaultValue: 'Remove area filter {{area}}', area: areaName })}
                 >
                   {areaName}
                 </DismissibleBadge>
               );
             })}
             {filters.hasItems && (
-              <DismissibleBadge onDismiss={() => setFilters({ ...filters, hasItems: false })} ariaLabel="Remove has items filter">
-                Has items
+              <DismissibleBadge onDismiss={() => setFilters({ ...filters, hasItems: false })} ariaLabel={t('searchBar.removeHasItemsFilter', { defaultValue: 'Remove has items filter' })}>
+                {t('filters.hasItems', { defaultValue: 'Has items' })}
               </DismissibleBadge>
             )}
             {filters.hasNotes && (
-              <DismissibleBadge onDismiss={() => setFilters({ ...filters, hasNotes: false })} ariaLabel="Remove has notes filter">
-                Has notes
+              <DismissibleBadge onDismiss={() => setFilters({ ...filters, hasNotes: false })} ariaLabel={t('searchBar.removeHasNotesFilter', { defaultValue: 'Remove has notes filter' })}>
+                {t('filters.hasNotes', { defaultValue: 'Has notes' })}
               </DismissibleBadge>
             )}
             {filters.needsOrganizing && (
-              <DismissibleBadge onDismiss={() => setFilters({ ...filters, needsOrganizing: false })} ariaLabel="Remove needs organizing filter">
-                Needs organizing
+              <DismissibleBadge onDismiss={() => setFilters({ ...filters, needsOrganizing: false })} ariaLabel={t('searchBar.removeNeedsOrganizingFilter', { defaultValue: 'Remove needs organizing filter' })}>
+                {t('filters.needsOrganizing', { defaultValue: 'Needs organizing' })}
               </DismissibleBadge>
             )}
           </div>
         )}
       </SearchInput>
-      <Tooltip content="Filter" side="bottom">
+      <Tooltip content={t('searchBar.filter', { defaultValue: 'Filter' })} side="bottom">
         <Button
           variant="secondary"
           size="icon"
           onClick={onOpenFilter}
           className="shrink-0 relative rounded-[var(--radius-sm)]"
-          aria-label={`Filter ${t.bins}`}
+          aria-label={t('searchBar.filterBins', { defaultValue: 'Filter {{bins}}', bins: term.bins })}
         >
           <SlidersHorizontal className="h-4 w-4" />
           {activeCount > 0 && (

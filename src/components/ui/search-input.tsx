@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -14,7 +15,8 @@ interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
 }
 
 const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ containerClassName, className, children, onClear, clearLabel = 'Clear search', ...props }, ref) => {
+  ({ containerClassName, className, children, onClear, clearLabel, ...props }, ref) => {
+    const { t } = useTranslation('common');
     return (
       <div
         className={cn(
@@ -37,7 +39,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           <button
             type="button"
             onClick={onClear}
-            aria-label={clearLabel}
+            aria-label={clearLabel ?? t('search.clear', { defaultValue: 'Clear search' })}
             className="p-2 -mr-1 rounded-[var(--radius-lg)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-active)] shrink-0 flex items-center justify-center"
           >
             <X className="h-4 w-4" />

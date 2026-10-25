@@ -1,5 +1,6 @@
 import { AlertTriangle, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +24,8 @@ export function TrashPage() {
   const { showToast } = useToast();
   const { activeLocationId } = useAuth();
   const { isAdmin, isLoading: permissionsLoading } = usePermissions();
-  const t = useTerminology();
+  const { t } = useTranslation(['bins', 'common']);
+  const term = useTerminology();
   const { locations } = useLocationList();
   const [confirmDelete, setConfirmDelete] = useState<Bin | null>(null);
   const activeLoc = locations.find((l) => l.id === activeLocationId);
@@ -42,9 +44,9 @@ export function TrashPage() {
   async function handleRestore(bin: Bin) {
     try {
       await restoreBinFromTrash(bin.id);
-      showToast({ message: `"${bin.name}" restored`, variant: 'success' });
+      showToast({ message: t('trash.restored', { defaultValue: '"{{name}}" restored', name: bin.name }), variant: 'success' });
     } catch {
-      showToast({ message: `Failed to restore ${t.bin}`, variant: 'error' });
+      showToast({ message: t('trash.restoreFailed', { defaultValue: 'Failed to restore {{bin}}', bin: term.bin }), variant: 'error' });
     }
   }
 
@@ -53,9 +55,12 @@ export function TrashPage() {
     try {
       await permanentDeleteBin(confirmDelete.id);
       notifyBinsChanged();
-      showToast({ message: `"${confirmDelete.name}" permanently deleted`, variant: 'success' });
+      showToast({
+        message: t('trash.permanentlyDeleted', { defaultValue: '"{{name}}" permanently deleted', name: confirmDelete.name }),
+        variant: 'success',
+      });
     } catch {
-      showToast({ message: `Failed to delete ${t.bin}`, variant: 'error' });
+      showToast({ message: t('trash.deleteFailed', { defaultValue: 'Failed to delete {{bin}}', bin: term.bin }), variant: 'error' });
     } finally {
       setConfirmDelete(null);
     }
@@ -64,8 +69,13 @@ export function TrashPage() {
   return (
     <>
       <SettingsPageHeader
-        title="Trash"
-        description={`Deleted ${t.bins} are kept for ${retentionDays} day${retentionDays !== 1 ? 's' : ''} before being permanently removed.`}
+        title={t('trash.title', { defaultValue: 'Trash' })}
+        description={t('trash.description', {
+          count: retentionDays,
+          defaultValue_one: 'Deleted {{bins}} are kept for {{count}} day before being permanently removed.',
+          defaultValue_other: 'Deleted {{bins}} are kept for {{count}} days before being permanently removed.',
+          bins: term.bins,
+        })}
       />
 
       {isLoading ? (
@@ -90,8 +100,8 @@ export function TrashPage() {
       ) : bins.length === 0 ? (
         <EmptyState
           icon={Trash2}
-          title="Trash is empty"
-          subtitle={`Deleted ${t.bins} will appear here`}
+          title={t('trash.emptyTitle', { defaultValue: 'Trash is empty' })}
+          subtitle={t('trash.emptySubtitle', { defaultValue: 'Deleted {{bins}} will appear here', bins: term.bins })}
           variant="positive"
         />
       ) : (
@@ -105,9 +115,19 @@ export function TrashPage() {
                       {bin.name}
                     </p>
                     <p className="text-[12px] text-[var(--text-tertiary)]">
-                      Deleted {relativeTime(bin.deleted_at ?? bin.updated_at)}
-                      {bin.area_name ? ` · ${bin.area_name}` : ''}
-                      {Array.isArray(bin.items) && bin.items.length > 0 ? ` · ${bin.items.length} ${bin.items.length === 1 ? 'item' : 'items'}` : ''}
+                      {[
+                        t('trash.deletedAgo', { defaultValue: 'Deleted {{time}}', time: relativeTime(bin.deleted_at ?? bin.updated_at) }),
+                        bin.area_name || null,
+                        Array.isArray(bin.items) && bin.items.length > 0
+                          ? t('common:itemCount', {
+                              count: bin.items.length,
+                              defaultValue_one: '{{count}} item',
+                              defaultValue_other: '{{count}} items',
+                            })
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                     </p>
                   </div>
                   {isAdmin && (
@@ -119,13 +139,14 @@ export function TrashPage() {
                         className="h-8 px-2.5 text-[var(--accent)]"
                       >
                         <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                        Restore
+                        {t('trash.restore', { defaultValue: 'Restore' })}
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setConfirmDelete(bin)}
                         className="h-8 px-2.5 text-[var(--destructive)]"
+                        aria-label={t('trash.deleteForeverAria', { defaultValue: 'Permanently delete {{name}}', name: bin.name })}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -142,7 +163,7 @@ export function TrashPage() {
       <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Permanently Delete</DialogTitle>
+            <DialogTitle>{t('trash.confirmTitle', { defaultValue: 'Permanently Delete' })}</DialogTitle>
           </DialogHeader>
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 rounded-[var(--radius-xl)] bg-[var(--destructive-soft)] flex items-center justify-center shrink-0">
@@ -150,22 +171,28 @@ export function TrashPage() {
             </div>
             <div>
               <p className="text-[15px] text-[var(--text-primary)]">
-                Are you sure you want to permanently delete <strong>"{confirmDelete?.name}"</strong>?
+                <Trans
+                  t={t}
+                  i18nKey="trash.confirmMessage"
+                  defaults='Are you sure you want to permanently delete <strong>"{{name}}"</strong>?'
+                  values={{ name: confirmDelete?.name ?? '' }}
+                  components={{ strong: <strong /> }}
+                />
               </p>
               <p className="text-[13px] text-[var(--text-tertiary)] mt-1">
-                This action cannot be undone. All photos will also be deleted.
+                {t('trash.confirmWarning', { defaultValue: 'This action cannot be undone. All photos will also be deleted.' })}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmDelete(null)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button
               variant="destructive"
               onClick={handlePermanentDelete}
               >
-              Delete Forever
+              {t('trash.deleteForever', { defaultValue: 'Delete Forever' })}
             </Button>
           </DialogFooter>
         </DialogContent>

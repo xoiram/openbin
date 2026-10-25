@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { OptionGroup } from '@/components/ui/option-group';
@@ -11,13 +12,6 @@ import { buildAreaTree, flattenAreaTree } from '../areas/useAreas';
 import type { BinFilters, SortOption } from './useBins';
 import { countActiveFilters, EMPTY_FILTERS } from './useBins';
 
-const sortLabels: Record<SortOption, string> = {
-  updated: 'Updated',
-  created: 'Created',
-  name: 'Name',
-  area: 'Area',
-  last_used: 'Last used',
-};
 
 function SectionHeader({ label, count }: { label: string; count?: number }) {
   return (
@@ -91,6 +85,17 @@ export function BinFilterDialog({
   searchQuery,
   onSaveView,
 }: BinFilterDialogProps) {
+  const { t } = useTranslation('bins');
+  const sortOptions = useMemo<{ key: SortOption; label: string }[]>(
+    () => [
+      { key: 'updated', label: t('filters.sortUpdated', { defaultValue: 'Updated' }) },
+      { key: 'created', label: t('filters.sortCreated', { defaultValue: 'Created' }) },
+      { key: 'name', label: t('filters.sortName', { defaultValue: 'Name' }) },
+      { key: 'area', label: t('filters.sortArea', { defaultValue: 'Area' }) },
+      { key: 'last_used', label: t('filters.sortLastUsed', { defaultValue: 'Last used' }) },
+    ],
+    [t],
+  );
   const [draft, setDraft] = useState<BinFilters>(filters);
   const [tagsExpanded, setTagsExpanded] = useState(false);
   const getTagStyle = useTagStyle();
@@ -123,7 +128,7 @@ export function BinFilterDialog({
   function toggleTag(tag: string) {
     setDraft((d) => ({
       ...d,
-      tags: d.tags.includes(tag) ? d.tags.filter((t) => t !== tag) : [...d.tags, tag],
+      tags: d.tags.includes(tag) ? d.tags.filter((x) => x !== tag) : [...d.tags, tag],
     }));
   }
 
@@ -149,14 +154,14 @@ export function BinFilterDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Filter Bins</DialogTitle>
+          <DialogTitle>{t('filters.title', { defaultValue: 'Filter Bins' })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
           {/* Sort */}
           <div className="space-y-2.5">
             <div className="row-spread">
-              <SectionHeader label="Sort" />
+              <SectionHeader label={t('filters.sort', { defaultValue: 'Sort' })} />
               <button
                 type="button"
                 onClick={() => onSortDirChange(sortDir === 'asc' ? 'desc' : 'asc')}
@@ -166,11 +171,11 @@ export function BinFilterDialog({
                 )}
               >
                 {sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                {sortDir === 'asc' ? 'Asc' : 'Desc'}
+                {sortDir === 'asc' ? t('filters.asc', { defaultValue: 'Asc' }) : t('filters.desc', { defaultValue: 'Desc' })}
               </button>
             </div>
             <OptionGroup
-              options={(Object.keys(sortLabels) as SortOption[]).map((key) => ({ key, label: sortLabels[key] }))}
+              options={sortOptions}
               value={sort}
               onChange={onSortChange}
               size="sm"
@@ -180,12 +185,12 @@ export function BinFilterDialog({
           {/* Tags */}
           <div className="space-y-2.5">
             <div className="row-spread">
-              <SectionHeader label="Tags" count={draft.tags.length} />
+              <SectionHeader label={t('filters.tags', { defaultValue: 'Tags' })} count={draft.tags.length} />
               {draft.tags.length >= 2 && (
                 <OptionGroup
                   options={[
-                    { key: 'any' as const, label: 'Any' },
-                    { key: 'all' as const, label: 'All' },
+                    { key: 'any' as const, label: t('filters.tagModeAny', { defaultValue: 'Any' }) },
+                    { key: 'all' as const, label: t('filters.tagModeAll', { defaultValue: 'All' }) },
                   ]}
                   value={draft.tagMode}
                   onChange={(mode) => setDraft((d) => ({ ...d, tagMode: mode }))}
@@ -194,7 +199,7 @@ export function BinFilterDialog({
               )}
             </div>
             {availableTags.length === 0 ? (
-              <p className="text-[13px] text-[var(--text-tertiary)] italic">No tags in this location</p>
+              <p className="text-[13px] text-[var(--text-tertiary)] italic">{t('filters.noTags', { defaultValue: 'No tags in this location' })}</p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {(() => {
@@ -235,7 +240,9 @@ export function BinFilterDialog({
                           onClick={() => setTagsExpanded((v) => !v)}
                           className="inline-flex items-center px-2.5 py-1 text-[12px] font-medium text-[var(--accent)] hover:underline cursor-pointer"
                         >
-                          {tagsExpanded ? 'Show less' : `+${hiddenCount} more`}
+                          {tagsExpanded
+                            ? t('filters.showLess', { defaultValue: 'Show less' })
+                            : t('filters.showMore', { defaultValue: '+{{hidden}} more', hidden: hiddenCount })}
                         </button>
                       )}
                     </>
@@ -248,10 +255,10 @@ export function BinFilterDialog({
           {/* Area */}
           {areas.length > 0 && (
             <div className="space-y-2.5">
-              <SectionHeader label="Area" count={draft.areas.length} />
+              <SectionHeader label={t('filters.area', { defaultValue: 'Area' })} count={draft.areas.length} />
               <div className="flex flex-wrap gap-1">
                 <AreaPill
-                  name="Unassigned"
+                  name={t('filters.unassigned', { defaultValue: 'Unassigned' })}
                   selected={draft.areas.includes('__unassigned__')}
                   onToggle={() => toggleArea('__unassigned__')}
                 />
@@ -270,9 +277,9 @@ export function BinFilterDialog({
 
           {/* Usage — filter by last-used date */}
           <div className="space-y-2.5">
-            <SectionHeader label="Usage" count={draft.unusedSince ? 1 : 0} />
+            <SectionHeader label={t('filters.usage', { defaultValue: 'Usage' })} count={draft.unusedSince ? 1 : 0} />
             <div className="flex items-center gap-2">
-              <label htmlFor="unused-since-date" className="text-[13px] text-[var(--text-secondary)]">Unused since</label>
+              <label htmlFor="unused-since-date" className="text-[13px] text-[var(--text-secondary)]">{t('filters.unusedSince', { defaultValue: 'Unused since' })}</label>
               <input
                 id="unused-since-date"
                 type="date"
@@ -288,7 +295,7 @@ export function BinFilterDialog({
                   onClick={() => setDraft((d) => ({ ...d, unusedSince: undefined }))}
                   className="text-[12px] text-[var(--accent)] hover:underline"
                 >
-                  Clear
+                  {t('filters.clear', { defaultValue: 'Clear' })}
                 </button>
               )}
             </div>
@@ -300,7 +307,7 @@ export function BinFilterDialog({
           <div className="row-spread w-full">
             <div className="row">
               <Button variant="ghost" onClick={reset}>
-                Reset
+                {t('filters.reset', { defaultValue: 'Reset' })}
               </Button>
             </div>
             <div className="row">
@@ -309,11 +316,13 @@ export function BinFilterDialog({
                   variant="ghost"
                   onClick={() => { onSaveView(); onOpenChange(false); }}
                 >
-                  Save View
+                  {t('filters.saveView', { defaultValue: 'Save View' })}
                 </Button>
               )}
               <Button onClick={apply}>
-                {activeCount > 0 ? `Apply (${activeCount})` : 'Apply'}
+                {activeCount > 0
+                  ? t('filters.applyWithCount', { defaultValue: 'Apply ({{active}})', active: activeCount })
+                  : t('filters.apply', { defaultValue: 'Apply' })}
               </Button>
             </div>
           </div>
