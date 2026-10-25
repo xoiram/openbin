@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS bins (
   location_id   TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
   area_id       TEXT REFERENCES areas(id) ON DELETE SET NULL,
+  parent_bin_id TEXT REFERENCES bins(id) ON DELETE CASCADE,
   notes         TEXT NOT NULL DEFAULT '',
   tags          TEXT NOT NULL DEFAULT '[]',
   icon          TEXT NOT NULL DEFAULT '',
@@ -89,14 +90,17 @@ CREATE TABLE IF NOT EXISTS bins (
 );
 
 CREATE TABLE IF NOT EXISTS bin_items (
-  id         TEXT PRIMARY KEY,
-  bin_id     TEXT NOT NULL REFERENCES bins(id) ON DELETE CASCADE,
-  name       TEXT NOT NULL,
-  quantity   INTEGER DEFAULT NULL,
-  position   INTEGER NOT NULL DEFAULT 0,
-  deleted_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  id          TEXT PRIMARY KEY,
+  bin_id      TEXT REFERENCES bins(id) ON DELETE CASCADE,
+  area_id     TEXT REFERENCES areas(id) ON DELETE SET NULL,
+  location_id TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+  name        TEXT NOT NULL,
+  quantity    INTEGER DEFAULT NULL,
+  position    INTEGER NOT NULL DEFAULT 0,
+  deleted_at  TEXT,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  CHECK (bin_id IS NULL OR area_id IS NULL)
 );
 CREATE INDEX IF NOT EXISTS idx_bin_items_bin_id ON bin_items(bin_id, position);
 CREATE INDEX IF NOT EXISTS idx_bin_items_deleted_at ON bin_items(deleted_at);
@@ -104,13 +108,15 @@ CREATE INDEX IF NOT EXISTS idx_bin_items_deleted_at ON bin_items(deleted_at);
 CREATE TABLE IF NOT EXISTS item_checkouts (
   id              TEXT PRIMARY KEY,
   item_id         TEXT NOT NULL REFERENCES bin_items(id) ON DELETE CASCADE,
-  origin_bin_id   TEXT NOT NULL,
+  origin_bin_id   TEXT,
+  origin_area_id  TEXT,
   location_id     TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
   checked_out_by  TEXT NOT NULL REFERENCES users(id),
   checked_out_at  TEXT NOT NULL DEFAULT (datetime('now')),
   returned_at     TEXT,
   returned_by     TEXT REFERENCES users(id),
-  return_bin_id   TEXT
+  return_bin_id   TEXT,
+  return_area_id  TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_item_checkouts_active
   ON item_checkouts(location_id) WHERE returned_at IS NULL;
@@ -122,6 +128,7 @@ CREATE TABLE IF NOT EXISTS shopping_list_items (
   location_id     TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
   name            TEXT NOT NULL,
   origin_bin_id   TEXT REFERENCES bins(id) ON DELETE SET NULL,
+  origin_area_id  TEXT REFERENCES areas(id) ON DELETE SET NULL,
   created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
