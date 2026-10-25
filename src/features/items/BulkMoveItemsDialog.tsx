@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BinPickerList } from '@/components/ui/bin-picker-list';
 import { useBinList } from '@/features/bins/useBins';
 import { BulkUpdateDialog } from '@/lib/bulk/BulkUpdateDialog';
-import { pluralize } from '@/lib/utils';
+import { useTerminology } from '@/lib/terminology';
 
 interface BulkMoveItemsDialogProps {
   open: boolean;
@@ -12,6 +13,8 @@ interface BulkMoveItemsDialogProps {
 }
 
 export function BulkMoveItemsDialog({ open, onOpenChange, selectedIds, onApply }: BulkMoveItemsDialogProps) {
+  const { t } = useTranslation('items');
+  const term = useTerminology();
   const [search, setSearch] = useState('');
   const [targetId, setTargetId] = useState<string | null>(null);
   const { bins } = useBinList(undefined, 'name', undefined, !open);
@@ -27,16 +30,23 @@ export function BulkMoveItemsDialog({ open, onOpenChange, selectedIds, onApply }
         }
         onOpenChange(v);
       }}
-      title={`Move ${pluralize(selectedIds.length, 'item')}`}
-      description="Select a bin to move the items into."
+      title={t('bulkMove.title', {
+        count: selectedIds.length,
+        defaultValue_one: 'Move {{count}} item',
+        defaultValue_other: 'Move {{count}} items',
+      })}
+      description={t('bulkMove.description', {
+        defaultValue: 'Select a {{bin}} to move the items into.',
+        bin: term.bin,
+      })}
       selectedIds={selectedIds}
       onApply={async (ids) => {
         if (!targetId) return;
         await onApply(ids, targetId, targetName);
       }}
       applyDisabled={!targetId}
-      applyLabel="Move"
-      loadingLabel="Moving…"
+      applyLabel={t('bulkMove.submit', { defaultValue: 'Move' })}
+      loadingLabel={t('bulkMove.submitting', { defaultValue: 'Moving…' })}
     >
       <BinPickerList
         selectedBinId={targetId}

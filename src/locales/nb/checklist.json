@@ -1,0 +1,30 @@
+{
+  "title": "Kom i gang",
+  "progress": "{{completed}} av {{total}}",
+  "dismiss": "Lukk sjekklisten",
+  "actions": {
+    "takePhoto": "Ta et bilde",
+    "addManually": "Legg til manuelt",
+    "addAnother": "Legg til en til",
+    "tryIt": "Prøv det",
+    "openPrint": "Åpne utskrift"
+  },
+  "steps": {
+    "createBin": {
+      "title": "Legg til din første {{bin}}",
+      "description": "Ta et bilde og la AI fylle ut resten"
+    },
+    "addThreeBins": {
+      "title": "Bygg ut hylla di",
+      "description": "Nå 3 {{bins}}, så har AI-søket noe å jobbe med"
+    },
+    "askAi": {
+      "title": "Be AI finne noe",
+      "description": "Skriv et spørsmål — AI sjekker hver {{bin}}"
+    },
+    "printLabel": {
+      "title": "Skriv ut din første etikett",
+      "description": "Et QR-klistremerke gjør hver {{bin}} til en snarvei du åpner med ett trykk"
+    }
+  }
+}

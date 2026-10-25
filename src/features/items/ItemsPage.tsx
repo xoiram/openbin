@@ -1,5 +1,6 @@
 import { ArrowRightLeft, ClipboardList, Hash, PackageOpen, Sparkles, Trash2 } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crossfade } from '@/components/ui/crossfade';
@@ -35,7 +36,8 @@ const BulkQuantityDialog = lazy(() =>
 );
 
 export function ItemsPage() {
-  const t = useTerminology();
+  const { t } = useTranslation(['items', 'common']);
+  const term = useTerminology();
   const { search, sortColumn, sortDirection, setSearch, setSort } = useTableSearchParams<ItemSortColumn>('alpha');
   const debouncedSearch = useDebounce(search, 300);
   const { items, totalCount, isLoading, isLoadingMore, hasMore, loadMore } = usePaginatedItemList(
@@ -61,22 +63,22 @@ export function ItemsPage() {
   const ids = [...selectedIds];
 
   const actions: BulkAction[] = [
-    { id: 'delete', icon: Trash2, label: 'Delete', onClick: () => setOpenDialog('delete'), group: 'primary', danger: true },
-    { id: 'checkout', icon: Sparkles, label: 'Checkout', onClick: () => setOpenDialog('checkout'), group: 'primary' },
-    { id: 'move', icon: ArrowRightLeft, label: 'Move', onClick: () => setOpenDialog('move'), group: 'more' },
-    { id: 'quantity', icon: Hash, label: 'Set quantity', onClick: () => setOpenDialog('quantity'), group: 'more' },
+    { id: 'delete', icon: Trash2, label: t('common:actions.delete', { defaultValue: 'Delete' }), onClick: () => setOpenDialog('delete'), group: 'primary', danger: true },
+    { id: 'checkout', icon: Sparkles, label: t('page.bulk.checkout', { defaultValue: 'Checkout' }), onClick: () => setOpenDialog('checkout'), group: 'primary' },
+    { id: 'move', icon: ArrowRightLeft, label: t('page.bulk.move', { defaultValue: 'Move' }), onClick: () => setOpenDialog('move'), group: 'more' },
+    { id: 'quantity', icon: Hash, label: t('page.bulk.setQuantity', { defaultValue: 'Set quantity' }), onClick: () => setOpenDialog('quantity'), group: 'more' },
   ];
 
   return (
     <div className="page-content-wide">
-      <PageHeader title="Items" />
+      <PageHeader title={t('page.title', { defaultValue: 'Items' })} />
 
       {(totalCount > 0 || search) && (
         <SearchInput
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={search ? () => setSearch('') : undefined}
-          placeholder="Search items..."
+          placeholder={t('page.searchPlaceholder', { defaultValue: 'Search items...' })}
         />
       )}
 
@@ -110,13 +112,19 @@ export function ItemsPage() {
         {items.length === 0 ? (
           <EmptyState
             icon={search ? ClipboardList : PackageOpen}
-            title={search ? 'No items match your search' : 'No items yet'}
-            subtitle={search ? 'Try a different search term' : `Items added to ${t.bins} will appear here`}
+            title={search
+              ? t('page.empty.noMatchesTitle', { defaultValue: 'No items match your search' })
+              : t('page.empty.title', { defaultValue: 'No items yet' })}
+            subtitle={search
+              ? t('page.empty.noMatchesSubtitle', { defaultValue: 'Try a different search term' })
+              : t('page.empty.subtitle', { defaultValue: 'Items added to {{bins}} will appear here', bins: term.bins })}
             variant={search ? 'search' : undefined}
           >
             {!search && (
               <Link to="/bins">
-                <Button variant="secondary" size="sm">Browse {t.bins}</Button>
+                <Button variant="secondary" size="sm">
+                  {t('page.empty.browse', { defaultValue: 'Browse {{bins}}', bins: term.bins })}
+                </Button>
               </Link>
             )}
           </EmptyState>
@@ -145,7 +153,11 @@ export function ItemsPage() {
           onClear={clearSelection}
           isBusy={isBusy}
           actions={actions}
-          selectionLabel={`${selectedIds.size} item${selectedIds.size === 1 ? '' : 's'} selected`}
+          selectionLabel={t('page.selectionLabel', {
+            count: selectedIds.size,
+            defaultValue_one: '{{count}} item selected',
+            defaultValue_other: '{{count}} items selected',
+          })}
         />
       )}
 
