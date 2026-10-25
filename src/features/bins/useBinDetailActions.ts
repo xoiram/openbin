@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/toast';
 import { useAiSettings } from '@/features/ai/useAiSettings';
@@ -22,15 +23,16 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
   const { activeLocationId } = useAuth();
   const { isAdmin, canWrite, canChangeVisibility, canDeleteBin, canPin } = usePermissions();
   const { aiEnabled, aiGated } = useAiEnabled();
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
 
   const { locations } = useLocationList();
   const otherLocations = locations.filter((l) => l.id !== bin?.location_id);
 
   const { photos } = usePhotos(id);
   const { settings: aiSettings } = useAiSettings();
-  const analyze = useAiStream<AiSuggestions>('/api/ai/analyze/stream', "Couldn't analyze the photo — try again");
-  const reanalyze = useAiStream<AiSuggestions>('/api/ai/reanalyze/stream', "Couldn't reanalyze the photo — try again");
+  const analyze = useAiStream<AiSuggestions>('/api/ai/analyze/stream', t('detailActions.analyzeFailed', { defaultValue: "Couldn't analyze the photo — try again" }));
+  const reanalyze = useAiStream<AiSuggestions>('/api/ai/reanalyze/stream', t('detailActions.reanalyzeFailed', { defaultValue: "Couldn't reanalyze the photo — try again" }));
   const suggestions = analyze.result ?? reanalyze.result;
   const isAnalyzing = analyze.isStreaming || reanalyze.isStreaming;
   const aiError = analyze.error ?? reanalyze.error;
@@ -66,15 +68,15 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
       await deleteBin(id);
       navigate('/bins');
       showToast({
-        message: `Deleted "${snapshot.name}"`,
+        message: t('detailActions.deleted', { defaultValue: 'Deleted "{{name}}"', name: snapshot.name }),
         duration: 8000,
         action: {
-          label: 'Undo',
+          label: t('detailActions.undo', { defaultValue: 'Undo' }),
           onClick: () => restoreBin(snapshot),
         },
       });
     } catch {
-      showToast({ message: 'Failed to delete' });
+      showToast({ message: t('detailActions.deleteFailed', { defaultValue: 'Failed to delete' }) });
     }
   }
 
@@ -87,16 +89,16 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
       setMoveOpen(false);
       navigate('/bins');
       showToast({
-        message: `Moved to ${targetLoc?.name ?? t.location}`,
+        message: t('detailActions.moved', { defaultValue: 'Moved to {{location}}', location: targetLoc?.name ?? term.location }),
         action: {
-          label: 'Undo',
+          label: t('detailActions.undo', { defaultValue: 'Undo' }),
           onClick: async () => {
             await moveBin(id, originalLocationId);
           },
         },
       });
     } catch {
-      showToast({ message: 'Failed to move' });
+      showToast({ message: t('detailActions.moveFailed', { defaultValue: 'Failed to move' }) });
     }
   }
 
@@ -126,9 +128,9 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
       await updateBin(id, changes);
       if (suggestions) setLastSuggestions(suggestions);
       clearSuggestions();
-      showToast({ message: 'Applied AI suggestions' });
+      showToast({ message: t('detailActions.suggestionsApplied', { defaultValue: 'Applied AI suggestions' }) });
     } catch {
-      showToast({ message: 'Failed to apply suggestions' });
+      showToast({ message: t('detailActions.suggestionsFailed', { defaultValue: 'Failed to apply suggestions' }) });
     }
   }
 
@@ -149,9 +151,13 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
         customFields: bin.custom_fields ? { ...bin.custom_fields } : undefined,
       });
       navigate(`/bin/${newBin.id}`);
-      showToast({ message: photos.length > 0 ? `Duplicated "${bin.name}" (photos not copied)` : `Duplicated "${bin.name}"` });
+      showToast({
+        message: photos.length > 0
+          ? t('detailActions.duplicatedNoPhotos', { defaultValue: 'Duplicated "{{name}}" (photos not copied)', name: bin.name })
+          : t('detailActions.duplicated', { defaultValue: 'Duplicated "{{name}}"', name: bin.name }),
+      });
     } catch {
-      showToast({ message: 'Failed to duplicate' });
+      showToast({ message: t('detailActions.duplicateFailed', { defaultValue: 'Failed to duplicate' }) });
     }
   }
 
@@ -160,13 +166,13 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
     try {
       if (bin.is_pinned) {
         await unpinBin(bin.id);
-        showToast({ message: 'Unpinned' });
+        showToast({ message: t('detailActions.unpinned', { defaultValue: 'Unpinned' }) });
       } else {
         await pinBin(bin.id);
-        showToast({ message: 'Pinned' });
+        showToast({ message: t('detailActions.pinned', { defaultValue: 'Pinned' }) });
       }
     } catch {
-      showToast({ message: 'Failed to update pin' });
+      showToast({ message: t('detailActions.pinFailed', { defaultValue: 'Failed to update pin' }) });
     }
   }
 

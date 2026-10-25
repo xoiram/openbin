@@ -1,5 +1,6 @@
 import { Check, Mic, Square } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LabelThreshold } from '@/components/ui/ai-progress-bar';
 import { AiProgressBar } from '@/components/ui/ai-progress-bar';
 import { Button } from '@/components/ui/button';
@@ -12,23 +13,29 @@ import { cn, formatElapsed } from '@/lib/utils';
 // gesture, so the entry-point tooltip surfaces 2.
 const DICTATION_COST = 2;
 
-const TRANSCRIBE_LABELS: LabelThreshold[] = [
-  [0, 'Sending audio...'],
-  [30, 'Transcribing...'],
-  [70, 'Almost done...'],
-];
-
-const STRUCTURE_LABELS: LabelThreshold[] = [
-  [0, 'Parsing items...'],
-  [30, 'Extracting items...'],
-  [70, 'Almost done...'],
-];
 
 interface DictationButtonProps {
   dictation: ReturnType<typeof useDictation>;
 }
 
 export function DictationButton({ dictation }: DictationButtonProps) {
+  const { t } = useTranslation(['bins', 'common']);
+  const transcribeLabels = useMemo<LabelThreshold[]>(
+    () => [
+      [0, t('dictation.sendingAudio', { defaultValue: 'Sending audio...' })],
+      [30, t('dictation.transcribing', { defaultValue: 'Transcribing...' })],
+      [70, t('dictation.almostDone', { defaultValue: 'Almost done...' })],
+    ],
+    [t],
+  );
+  const structureLabels = useMemo<LabelThreshold[]>(
+    () => [
+      [0, t('dictation.parsingItems', { defaultValue: 'Parsing items...' })],
+      [30, t('dictation.extractingItems', { defaultValue: 'Extracting items...' })],
+      [70, t('dictation.almostDone', { defaultValue: 'Almost done...' })],
+    ],
+    [t],
+  );
   const {
     state,
     transcript,
@@ -76,7 +83,7 @@ export function DictationButton({ dictation }: DictationButtonProps) {
   }
 
   const elapsed = formatElapsed(duration);
-  const { label: dictateLabel } = useCreditCostLabel('Dictate items', DICTATION_COST);
+  const { label: dictateLabel } = useCreditCostLabel(t('dictation.dictateItems', { defaultValue: 'Dictate items' }), DICTATION_COST);
 
   if (state === 'idle') {
     return (
@@ -95,14 +102,14 @@ export function DictationButton({ dictation }: DictationButtonProps) {
 
   if (state === 'recording') {
     return (
-      <output className="shrink-0 flex items-center gap-1.5" aria-label={`Recording: ${elapsed}`}>
+      <output className="shrink-0 flex items-center gap-1.5" aria-label={t('dictation.recording', { defaultValue: 'Recording: {{elapsed}}', elapsed })}>
         <span className="text-[11px] text-[var(--text-tertiary)] tabular-nums">{elapsed}</span>
-        <Tooltip content="Stop recording">
+        <Tooltip content={t('dictation.stopRecording', { defaultValue: 'Stop recording' })}>
           <button
             type="button"
             onClick={stop}
             className="relative flex items-center justify-center size-11 rounded-full bg-[var(--destructive)] text-[var(--text-on-accent)] hover:bg-[var(--destructive-hover)] active:bg-[var(--destructive-active)] transition-colors"
-            aria-label="Stop recording"
+            aria-label={t('dictation.stopRecording', { defaultValue: 'Stop recording' })}
           >
             <span className="absolute inset-[-3px] rounded-full bg-[var(--destructive)]/25 animate-pulse motion-reduce:animate-none" />
             <Square className="h-3.5 w-3.5 fill-current" />
@@ -114,8 +121,8 @@ export function DictationButton({ dictation }: DictationButtonProps) {
 
   if (state === 'transcribing') {
     return (
-      <output className="w-full" aria-live="polite" aria-label="Transcribing audio">
-        <AiProgressBar active compact labels={TRANSCRIBE_LABELS} />
+      <output className="w-full" aria-live="polite" aria-label={t('dictation.transcribingAudio', { defaultValue: 'Transcribing audio' })}>
+        <AiProgressBar active compact labels={transcribeLabels} />
       </output>
     );
   }
@@ -126,7 +133,7 @@ export function DictationButton({ dictation }: DictationButtonProps) {
         <div className="rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-3">
           <div className="flex items-center gap-2 mb-1.5">
             <Check className="h-3.5 w-3.5 text-emerald-500" />
-            <span className="text-xs font-medium text-emerald-500">Heard:</span>
+            <span className="text-xs font-medium text-emerald-500">{t('dictation.heard', { defaultValue: 'Heard:' })}</span>
             <div className="flex-1" />
             {!editing && (
               <button
@@ -134,7 +141,7 @@ export function DictationButton({ dictation }: DictationButtonProps) {
                 onClick={handleEditClick}
                 className="text-[11px] text-[var(--text-quaternary)] underline hover:text-[var(--text-tertiary)]"
               >
-                edit
+                {t('dictation.edit', { defaultValue: 'edit' })}
               </button>
             )}
           </div>
@@ -153,7 +160,7 @@ export function DictationButton({ dictation }: DictationButtonProps) {
                   onClick={cancel}
                   className="text-[13px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                 >
-                  Cancel
+                  {t('common:actions.cancel', { defaultValue: 'Cancel' })}
                 </button>
                 <Button
                   type="button"
@@ -164,13 +171,13 @@ export function DictationButton({ dictation }: DictationButtonProps) {
                   }}
                   disabled={!transcript?.trim()}
                 >
-                  Use this
+                  {t('dictation.useThis', { defaultValue: 'Use this' })}
                 </Button>
               </div>
             </div>
           ) : (
             <p className="text-sm text-[var(--text-secondary)] italic">
-              &ldquo;{transcript}&rdquo;
+              {t('dictation.transcriptQuote', { defaultValue: '“{{transcript}}”', transcript: transcript ?? '' })}
             </p>
           )}
         </div>
@@ -179,7 +186,7 @@ export function DictationButton({ dictation }: DictationButtonProps) {
             <div className="flex-1 h-0.5 rounded-full bg-[var(--border-subtle)] overflow-hidden">
               <div className="h-full bg-[var(--accent)] rounded-full animate-[dictation-progress_1.5s_linear]" />
             </div>
-            <span className="text-[11px] text-[var(--text-quaternary)]">Parsing items...</span>
+            <span className="text-[11px] text-[var(--text-quaternary)]">{t('dictation.parsingItems', { defaultValue: 'Parsing items...' })}</span>
           </div>
         )}
       </output>
@@ -188,8 +195,8 @@ export function DictationButton({ dictation }: DictationButtonProps) {
 
   if (state === 'structuring') {
     return (
-      <output className="w-full" aria-live="polite" aria-label="Parsing items">
-        <AiProgressBar active compact labels={STRUCTURE_LABELS} />
+      <output className="w-full" aria-live="polite" aria-label={t('dictation.parsingItemsAria', { defaultValue: 'Parsing items' })}>
+        <AiProgressBar active compact labels={structureLabels} />
       </output>
     );
   }
@@ -199,7 +206,11 @@ export function DictationButton({ dictation }: DictationButtonProps) {
     return (
       <output className="w-full space-y-2" aria-live="polite">
         <div className="text-xs text-[var(--text-quaternary)]">
-          {structuredItems.length} item{structuredItems.length !== 1 ? 's' : ''} parsed from dictation
+          {t('dictation.parsedCount', {
+            count: structuredItems.length,
+            defaultValue_one: '{{count}} item parsed from dictation',
+            defaultValue_other: '{{count}} items parsed from dictation',
+          })}
         </div>
         <div className="flex flex-wrap gap-1.5">
           {structuredItems.map((item, i) => (
@@ -221,11 +232,11 @@ export function DictationButton({ dictation }: DictationButtonProps) {
         </div>
         <div className="row pt-1">
           <Button type="button" variant="ghost" size="sm" onClick={cancel} className="gap-0.5">
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <div className="flex-1" />
           <Button type="button" size="sm" onClick={handleConfirm} disabled={selectedCount === 0}>
-            Add {selectedCount}
+            {t('dictation.addCount', { defaultValue: 'Add {{selected}}', selected: selectedCount })}
           </Button>
         </div>
       </output>

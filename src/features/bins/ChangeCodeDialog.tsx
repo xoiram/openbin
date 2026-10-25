@@ -1,10 +1,12 @@
 import { AlertTriangle, Loader2, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { BIN_CODE_REGEX } from '@/lib/qr';
+import { useTerminology } from '@/lib/terminology';
 import { changeCode, lookupBinByCodeSafe } from './useBins';
 
 interface ChangeCodeDialogProps {
@@ -16,6 +18,8 @@ interface ChangeCodeDialogProps {
 type Step = 'input' | 'confirm' | 'submitting';
 
 export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeDialogProps) {
+  const { t } = useTranslation(['bins', 'common']);
+  const term = useTerminology();
   const { showToast } = useToast();
 
   const [step, setStep] = useState<Step>('input');
@@ -46,7 +50,7 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
       const result = await lookupBinByCodeSafe(code);
 
       if (result.status === 'found') {
-        setError('Code already in use.');
+        setError(t('changeCode.codeInUse', { defaultValue: 'Code already in use.' }));
         setLookingUp(false);
         return;
       }
@@ -54,7 +58,7 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
       setConfirmedCode(code);
       setStep('confirm');
     } catch {
-      setError('Failed to look up code. Please try again.');
+      setError(t('changeCode.lookupFailed', { defaultValue: 'Failed to look up code. Please try again.' }));
     } finally {
       setLookingUp(false);
     }
@@ -68,9 +72,9 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
       const result = await changeCode(currentBin.id, confirmedCode);
 
       onOpenChange(false);
-      showToast({ message: `Code changed to ${result.short_code}` });
+      showToast({ message: t('changeCode.changed', { defaultValue: 'Code changed to {{code}}', code: result.short_code }) });
     } catch {
-      setError('Failed to change code. Please try again.');
+      setError(t('changeCode.changeFailed', { defaultValue: 'Failed to change code. Please try again.' }));
       setStep('confirm');
     }
   }
@@ -84,8 +88,8 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Change Code</DialogTitle>
-          <DialogDescription>Enter the new short code for this bin.</DialogDescription>
+          <DialogTitle>{t('changeCode.title', { defaultValue: 'Change Code' })}</DialogTitle>
+          <DialogDescription>{t('changeCode.description', { defaultValue: 'Enter the new short code for this {{bin}}.', bin: term.bin })}</DialogDescription>
         </DialogHeader>
 
         {step === 'input' && (
@@ -96,9 +100,13 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
             >
               <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
               <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
-                Changing the code will invalidate any printed QR labels pointing to{' '}
-                <span className="font-mono font-semibold text-[var(--text-primary)]">{currentBin.short_code}</span>
-                . You&apos;ll need to reprint labels before they scan to this bin again.
+                <Trans
+                  t={t}
+                  i18nKey="changeCode.warning"
+                  defaults="Changing the code will invalidate any printed QR labels pointing to <code>{{code}}</code>. You'll need to reprint labels before they scan to this {{bin}} again."
+                  values={{ code: currentBin.short_code, bin: term.bin }}
+                  components={{ code: <span className="font-mono font-semibold text-[var(--text-primary)]" /> }}
+                />
               </p>
             </div>
             <div>
@@ -115,7 +123,7 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
                       handleLookup();
                     }
                   }}
-                  placeholder="Enter code..."
+                  placeholder={t('changeCode.placeholder', { defaultValue: 'Enter code...' })}
                   maxLength={6}
                   disabled={lookingUp}
                   className="flex-1 font-mono uppercase tracking-widest"
@@ -130,13 +138,13 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
                   ) : (
                     <>
                       <Search className="h-4 w-4 mr-1.5" />
-                      Look Up
+                      {t('changeCode.lookUp', { defaultValue: 'Look Up' })}
                     </>
                   )}
                 </Button>
               </div>
               {code && code === currentBin.short_code && (
-                <p className="mt-2 text-[13px] text-[var(--destructive)]">This is already this bin&apos;s code.</p>
+                <p className="mt-2 text-[13px] text-[var(--destructive)]">{t('changeCode.sameCode', { defaultValue: "This is already this {{bin}}'s code.", bin: term.bin })}</p>
               )}
               {error && (
                 <p className="mt-2 text-[13px] text-[var(--destructive)]">{error}</p>
@@ -148,7 +156,13 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
         {step === 'confirm' && confirmedCode && (
           <div className="py-4 space-y-3">
             <p className="text-sm text-[var(--text-primary)]">
-              Change this bin&apos;s code from <span className="font-mono">{currentBin.short_code}</span> to <span className="font-mono font-semibold">{confirmedCode}</span>?
+              <Trans
+                t={t}
+                i18nKey="changeCode.confirm"
+                defaults="Change this {{bin}}'s code from <from>{{oldCode}}</from> to <to>{{newCode}}</to>?"
+                values={{ bin: term.bin, oldCode: currentBin.short_code, newCode: confirmedCode }}
+                components={{ from: <span className="font-mono" />, to: <span className="font-mono font-semibold" /> }}
+              />
             </p>
             {error && (
               <p className="text-[13px] text-[var(--destructive)]">{error}</p>
@@ -165,12 +179,12 @@ export function ChangeCodeDialog({ open, onOpenChange, currentBin }: ChangeCodeD
         {step !== 'submitting' && (
           <DialogFooter>
             {step === 'input' && (
-              <Button variant="ghost" onClick={() => handleOpenChange(false)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => handleOpenChange(false)}>{t('common:actions.cancel', { defaultValue: 'Cancel' })}</Button>
             )}
             {step === 'confirm' && (
               <>
-                <Button variant="ghost" onClick={() => { setStep('input'); setError(''); }}>Back</Button>
-                <Button onClick={handleConfirm}>Change Code</Button>
+                <Button variant="ghost" onClick={() => { setStep('input'); setError(''); }}>{t('changeCode.back', { defaultValue: 'Back' })}</Button>
+                <Button onClick={handleConfirm}>{t('changeCode.title', { defaultValue: 'Change Code' })}</Button>
               </>
             )}
           </DialogFooter>

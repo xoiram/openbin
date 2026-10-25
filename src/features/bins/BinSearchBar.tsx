@@ -74,7 +74,7 @@ export function BinSearchBar({
                 <DismissibleBadge
                   key={`area-${areaKey}`}
                   onDismiss={() => setFilters({ ...filters, areas: filters.areas.filter((a) => a !== areaKey) })}
-                  ariaLabel={t('searchBar.removeAreaFilter', { defaultValue: 'Remove area filter {{area}}', area: areaName })}
+                  ariaLabel={t('searchBar.removeAreaFilter', { defaultValue: 'Remove {{areaTerm}} filter {{area}}', areaTerm: term.area, area: areaName })}
                 >
                   {areaName}
                 </DismissibleBadge>

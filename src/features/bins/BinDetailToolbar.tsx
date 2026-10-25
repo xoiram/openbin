@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { ArrowRightLeft, ChevronLeft, ChevronRight, Copy, Loader2, Lock, MoreHorizontal, Palette, Pin, Printer, Share2, Sparkles, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useCreditCostLabel, visionWeight } from '@/lib/aiCreditCost';
@@ -67,13 +68,16 @@ export function BinDetailToolbar({
   onSaveName,
   nameSaved,
 }: BinDetailToolbarProps) {
-  const t = useTerminology();
+  const { t } = useTranslation(['bins', 'common']);
+  const term = useTerminology();
   const { visible, animating, close, toggle } = usePopover();
   const wrapperRef = useRef<HTMLDivElement>(null);
   useClickOutside(wrapperRef, close);
   const { menuRef, onKeyDown: menuKeyDown } = useMenuKeyboard(visible, close);
   const aiCost = visionWeight(analyzePhotoCount);
-  const aiBaseLabel = isReanalysis ? 'Reanalyze with AI' : 'Analyze with AI';
+  const aiBaseLabel = isReanalysis
+    ? t('detailToolbar.reanalyzeWithAi', { defaultValue: 'Reanalyze with AI' })
+    : t('detailToolbar.analyzeWithAi', { defaultValue: 'Analyze with AI' });
   const { label: aiTipLabel, compactSuffix: aiMobileSuffix } = useCreditCostLabel(aiBaseLabel, aiCost);
 
   const [editingName, setEditingName] = useState(false);
@@ -113,13 +117,13 @@ export function BinDetailToolbar({
       {/* Desktop: nav arrows */}
       {hasBinListContext && (
         <div className="hidden lg:flex gap-1.5 shrink-0">
-          <Tooltip content="Previous" side="bottom">
-            <Button variant="ghost" size="icon" onClick={onPrev ?? undefined} disabled={!onPrev} aria-label="Previous bin">
+          <Tooltip content={t('detailToolbar.previous', { defaultValue: 'Previous' })} side="bottom">
+            <Button variant="ghost" size="icon" onClick={onPrev ?? undefined} disabled={!onPrev} aria-label={t('detailToolbar.previousBin', { defaultValue: 'Previous {{bin}}', bin: term.bin })}>
               <ChevronLeft className="h-[18px] w-[18px]" />
             </Button>
           </Tooltip>
-          <Tooltip content="Next" side="bottom">
-            <Button variant="ghost" size="icon" onClick={onNext ?? undefined} disabled={!onNext} aria-label="Next bin">
+          <Tooltip content={t('detailToolbar.next', { defaultValue: 'Next' })} side="bottom">
+            <Button variant="ghost" size="icon" onClick={onNext ?? undefined} disabled={!onNext} aria-label={t('detailToolbar.nextBin', { defaultValue: 'Next {{bin}}', bin: term.bin })}>
               <ChevronRight className="h-[18px] w-[18px]" />
             </Button>
           </Tooltip>
@@ -137,9 +141,9 @@ export function BinDetailToolbar({
               if (e.key === 'Enter') { e.preventDefault(); commitName(); }
               if (e.key === 'Escape') { e.preventDefault(); setNameValue(bin.name); setEditingName(false); }
             }}
-            aria-label="Bin name"
+            aria-label={t('detailToolbar.binName', { defaultValue: '{{bin}} name', bin: term.Bin })}
             className="w-full bg-transparent text-[17px] font-semibold text-[var(--text-primary)] leading-tight border-b border-b-[var(--accent)] outline-none focus-visible:border-b-2 placeholder:text-[var(--text-tertiary)] p-0"
-            placeholder="Name..."
+            placeholder={t('detailToolbar.namePlaceholder', { defaultValue: 'Name...' })}
           />
         ) : (
           <h1 className={cn('m-0 min-w-0 text-[17px] font-semibold leading-tight', nameSaved && 'animate-save-flash')}>
@@ -149,7 +153,7 @@ export function BinDetailToolbar({
                   <BinIcon className="hidden lg:block h-5 w-5 text-[var(--text-secondary)] shrink-0" />
                   <span className="text-[17px] text-[var(--text-primary)] truncate">{bin.name}</span>
                   {bin.visibility === 'private' && (
-                    <Lock className="h-3.5 w-3.5 text-[var(--text-tertiary)] shrink-0" aria-label="Private" />
+                    <Lock className="h-3.5 w-3.5 text-[var(--text-tertiary)] shrink-0" aria-label={t('detailToolbar.private', { defaultValue: 'Private' })} />
                   )}
                 </>
               );
@@ -161,7 +165,7 @@ export function BinDetailToolbar({
                     'row-tight min-w-0 w-full cursor-text text-left bg-transparent outline-none rounded-[var(--radius-xs)] font-semibold',
                     focusRing,
                   )}
-                  aria-label={`Edit name: ${bin.name}`}
+                  aria-label={t('detailToolbar.editName', { defaultValue: 'Edit name: {{name}}', name: bin.name })}
                 >
                   {inner}
                 </button>
@@ -184,15 +188,22 @@ export function BinDetailToolbar({
             </Tooltip>
           )}
           {canPin && (
-            <Tooltip content={bin.is_pinned ? 'Unpin' : 'Pin'} side="bottom">
-              <Button variant="ghost" size="icon" onClick={onTogglePin} aria-label={bin.is_pinned ? `Unpin ${t.bin}` : `Pin ${t.bin}`}>
+            <Tooltip content={bin.is_pinned ? t('detailToolbar.unpin', { defaultValue: 'Unpin' }) : t('detailToolbar.pin', { defaultValue: 'Pin' })} side="bottom">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onTogglePin}
+                aria-label={bin.is_pinned
+                  ? t('detailToolbar.unpinBin', { defaultValue: 'Unpin {{bin}}', bin: term.bin })
+                  : t('detailToolbar.pinBin', { defaultValue: 'Pin {{bin}}', bin: term.bin })}
+              >
                 <Pin className="h-[18px] w-[18px]" fill={bin.is_pinned ? 'currentColor' : 'none'} />
               </Button>
             </Tooltip>
           )}
           {canEdit && (
-            <Tooltip content="Customize appearance" side="bottom">
-              <Button variant="ghost" size="icon" onClick={onCustomize} aria-label="Customize appearance">
+            <Tooltip content={t('detailToolbar.customizeAppearance', { defaultValue: 'Customize appearance' })} side="bottom">
+              <Button variant="ghost" size="icon" onClick={onCustomize} aria-label={t('detailToolbar.customizeAppearance', { defaultValue: 'Customize appearance' })}>
                 <Palette className="h-[18px] w-[18px]" />
               </Button>
             </Tooltip>
@@ -201,8 +212,8 @@ export function BinDetailToolbar({
 
         {/* More menu */}
         <div className="relative" ref={wrapperRef}>
-          <Tooltip content="More" side="bottom">
-            <Button variant="ghost" size="icon" onClick={toggle} aria-label="More actions">
+          <Tooltip content={t('detailToolbar.more', { defaultValue: 'More' })} side="bottom">
+            <Button variant="ghost" size="icon" onClick={toggle} aria-label={t('detailToolbar.moreActions', { defaultValue: 'More actions' })}>
               <MoreHorizontal className="h-[18px] w-[18px]" />
             </Button>
           </Tooltip>
@@ -229,36 +240,36 @@ export function BinDetailToolbar({
               {canPin && (
                 <button type="button" role="menuitem" className={cn(menuItemBase, 'lg:hidden')} onClick={() => handleItem(onTogglePin)}>
                   <Pin className="h-4 w-4 text-[var(--text-tertiary)]" fill={bin.is_pinned ? 'currentColor' : 'none'} />
-                  {bin.is_pinned ? 'Unpin' : 'Pin'}
+                  {bin.is_pinned ? t('detailToolbar.unpin', { defaultValue: 'Unpin' }) : t('detailToolbar.pin', { defaultValue: 'Pin' })}
                 </button>
               )}
               {canEdit && (
                 <button type="button" role="menuitem" className={cn(menuItemBase, 'lg:hidden')} onClick={() => handleItem(onCustomize)}>
                   <Palette className="h-4 w-4 text-[var(--text-tertiary)]" />
-                  Customize appearance
+                  {t('detailToolbar.customizeAppearance', { defaultValue: 'Customize appearance' })}
                 </button>
               )}
               {(showAiButton || canPin || canEdit) && <div className="lg:hidden my-1 border-t border-[var(--border-flat)]" />}
               <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onPrint)}>
                 <Printer className="h-4 w-4 text-[var(--text-tertiary)]" />
-                Print label
+                {t('detailToolbar.printLabel', { defaultValue: 'Print label' })}
               </button>
               {canEdit && (
                 <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onDuplicate)}>
                   <Copy className="h-4 w-4 text-[var(--text-tertiary)]" />
-                  Duplicate
+                  {t('detailToolbar.duplicate', { defaultValue: 'Duplicate' })}
                 </button>
               )}
               {canEdit && otherLocations.length > 0 && (
                 <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onMove)}>
                   <ArrowRightLeft className="h-4 w-4 text-[var(--text-tertiary)]" />
-                  Move
+                  {t('detailToolbar.move', { defaultValue: 'Move' })}
                 </button>
               )}
               {showShareButton && onShare && (
                 <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onShare)}>
                   <Share2 className="h-4 w-4 text-[var(--text-tertiary)]" />
-                  Share
+                  {t('detailToolbar.share', { defaultValue: 'Share' })}
                 </button>
               )}
               {canDelete && (
@@ -266,7 +277,7 @@ export function BinDetailToolbar({
                   <div className="my-1 border-t border-[var(--border-flat)]" />
                   <button type="button" role="menuitem" className={cn(menuItemBase, 'text-[var(--destructive)]')} onClick={() => handleItem(onDelete)}>
                     <Trash2 className="h-4 w-4" />
-                    Delete
+                    {t('common:actions.delete', { defaultValue: 'Delete' })}
                   </button>
                 </>
               )}
@@ -275,8 +286,8 @@ export function BinDetailToolbar({
         </div>
 
         {/* Close */}
-        <Tooltip content="Close" side="bottom">
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close" className="bg-[var(--bg-input)]">
+        <Tooltip content={t('detailToolbar.close', { defaultValue: 'Close' })} side="bottom">
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label={t('detailToolbar.close', { defaultValue: 'Close' })} className="bg-[var(--bg-input)]">
             <X className="h-[18px] w-[18px]" />
           </Button>
         </Tooltip>

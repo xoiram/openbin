@@ -1,9 +1,273 @@
 {
+  "activity": {
+    "emptySubtitle": "Changes to this {{bin}} will appear here",
+    "emptyTitle": "No activity yet",
+    "loadFailed": "Failed to load activity",
+    "showAll": "Show all events",
+    "showLess": "Show less",
+    "title": "Activity"
+  },
+  "aiBadge": {
+    "label": "AI",
+    "undo": "Undo AI suggestion"
+  },
+  "aiFill": {
+    "fill": "AI Fill",
+    "filled_one": "AI filled {{count}} field",
+    "filled_other": "AI filled {{count}} fields",
+    "fillFromPhotos_one": "AI Fill from {{count}} photo",
+    "fillFromPhotos_other": "AI Fill from {{count}} photos",
+    "reanalyze": "Reanalyze photos with AI",
+    "reanalyzeTooltip": "Re-run AI analysis on your photos with current field values as context",
+    "setUp": "Set up AI to auto-fill details"
+  },
+  "aiSetup": {
+    "close": "Close AI setup",
+    "title": "Set up AI"
+  },
+  "appearanceTab": {
+    "color": "Color",
+    "icon": "Icon",
+    "preview": "Preview",
+    "style": "Style"
+  },
+  "autoSave": {
+    "fields": {
+      "area": "{{area}}",
+      "color": "color",
+      "customFields": "custom fields",
+      "icon": "icon",
+      "name": "name",
+      "notes": "notes",
+      "style": "style",
+      "tags": "tags",
+      "visibility": "visibility"
+    },
+    "saveFailed": "Failed to save {{field}}"
+  },
+  "bulk": {
+    "appearance": {
+      "color": "Color",
+      "description": "Customize {{selected}}. Only modified sections will be applied.",
+      "icon": "Icon",
+      "style": "Style",
+      "title": "Appearance"
+    },
+    "area": {
+      "description": "Assign {{selected}} to {{area}}.",
+      "title": "Move to {{Area}}"
+    },
+    "customFields": {
+      "description": "Set custom field values for {{selected}}. Only filled fields will be updated.",
+      "empty": "No custom fields defined for this {{location}}.",
+      "title": "Set Custom Fields"
+    },
+    "deleted_one": "Deleted {{count}} {{bin}}",
+    "deleted_other": "Deleted {{count}} {{bins}}",
+    "duplicatedMany_one": "Duplicated {{count}} {{bins}}",
+    "duplicatedMany_other": "Duplicated {{count}} {{bins}}",
+    "duplicatedOne": "Duplicated \"{{name}}\"",
+    "location": {
+      "apply": "Move",
+      "description": "Move {{selected}} to another {{location}}.",
+      "empty": "No other {{locations}} available.",
+      "title": "Move to {{Location}}"
+    },
+    "moving": "Moving...",
+    "pin": "Pin",
+    "selectedBins_one": "{{count}} selected {{bin}}",
+    "selectedBins_other": "{{count}} selected {{bins}}",
+    "tag": {
+      "description": "Add tags to {{selected}}.",
+      "label": "Tags",
+      "title": "Add Tags"
+    },
+    "undo": "Undo",
+    "unpin": "Unpin",
+    "visibility": {
+      "description": "Set visibility for {{selected}}. Non-owned {{bins}} set to private will be skipped by the server.",
+      "title": "Change Visibility"
+    }
+  },
   "card": {
     "select": "Select"
   },
+  "changeCode": {
+    "back": "Back",
+    "changed": "Code changed to {{code}}",
+    "changeFailed": "Failed to change code. Please try again.",
+    "codeInUse": "Code already in use.",
+    "confirm": "Change this {{bin}}'s code from <from>{{oldCode}}</from> to <to>{{newCode}}</to>?",
+    "description": "Enter the new short code for this {{bin}}.",
+    "lookUp": "Look Up",
+    "lookupFailed": "Failed to look up code. Please try again.",
+    "placeholder": "Enter code...",
+    "sameCode": "This is already this {{bin}}'s code.",
+    "title": "Change Code",
+    "warning": "Changing the code will invalidate any printed QR labels pointing to <code>{{code}}</code>. You'll need to reprint labels before they scan to this {{bin}} again."
+  },
+  "checkout": {
+    "outBy": "Out · {{name}} · {{time}}"
+  },
+  "colorPicker": {
+    "black": "Black",
+    "choose": "Choose a color",
+    "color": "Color",
+    "gray": "Gray",
+    "none": "None",
+    "white": "White"
+  },
+  "createDialog": {
+    "createFailed": "Failed to create {{bin}}",
+    "description": "Add a new storage {{bin}} to your inventory.",
+    "photosFailed_one": "{{count}} photo failed to upload",
+    "photosFailed_other": "{{count}} photos failed to upload",
+    "title": "New {{Bin}}"
+  },
+  "createForm": {
+    "create": "Create",
+    "createBin": "Create {{Bin}}",
+    "creating": "Creating...",
+    "name": "Name",
+    "namePlaceholder": "e.g., Holiday Decorations",
+    "nameRequired": "Name is required",
+    "setUpAi": "Set up AI Analysis",
+    "tapToAnalyze": "— tap <icon></icon> to analyze"
+  },
+  "createSuccess": {
+    "allSet": "All set",
+    "createAnother": "Create another",
+    "createdMany_one": "Created {{count}} {{bins}}",
+    "createdMany_other": "Created {{count}} {{bins}}",
+    "createdManyWithItems_one": "Created {{bins}} ({{binCount}}) · {{count}} item",
+    "createdManyWithItems_other": "Created {{bins}} ({{binCount}}) · {{count}} items",
+    "createdOne": "Created {{name}}",
+    "createdOneWithItems_one": "Created {{name}} with {{count}} item",
+    "createdOneWithItems_other": "Created {{name}} with {{count}} items",
+    "done": "Done"
+  },
+  "customFields": {
+    "add": "Add",
+    "addFailed": "Failed to add field",
+    "cancelEdit": "Cancel editing",
+    "delete": "Delete {{name}}",
+    "deleted": "Deleted \"{{name}}\"",
+    "deleteFailed": "Failed to delete field",
+    "description": "Define custom fields that appear on all {{bins}} in this {{location}}.",
+    "empty": "No custom fields yet. Add one below.",
+    "newPlaceholder": "New field name",
+    "rename": "Rename {{name}}",
+    "renameFailed": "Failed to rename field",
+    "saveName": "Save name",
+    "title": "Custom Fields"
+  },
+  "deleteDialog": {
+    "deleting": "Deleting…",
+    "description": "This will delete '{{name}}' and all its photos. You can undo this action briefly after deletion.",
+    "title": "Delete this {{bin}}?"
+  },
+  "detailActions": {
+    "analyzeFailed": "Couldn't analyze the photo — try again",
+    "deleted": "Deleted \"{{name}}\"",
+    "deleteFailed": "Failed to delete",
+    "duplicated": "Duplicated \"{{name}}\"",
+    "duplicatedNoPhotos": "Duplicated \"{{name}}\" (photos not copied)",
+    "duplicateFailed": "Failed to duplicate",
+    "moved": "Moved to {{location}}",
+    "moveFailed": "Failed to move",
+    "pinFailed": "Failed to update pin",
+    "pinned": "Pinned",
+    "reanalyzeFailed": "Couldn't reanalyze the photo — try again",
+    "suggestionsApplied": "Applied AI suggestions",
+    "suggestionsFailed": "Failed to apply suggestions",
+    "undo": "Undo",
+    "unpinned": "Unpinned"
+  },
+  "detailContent": {
+    "dismiss": "Dismiss"
+  },
+  "detailPage": {
+    "backTo": "Back to {{bins}}",
+    "notFoundSubtitle": "It may have been deleted or moved to another {{location}}.",
+    "notFoundTitle": "{{bin}} not found",
+    "progress": {
+      "almostDone": "Almost done...",
+      "comparingChanges": "Comparing changes...",
+      "generatingDetails": "Generating details...",
+      "identifyingItems": "Identifying items...",
+      "preparingReanalysis": "Preparing reanalysis...",
+      "updatingSuggestions": "Updating suggestions...",
+      "uploadingPhotos": "Uploading photos..."
+    },
+    "upgradeDescription": "AI-powered analysis and suggestions are available on the Pro plan.",
+    "upgradeFeature": "AI Features"
+  },
+  "detailRail": {
+    "changeCode": "Change code",
+    "code": "Code",
+    "codeCopied": "Code copied",
+    "copied": "Copied!",
+    "copyCode": "Copy code",
+    "heading": "{{bin}} details",
+    "noArea": "No {{area}}",
+    "noNotes": "No notes",
+    "noTags": "No tags",
+    "notes": "Notes",
+    "notesPlaceholder": "Add notes...",
+    "tags": "Tags",
+    "visibility": "Visibility"
+  },
+  "detailTabs": {
+    "contents": "Contents",
+    "files": "Files",
+    "info": "Info",
+    "sections": "{{bin}} sections"
+  },
+  "detailToolbar": {
+    "analyzeWithAi": "Analyze with AI",
+    "binName": "{{bin}} name",
+    "close": "Close",
+    "customizeAppearance": "Customize appearance",
+    "duplicate": "Duplicate",
+    "editName": "Edit name: {{name}}",
+    "more": "More",
+    "moreActions": "More actions",
+    "move": "Move",
+    "namePlaceholder": "Name...",
+    "next": "Next",
+    "nextBin": "Next {{bin}}",
+    "pin": "Pin",
+    "pinBin": "Pin {{bin}}",
+    "previous": "Previous",
+    "previousBin": "Previous {{bin}}",
+    "printLabel": "Print label",
+    "private": "Private",
+    "reanalyzeWithAi": "Reanalyze with AI",
+    "share": "Share",
+    "unpin": "Unpin",
+    "unpinBin": "Unpin {{bin}}"
+  },
+  "dictation": {
+    "addCount": "Add {{selected}}",
+    "almostDone": "Almost done...",
+    "dictateItems": "Dictate items",
+    "edit": "edit",
+    "extractingItems": "Extracting items...",
+    "heard": "Heard:",
+    "parsedCount_one": "{{count}} item parsed from dictation",
+    "parsedCount_other": "{{count}} items parsed from dictation",
+    "parsingItems": "Parsing items...",
+    "parsingItemsAria": "Parsing items",
+    "recording": "Recording: {{elapsed}}",
+    "sendingAudio": "Sending audio...",
+    "stopRecording": "Stop recording",
+    "transcribing": "Transcribing...",
+    "transcribingAudio": "Transcribing audio",
+    "transcriptQuote": "“{{transcript}}”",
+    "useThis": "Use this"
+  },
   "fields": {
-    "area": "Area",
+    "area": "{{Area}}",
     "created": "Created",
     "createdBy": "Created By",
     "customFields": "Custom Fields",
@@ -13,23 +277,31 @@
     "tags": "Tags",
     "updated": "Updated"
   },
+  "filesTab": {
+    "documents": "Documents",
+    "emptySubtitle": "Photos and attachments added to this {{bin}} will appear here.",
+    "emptyTitle": "No files",
+    "photos": "Photos",
+    "upgradeDescription": "Upload PDFs, spreadsheets, and other files to {{bins}}.",
+    "upgradeFeature": "Document Attachments"
+  },
   "filters": {
     "apply": "Apply",
     "applyWithCount": "Apply ({{active}})",
-    "area": "Area",
+    "area": "{{Area}}",
     "asc": "Asc",
     "clear": "Clear",
     "desc": "Desc",
     "hasItems": "Has items",
     "hasNotes": "Has notes",
     "needsOrganizing": "Needs organizing",
-    "noTags": "No tags in this location",
+    "noTags": "No tags in this {{location}}",
     "reset": "Reset",
     "saveView": "Save View",
     "showLess": "Show less",
     "showMore": "+{{hidden}} more",
     "sort": "Sort",
-    "sortArea": "Area",
+    "sortArea": "{{Area}}",
     "sortCreated": "Created",
     "sortLastUsed": "Last used",
     "sortName": "Name",
@@ -37,10 +309,67 @@
     "tagModeAll": "All",
     "tagModeAny": "Any",
     "tags": "Tags",
-    "title": "Filter Bins",
+    "title": "Filter {{bins}}",
     "unassigned": "Unassigned",
     "unusedSince": "Unused since",
     "usage": "Usage"
+  },
+  "infoTab": {
+    "created": "Created",
+    "creator": "Creator",
+    "details": "Details",
+    "lastScanned": "Last scanned",
+    "never": "Never",
+    "qrAlt": "QR code for {{name}}",
+    "updated": "Updated",
+    "usage": "Usage"
+  },
+  "itemActions": {
+    "checkOut": "Check out",
+    "menuLabel": "Item actions",
+    "return": "Return"
+  },
+  "itemList": {
+    "actions": "Actions",
+    "addedToShoppingList_one": "Added to shopping list",
+    "addedToShoppingList_other": "Added {{count}} to list",
+    "addToList_one": "Add to list",
+    "addToList_other": "Add all to list",
+    "addToListFailed": "Failed to add to list",
+    "checkedOut": "Item checked out",
+    "checkedOutCount": "{{out}} out",
+    "checkoutFailed": "Failed to check out item",
+    "deleteFailed": "Failed to delete item",
+    "filterPlaceholder": "Filter items...",
+    "headerCount_one": "{{count}} Item",
+    "headerCount_other": "{{count}} Items",
+    "headerFilteredCount_one": "{{filtered}} of {{count}} Item",
+    "headerFilteredCount_other": "{{filtered}} of {{count}} Items",
+    "itemsRemoved_one": "Item removed",
+    "itemsRemoved_other": "{{count}} items removed",
+    "name": "Name",
+    "noItems": "No items",
+    "noItemsYet": "No items yet — add one below",
+    "noMatches": "No items match “{{query}}”",
+    "qty": "Qty",
+    "returned": "Item returned",
+    "returnFailed": "Failed to return item",
+    "sortFailed": "Failed to sort items",
+    "undo": "Undo",
+    "updateFailed": "Failed to update item"
+  },
+  "itemPagination": {
+    "label": "Pagination",
+    "next": "Next page",
+    "page": "Page {{page}}",
+    "pageOf": "Page {{page}} of {{total}}",
+    "previous": "Previous page",
+    "summary_one": "{{start}}–{{end}} of {{count}} item",
+    "summary_other": "{{start}}–{{end}} of {{count}} items"
+  },
+  "itemRow": {
+    "itemName": "Item name",
+    "quantity": "Quantity"
   },
   "list": {
     "askAi": "Ask AI",
@@ -65,6 +394,73 @@
     "upgradeAiDescription": "AI-powered commands, analysis, and suggestions are available on the Pro plan.",
     "upgradeAiFeature": "AI Features"
   },
+  "moreOptions": {
+    "appearance": "Appearance",
+    "color": "Color",
+    "customFields": "Custom Fields",
+    "icon": "Icon",
+    "label": "More options",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes...",
+    "style": "Style",
+    "tags": "Tags",
+    "visibility": "Visibility"
+  },
+  "moveDialog": {
+    "description": "Select a {{location}} to move the '{{name}}' {{bin}}.",
+    "empty": "No other {{locations}} available",
+    "move": "Move",
+    "title": "Move to another {{location}}"
+  },
+  "onboardingFields": {
+    "color": "Color",
+    "icon": "Icon",
+    "namePlaceholder": "{{Bin}} name",
+    "style": "Style"
+  },
+  "photoAnalysis": {
+    "analyzeFailed": "Failed to analyze photos",
+    "reanalyzeFailed": "Failed to reanalyze photos"
+  },
+  "photoUpload": {
+    "addFromGallery": "Add from gallery",
+    "addMore": "Add more photos",
+    "addPhotos": "Add photos",
+    "camera": "Camera",
+    "dragOrClick": "Drag & drop or click to add photos",
+    "morePhotos": "More photos",
+    "multipleHint": "Multiple photos improve AI accuracy",
+    "preview": "Preview {{n}}",
+    "removePhoto": "Remove photo {{n}}",
+    "tapToAdd": "Tap to add photos"
+  },
+  "previewCard": {
+    "myBin": "My {{bin}}",
+    "sampleItems": "Item one, item two, item three",
+    "sampleTag1": "tag",
+    "sampleTag2": "label"
+  },
+  "quickAdd": {
+    "addCount": "Add {{selected}}",
+    "added_one": "Added {{count}} item",
+    "added_other": "Added {{count}} items",
+    "addFailed": "Failed to add item",
+    "addItem": "Add item",
+    "addItemsFailed": "Failed to add items",
+    "addWithAi": "Add with AI",
+    "back": "Back",
+    "emptyPlaceholder": "Add items — type, paste a list, or tap the mic",
+    "expandedHint": "Paste or type freely — AI will clean it up",
+    "expandedPlaceholder": "List or describe items, e.g. 'three socks, AA batteries, winter jacket'",
+    "extracting": "Extracting...",
+    "extractItems": "Extract Items",
+    "pasteTruncated": "Pasted {{lines}} lines — only the first 500 will be added",
+    "placeholder": "Add item...",
+    "progressAlmostDone": "Almost done...",
+    "progressExtracting": "Extracting items...",
+    "progressProcessing": "Processing text...",
+    "progressStructuring": "Structuring results..."
+  },
   "saveView": {
     "namePlaceholder": "View name...",
     "saved": "View saved",
@@ -79,14 +475,86 @@
     "filter": "Filter",
     "filterBins": "Filter {{bins}}",
     "placeholder": "Search {{bins}}...",
-    "removeAreaFilter": "Remove area filter {{area}}",
+    "removeAreaFilter": "Remove {{areaTerm}} filter {{area}}",
     "removeHasItemsFilter": "Remove has items filter",
     "removeHasNotesFilter": "Remove has notes filter",
     "removeNeedsOrganizingFilter": "Remove needs organizing filter",
     "removeTagFilter": "Remove tag filter {{tag}}"
   },
+  "shareDialog": {
+    "copyFailed": "Failed to copy link",
+    "copyLink": "Copy link",
+    "createFailed": "Failed to create share link",
+    "createIntro": "Create a link that anyone can use to view this {{bin}} without logging in.",
+    "createLink": "Create Share Link",
+    "creating": "Creating...",
+    "expiration": "Expiration",
+    "expires": "Expires {{date}}",
+    "expiry": {
+      "1h": "1 hour",
+      "24h": "24 hours",
+      "30d": "30 days",
+      "7d": "7 days",
+      "never": "Never"
+    },
+    "linkCopied": "Link copied to clipboard",
+    "public": "Public",
+    "publicHint": "Discoverable and visible to anyone",
+    "revokeFailed": "Failed to revoke share link",
+    "revokeLink": "Revoke Link",
+    "revoking": "Revoking...",
+    "title": "Share",
+    "unlisted": "Unlisted",
+    "unlistedHint": "Only people with the link can view",
+    "upgradeDescription": "Generate public or unlisted links to share {{bins}} with anyone.",
+    "upgradeFeature": "{{bin}} Sharing",
+    "views_one": "{{count}} view",
+    "views_other": "{{count}} views",
+    "visibility": "Visibility"
+  },
+  "sharedPage": {
+    "details": "Details",
+    "goToApp": "Go to OpenBin",
+    "items": "Items",
+    "notes": "Notes",
+    "photos": "Photos",
+    "poweredBy": "Powered by OpenBin",
+    "tags": "Tags",
+    "unavailableMessage": "The share link may have been revoked or deleted.",
+    "unavailableTitle": "This link is no longer available"
+  },
+  "stylePicker": {
+    "backgrounds": "Backgrounds",
+    "borders": {
+      "dashed": "Dashed",
+      "dotted": "Dotted",
+      "double": "Double",
+      "solid": "Solid"
+    },
+    "borderStyle": "Border Style",
+    "position": "Position",
+    "positions": {
+      "bottom": "Bottom",
+      "left": "Left",
+      "right": "Right",
+      "top": "Top"
+    },
+    "thickness": "Thickness",
+    "variants": {
+      "border": "Border",
+      "default": "Flat",
+      "gradient": "Gradient",
+      "photo": "Photo",
+      "stripe": "Stripe"
+    },
+    "yourPhotos": "Your photos"
+  },
   "table": {
     "name": "Name"
+  },
+  "tagInput": {
+    "create": "Create <name>{{name}}</name>",
+    "placeholder": "Search or create tags..."
   },
   "trash": {
     "confirmMessage": "Are you sure you want to permanently delete <strong>\"{{name}}\"</strong>?",
@@ -117,5 +585,9 @@
     "compact": "Compact",
     "grid": "Grid",
     "table": "Table"
+  },
+  "visibility": {
+    "everyone": "Everyone",
+    "onlyMe": "Only Me"
   }
 }

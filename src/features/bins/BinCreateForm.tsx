@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,7 +83,8 @@ export function BinCreateForm({
   onWizardComplete,
   triggerFilePickerOnMount,
 }: BinCreateFormProps) {
-  const t = useTerminology();
+  const { t } = useTranslation(['bins', 'common']);
+  const term = useTerminology();
   const { areas } = useAreaList(locationId);
   const { settings: aiSettings, isLoading: aiSettingsLoading } = useAiSettings();
   const { aiEnabled } = useAiEnabled();
@@ -316,15 +318,15 @@ export function BinCreateForm({
             style={aiFill.styleFor('name', 0)}
           >
             <div className="flex items-center justify-between">
-              <label htmlFor="bin-name" className={sectionHeader}>Name</label>
+              <label htmlFor="bin-name" className={sectionHeader}>{t('createForm.name', { defaultValue: 'Name' })}</label>
               {aiFill.filled.has('name') && <AiBadge onUndo={() => handleUndoAiField('name')} />}
             </div>
             <Input
               id="bin-name"
               value={name}
               onChange={(e) => { setName(e.target.value); setNameError(null); }}
-              onBlur={() => { if (!name.trim()) setNameError('Name is required'); }}
-              placeholder="e.g., Holiday Decorations"
+              onBlur={() => { if (!name.trim()) setNameError(t('createForm.nameRequired', { defaultValue: 'Name is required' })); }}
+              placeholder={t('createForm.namePlaceholder', { defaultValue: 'e.g., Holiday Decorations' })}
               maxLength={255}
               required
               aria-invalid={!!nameError}
@@ -416,7 +418,14 @@ export function BinCreateForm({
           {aiConfiguredInline ? (
             <AiConfiguredIndicator>
               {photos.length > 0 && (
-                <span className="text-[var(--text-tertiary)]">— tap <Sparkles className="h-3 w-3 inline" /> to analyze</span>
+                <span className="text-[var(--text-tertiary)]">
+                  <Trans
+                    t={t}
+                    i18nKey="createForm.tapToAnalyze"
+                    defaults="— tap <icon></icon> to analyze"
+                    components={{ icon: <Sparkles className="h-3 w-3 inline" /> }}
+                  />
+                </span>
               )}
             </AiConfiguredIndicator>
           ) : (
@@ -424,7 +433,7 @@ export function BinCreateForm({
               expanded={aiExpanded}
               onExpandedChange={setAiExpanded}
               setup={setup}
-              label="Set up AI Analysis"
+              label={t('createForm.setUpAi', { defaultValue: 'Set up AI Analysis' })}
             />
           )}
         </div>
@@ -435,11 +444,11 @@ export function BinCreateForm({
         <div className={cn('flex gap-2 justify-end', stickyDialogFooter)}>
           {showCancel && (
             <Button type="button" variant="ghost" onClick={onCancel}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
           )}
           <Button type="submit" disabled={!name.trim() || submitting}>
-            {submitting ? 'Creating...' : (submitLabel ?? 'Create')}
+            {submitting ? t('createForm.creating', { defaultValue: 'Creating...' }) : (submitLabel ?? t('createForm.create', { defaultValue: 'Create' }))}
           </Button>
         </div>
       ) : (
@@ -448,7 +457,9 @@ export function BinCreateForm({
           disabled={!name.trim() || submitting}
           className="w-full rounded-[var(--radius-md)] h-11 text-[15px]"
         >
-          {submitting ? 'Creating...' : (submitLabel ?? `Create ${t.Bin}`)}
+          {submitting
+            ? t('createForm.creating', { defaultValue: 'Creating...' })
+            : (submitLabel ?? t('createForm.createBin', { defaultValue: 'Create {{Bin}}', Bin: term.Bin }))}
         </Button>
       )}
     </form>

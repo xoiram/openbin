@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { OptionGroup } from '@/components/ui/option-group';
 import type { SortDirection } from '@/components/ui/sort-header';
 import { useTagStyle } from '@/features/tags/useTagStyle';
+import { useTerminology } from '@/lib/terminology';
 import { cn } from '@/lib/utils';
 import type { Area } from '@/types';
 import { buildAreaTree, flattenAreaTree } from '../areas/useAreas';
@@ -86,15 +87,16 @@ export function BinFilterDialog({
   onSaveView,
 }: BinFilterDialogProps) {
   const { t } = useTranslation('bins');
+  const term = useTerminology();
   const sortOptions = useMemo<{ key: SortOption; label: string }[]>(
     () => [
       { key: 'updated', label: t('filters.sortUpdated', { defaultValue: 'Updated' }) },
       { key: 'created', label: t('filters.sortCreated', { defaultValue: 'Created' }) },
       { key: 'name', label: t('filters.sortName', { defaultValue: 'Name' }) },
-      { key: 'area', label: t('filters.sortArea', { defaultValue: 'Area' }) },
+      { key: 'area', label: t('filters.sortArea', { defaultValue: '{{Area}}', Area: term.Area }) },
       { key: 'last_used', label: t('filters.sortLastUsed', { defaultValue: 'Last used' }) },
     ],
-    [t],
+    [t, term.Area],
   );
   const [draft, setDraft] = useState<BinFilters>(filters);
   const [tagsExpanded, setTagsExpanded] = useState(false);
@@ -154,7 +156,7 @@ export function BinFilterDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('filters.title', { defaultValue: 'Filter Bins' })}</DialogTitle>
+          <DialogTitle>{t('filters.title', { defaultValue: 'Filter {{bins}}', bins: term.Bins })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
@@ -199,7 +201,7 @@ export function BinFilterDialog({
               )}
             </div>
             {availableTags.length === 0 ? (
-              <p className="text-[13px] text-[var(--text-tertiary)] italic">{t('filters.noTags', { defaultValue: 'No tags in this location' })}</p>
+              <p className="text-[13px] text-[var(--text-tertiary)] italic">{t('filters.noTags', { defaultValue: 'No tags in this {{location}}', location: term.location })}</p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {(() => {
@@ -255,7 +257,7 @@ export function BinFilterDialog({
           {/* Area */}
           {areas.length > 0 && (
             <div className="space-y-2.5">
-              <SectionHeader label={t('filters.area', { defaultValue: 'Area' })} count={draft.areas.length} />
+              <SectionHeader label={t('filters.area', { defaultValue: '{{Area}}', Area: term.Area })} count={draft.areas.length} />
               <div className="flex flex-wrap gap-1">
                 <AreaPill
                   name={t('filters.unassigned', { defaultValue: 'Unassigned' })}

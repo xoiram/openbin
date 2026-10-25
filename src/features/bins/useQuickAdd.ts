@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
 import { useTextStructuring } from '@/features/ai/useTextStructuring';
 import { clientItemId, parseItemQuantity, toItemPayload } from '@/lib/itemQuantities';
@@ -20,6 +21,7 @@ interface UseQuickAddOptions {
 export function useQuickAdd(options: UseQuickAddOptions) {
   const { binId, binName, existingItems, activeLocationId, aiConfigured = false, onNavigateAiSetup = () => {}, onAdd } = options;
   const { showToast } = useToast();
+  const { t } = useTranslation('bins');
 
   const [value, setValue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -77,12 +79,12 @@ export function useQuickAdd(options: UseQuickAddOptions) {
         const items = parsed.map((p) => toItemPayload(p));
         if (items.length > 0 && binId) {
           await addItemsToBin(binId, items);
-          showToast({ message: `Added ${items.length} item${items.length !== 1 ? 's' : ''}` });
+          showToast({ message: t('quickAdd.added', { count: items.length, defaultValue_one: 'Added {{count}} item', defaultValue_other: 'Added {{count}} items' }) });
         }
       }
       setValue('');
     } catch {
-      showToast({ message: 'Failed to add item' });
+      showToast({ message: t('quickAdd.addFailed', { defaultValue: 'Failed to add item' }) });
     } finally {
       setSaving(false);
     }
@@ -96,7 +98,7 @@ export function useQuickAdd(options: UseQuickAddOptions) {
     if (lines.length === 0) return;
     const capped = lines.slice(0, 500);
     if (lines.length > 500) {
-      showToast({ message: `Pasted ${lines.length} lines — only the first 500 will be added`, variant: 'warning' });
+      showToast({ message: t('quickAdd.pasteTruncated', { defaultValue: 'Pasted {{lines}} lines — only the first 500 will be added', lines: lines.length }), variant: 'warning' });
     }
     const parsed = capped.map((s) => parseItemQuantity(s));
     setSaving(true);
@@ -108,12 +110,12 @@ export function useQuickAdd(options: UseQuickAddOptions) {
         const items = parsed.map((p) => toItemPayload(p));
         if (binId) {
           await addItemsToBin(binId, items);
-          showToast({ message: `Added ${items.length} items` });
+          showToast({ message: t('quickAdd.added', { count: items.length, defaultValue_one: 'Added {{count}} item', defaultValue_other: 'Added {{count}} items' }) });
         }
       }
       setValue('');
     } catch {
-      showToast({ message: 'Failed to add items' });
+      showToast({ message: t('quickAdd.addItemsFailed', { defaultValue: 'Failed to add items' }) });
     } finally {
       setSaving(false);
     }
@@ -176,11 +178,11 @@ export function useQuickAdd(options: UseQuickAddOptions) {
         const items = selected.map((item) => item.quantity ? { name: item.name, quantity: item.quantity } : item.name);
         if (binId) {
           await addItemsToBin(binId, items);
-          showToast({ message: `Added ${selected.length} item${selected.length !== 1 ? 's' : ''}` });
+          showToast({ message: t('quickAdd.added', { count: selected.length, defaultValue_one: 'Added {{count}} item', defaultValue_other: 'Added {{count}} items' }) });
         }
       }
     } catch {
-      showToast({ message: 'Failed to add items' });
+      showToast({ message: t('quickAdd.addItemsFailed', { defaultValue: 'Failed to add items' }) });
     }
     reset();
   }
