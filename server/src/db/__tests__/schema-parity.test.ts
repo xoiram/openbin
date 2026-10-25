@@ -25,7 +25,7 @@ function parseTables(sql: string): Map<string, string[]> {
       const trimmed = line.trim();
       // Skip constraints, empty lines, comments
       if (!trimmed || trimmed.startsWith('--') || trimmed.startsWith('UNIQUE')
-        || trimmed.startsWith('PRIMARY KEY') || trimmed.startsWith('CHECK')
+        || trimmed.startsWith('PRIMARY KEY') || trimmed.startsWith('CHECK') || trimmed.startsWith('CONSTRAINT')
         || trimmed.startsWith('FOREIGN')) continue;
       const colMatch = trimmed.match(/^(\w+)\s+/);
       if (colMatch) cols.push(colMatch[1]);
