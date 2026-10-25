@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useScanHistory } from '@/features/dashboard/scanHistory';
 import { BinUsageSection } from '@/features/usage/BinUsageSection';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
 import { generateQRDataURL } from '@/lib/qr';
-import { relativeTime, sectionHeader, sectionHeaderRow } from '@/lib/utils';
+import { sectionHeader, sectionHeaderRow } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { BinDetailActivitySection } from './BinDetailActivitySection';
 
@@ -21,6 +22,7 @@ const QR_GEN_SIZE = 540;
 
 export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
   const { t, i18n } = useTranslation('bins');
+  const relativeTime = useRelativeTime();
   const Icon = resolveIcon(bin.icon);
   const colorPreset = useMemo(
     () => (bin.color ? resolveColor(bin.color) : null),

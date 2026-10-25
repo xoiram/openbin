@@ -80,6 +80,10 @@ export interface FlowProgressModel {
   dots: FlowDot[];
   /** Mono uppercase label naming the current phase (with per-bin counter when multi-bin). */
   label: string;
+  /** Current phase id — lets the UI translate the label instead of using the English `label`. */
+  phase: FlowPhase;
+  /** Queue position ("2/5") shown after the phase label when multi-bin; null otherwise. */
+  queue: string | null;
   /** 1-based index of the current dot — feeds aria-label. */
   currentIndex: number;
   total: number;
@@ -126,13 +130,17 @@ export function computeFlowProgress(state: BulkAddState): FlowProgressModel {
   }));
 
   let label = PHASE_LABELS[currentPhase];
+  let queue: string | null = null;
   if (state.groups.length > 1 && (currentPhase === 'analyze' || currentPhase === 'review')) {
-    label += ` ${state.currentIndex + 1}/${state.groups.length}`;
+    queue = `${state.currentIndex + 1}/${state.groups.length}`;
+    label += ` ${queue}`;
   }
 
   return {
     dots,
     label,
+    phase: currentPhase,
+    queue,
     currentIndex: currentIdx,
     total: dots.length,
     isAnalyzing,

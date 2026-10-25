@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import type { CreatedBinInfo } from '@/features/bins/BinCreateSuccess';
 import { BinCreateSuccess } from '@/features/bins/BinCreateSuccess';
 import { addBin, notifyBinsChanged } from '@/features/bins/useBins';
@@ -27,7 +28,15 @@ import type { AiSettings } from '@/types';
 const DEMO_MAX_PHOTOS = 3;
 
 function FlowProgress({ state }: { state: BulkAddState }) {
-  const { dots, label, currentIndex, total, isAnalyzing } = computeFlowProgress(state);
+  const { t } = useTranslation('bins');
+  const { dots, phase, queue, currentIndex, total, isAnalyzing } = computeFlowProgress(state);
+  const phaseLabel = {
+    photos: t('photoBulkAdd.phase.photos', { defaultValue: 'PHOTOS' }),
+    analyze: t('photoBulkAdd.phase.analyze', { defaultValue: 'ANALYZE' }),
+    review: t('photoBulkAdd.phase.review', { defaultValue: 'REVIEW' }),
+    create: t('photoBulkAdd.phase.create', { defaultValue: 'CREATE' }),
+  }[phase];
+  const label = queue ? `${phaseLabel} ${queue}` : phaseLabel;
   return (
     <div className="flex items-center justify-end gap-2">
       <span
@@ -41,7 +50,12 @@ function FlowProgress({ state }: { state: BulkAddState }) {
       {/* biome-ignore lint/a11y/useSemanticElements: role=group is the right ARIA match for an inline labeled grouping of related visuals */}
       <span
         role="group"
-        aria-label={`Step ${currentIndex + 1} of ${total}: ${label}`}
+        aria-label={t('photoBulkAdd.stepLabel', {
+          defaultValue: 'Step {{current}} of {{total}}: {{label}}',
+          current: currentIndex + 1,
+          total,
+          label,
+        })}
         className="inline-flex items-center gap-1"
       >
         {dots.map((d) => (
@@ -116,7 +130,8 @@ export function PhotoBulkAdd({
   onExitToForm,
   headerToolbarTarget,
 }: PhotoBulkAddProps) {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('bins');
   const { activeLocationId, demoMode: isDemo } = useAuth();
   const [state, dispatch] = useReducer(
     bulkAddReducer,
@@ -214,7 +229,7 @@ export function PhotoBulkAdd({
           dispatch({
             type: 'SET_CREATE_ERROR',
             id: group.id,
-            error: err instanceof Error ? err.message : `Failed to create ${t.bin}`,
+            error: err instanceof Error ? err.message : t('createDialog.createFailed', { defaultValue: 'Failed to create {{bin}}', bin: term.bin }),
           });
         }
       }
@@ -226,7 +241,7 @@ export function PhotoBulkAdd({
         setSuccessBins(createdBinInfos);
       }
     },
-    [activeLocationId, t],
+    [activeLocationId, term, t],
   );
 
   const handleCreateAll = useCallback(() => {

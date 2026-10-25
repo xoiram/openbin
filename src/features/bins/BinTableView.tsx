@@ -137,7 +137,7 @@ const BinTableRow = React.memo(function BinTableRow({
   isVisible,
   customFields,
 }: BinTableRowProps) {
-  const { t } = useTranslation('bins');
+  const { t, i18n } = useTranslation('bins');
   const getTagStyle = useTagStyle();
   const BinIcon = resolveIcon(bin.icon);
   const colorPreset = resolveColor(bin.color);
@@ -260,14 +260,14 @@ const BinTableRow = React.memo(function BinTableRow({
       {/* Created */}
       {isVisible?.('created') && (
         <span className="w-20 shrink-0 text-[12px] text-[var(--text-tertiary)] text-right">
-          {formatDate(bin.created_at)}
+          {formatDate(bin.created_at, i18n.language)}
         </span>
       )}
 
       {/* Updated */}
       {isVisible?.('updated') !== false && (
         <span className="w-20 shrink-0 text-[12px] text-[var(--text-tertiary)] text-right">
-          {formatDate(bin.updated_at)}
+          {formatDate(bin.updated_at, i18n.language)}
         </span>
       )}
     </BaseTableRow>

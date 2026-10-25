@@ -72,11 +72,18 @@ export default defineConfig({
       'ai:analyzeLabel.*',
       'ai:analyzeError.title*',
       'ai:aiErrors.*',
+      // matchDisplay.ts's itemCountLabel() uses the same aliased `translate` pattern.
+      'ai:itemQuery.itemCount*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
       // HelpSheet.tsx renders CAMERA_TIPS via `tips.items.${tip.id}` (tips.ts keeps
       // the English headline as defaultValue).
       'capture:tips.items.*',
+      // bins/colorLabels.ts: color/hue names, premade background labels and the secondary-color
+      // labels are looked up by a key derived from the data table (English label = defaultValue).
+      'bins:colors.*',
+      'bins:backgrounds.*',
+      'bins:colorPicker.secondary.*',
     ],
   },
 });

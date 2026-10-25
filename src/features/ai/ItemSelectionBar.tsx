@@ -1,7 +1,6 @@
 import { PackageMinus, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { plural } from '@/lib/utils';
 
 interface ItemSelectionBarProps {
   selectionCount: number;
@@ -35,13 +34,11 @@ export function ItemSelectionBar({
         <X className="h-4 w-4" />
       </button>
       <span className="text-[13px] font-medium text-[var(--text-primary)]">
-        {selectionCount}{' '}
-        {plural(
-          selectionCount,
-          t('itemQuery.item', { defaultValue: 'item' }),
-          t('itemQuery.items', { defaultValue: 'items' }),
-        )}{' '}
-        {t('itemQuery.selectedSuffix', { defaultValue: 'selected' })}
+        {t('itemQuery.selectedCount', {
+          count: selectionCount,
+          defaultValue_one: '{{count}} item selected',
+          defaultValue_other: '{{count}} items selected',
+        })}
       </span>
       <span className="flex-1" />
       <Button size="sm" variant="secondary" onClick={onCheckout} disabled={isBusy}>

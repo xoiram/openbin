@@ -1,4 +1,4 @@
-import { plural, pluralize } from '@/lib/utils';
+import { pluralize } from '@/lib/utils';
 import type { QueryMatch } from './useInventoryQuery';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
@@ -40,12 +40,11 @@ export function parseRelevanceKind(relevance: string): RelevanceKind {
 function itemCountLabel(count: number, t?: unknown): string {
   if (!t) return pluralize(count, 'item');
   const translate = t as Translate;
-  const word = plural(
+  return translate('itemQuery.itemCount', {
     count,
-    translate('itemQuery.item', { defaultValue: 'item' }),
-    translate('itemQuery.items', { defaultValue: 'items' }),
-  );
-  return `${count} ${word}`;
+    defaultValue_one: '{{count}} item',
+    defaultValue_other: '{{count}} items',
+  });
 }
 
 export function getMatchDisplay(match: QueryMatch, t?: unknown): MatchDisplay {

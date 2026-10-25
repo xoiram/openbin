@@ -45,6 +45,12 @@
     },
     "saveFailed": "Kunne ikke lagre {{field}}"
   },
+  "backgrounds": {
+    "bin-black-yellow": "Svart og gul",
+    "bin-blue": "Blå",
+    "bin-gray": "Grå",
+    "bin-green-red": "Grønn og rød"
+  },
   "bulk": {
     "appearance": {
       "color": "Farge",
@@ -115,6 +121,29 @@
     "color": "Farge",
     "gray": "Grå",
     "none": "Ingen",
+    "white": "Hvit",
+    "secondary": {
+      "border": "Kantfarge",
+      "gradient": "Sluttfarge",
+      "stripe": "Stripefarge"
+    }
+  },
+  "colors": {
+    "red": "Rød",
+    "orange": "Oransje",
+    "yellow": "Gul",
+    "lime": "Limegrønn",
+    "green": "Grønn",
+    "teal": "Turkis",
+    "cyan": "Cyan",
+    "sky": "Himmelblå",
+    "blue": "Blå",
+    "indigo": "Indigo",
+    "purple": "Lilla",
+    "pink": "Rosa",
+    "rose": "Rosenrød",
+    "gray": "Grå",
+    "black": "Svart",
     "white": "Hvit"
   },
   "createDialog": {
@@ -310,7 +339,7 @@
     "tagModeAny": "Hvilken som helst",
     "tags": "Stikkord",
     "title": "Filtrer {{bins}}",
-    "unassigned": "Uten område",
+    "unassigned": "Ikke tildelt",
     "unusedSince": "Ubrukt siden",
     "usage": "Bruk"
   },
@@ -421,6 +450,15 @@
   "photoAnalysis": {
     "analyzeFailed": "Kunne ikke analysere bildene",
     "reanalyzeFailed": "Kunne ikke analysere bildene på nytt"
+  },
+  "photoBulkAdd": {
+    "phase": {
+      "photos": "BILDER",
+      "analyze": "ANALYSER",
+      "review": "GJENNOMGANG",
+      "create": "OPPRETT"
+    },
+    "stepLabel": "Steg {{current}} av {{total}}: {{label}}"
   },
   "photoUpload": {
     "addFromGallery": "Legg til fra galleri",

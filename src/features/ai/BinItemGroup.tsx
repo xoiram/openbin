@@ -1,7 +1,7 @@
 import { CheckSquare, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { cn, flatCard, plural } from '@/lib/utils';
+import { cn, flatCard } from '@/lib/utils';
 import { BinDisclosurePill } from './BinDisclosurePill';
 import { BinGroupHeader } from './BinGroupHeader';
 import { ItemRow } from './ItemRow';
@@ -107,12 +107,11 @@ export function BinItemGroup({
                 >
                   <CheckSquare className="h-4 w-4 shrink-0" />
                   <span>
-                    {t('itemQuery.selectAllPrefix', { defaultValue: 'Select all' })} {match.items.length}{' '}
-                    {plural(
-                      match.items.length,
-                      t('itemQuery.item', { defaultValue: 'item' }),
-                      t('itemQuery.items', { defaultValue: 'items' }),
-                    )}
+                    {t('itemQuery.selectAll', {
+                      count: match.items.length,
+                      defaultValue_one: 'Select all {{count}} item',
+                      defaultValue_other: 'Select all {{count}} items',
+                    })}
                   </span>
                 </button>
               )}
@@ -123,14 +122,10 @@ export function BinItemGroup({
                 className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)] border-t border-[var(--border-subtle)] transition-colors"
               >
                 <span className="flex-1 text-left">
-                  + {hiddenCount}{' '}
-                  {t('itemQuery.moreItemsSuffix', {
-                    defaultValue: 'more {{word}} — open bin to see all',
-                    word: plural(
-                      hiddenCount,
-                      t('itemQuery.item', { defaultValue: 'item' }),
-                      t('itemQuery.items', { defaultValue: 'items' }),
-                    ),
+                  {t('itemQuery.moreItems', {
+                    count: hiddenCount,
+                    defaultValue_one: '+ {{count}} more item — open to see all',
+                    defaultValue_other: '+ {{count}} more items — open to see all',
                   })}
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 shrink-0" />

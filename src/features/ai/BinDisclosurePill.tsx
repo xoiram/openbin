@@ -35,10 +35,13 @@ export function BinDisclosurePill({
     );
   }
 
-  const verb = expanded
-    ? t('itemQuery.hide', { defaultValue: 'Hide' })
-    : t('itemQuery.show', { defaultValue: 'Show' });
-  const label = binName ? `${verb} ${countLabel} in ${binName}` : `${verb} ${countLabel}`;
+  const label = binName
+    ? expanded
+      ? t('itemQuery.hideIn', { defaultValue: 'Hide {{label}} in {{name}}', label: countLabel, name: binName })
+      : t('itemQuery.showIn', { defaultValue: 'Show {{label}} in {{name}}', label: countLabel, name: binName })
+    : expanded
+      ? t('itemQuery.hideLabel', { defaultValue: 'Hide {{label}}', label: countLabel })
+      : t('itemQuery.showLabel', { defaultValue: 'Show {{label}}', label: countLabel });
 
   return (
     <button

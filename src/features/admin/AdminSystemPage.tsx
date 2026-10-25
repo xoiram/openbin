@@ -33,8 +33,9 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/toast';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useAuth } from '@/lib/auth';
-import { formatBytes, getErrorMessage, relativeTime } from '@/lib/utils';
+import { formatBytes, getErrorMessage } from '@/lib/utils';
 import {
   fetchMaintenanceStatus,
   fetchSystemHealth,
@@ -355,6 +356,7 @@ function SystemTab() {
 
 function AuditLogTab() {
   const { t } = useTranslation('admin');
+  const relativeTime = useRelativeTime();
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const { entries, count, isLoading } = useAuditLog(page, { action: actionFilter || undefined });

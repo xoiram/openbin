@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { relativeTime } from '@/lib/utils';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
+
 import type { BinItem, ItemCheckout } from '@/types';
 
 interface ItemListCheckoutSublineProps {
@@ -9,6 +10,7 @@ interface ItemListCheckoutSublineProps {
 
 export function ItemListCheckoutSubline({ item, checkout }: ItemListCheckoutSublineProps) {
   const { t } = useTranslation('bins');
+  const relativeTime = useRelativeTime();
   return (
     <span className="flex-1 min-w-0 text-[15px] leading-relaxed">
       <span className="block text-[var(--text-tertiary)] line-through opacity-60">{item.name}</span>

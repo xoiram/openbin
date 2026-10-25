@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useAuth } from '@/lib/auth';
 import { usePermissions } from '@/lib/usePermissions';
-import { focusRing, formatBytes, getErrorMessage, relativeTime } from '@/lib/utils';
+import { focusRing, formatBytes, getErrorMessage } from '@/lib/utils';
 import type { Attachment } from '@/types';
 import {
   deleteAttachment,
@@ -71,6 +72,7 @@ interface AttachmentsListProps {
 
 export function AttachmentsList({ binId, attachments, canUpload, canDelete }: AttachmentsListProps) {
   const { t } = useTranslation('attachments');
+  const relativeTime = useRelativeTime();
   const { user } = useAuth();
   const { isAdmin } = usePermissions();
   const { showToast } = useToast();

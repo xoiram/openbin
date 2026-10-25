@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { buildColorKey, hslToHex, resolveColor, SHADE_COUNT } from '@/lib/colorPalette';
 import { useColorGradient } from '@/lib/useColorGradient';
 import { cn } from '@/lib/utils';
+import { translateColorLabel, translateSecondaryColorLabel } from './colorLabels';
 
 interface ColorPickerProps {
   value: string;
@@ -160,10 +161,9 @@ export function ColorPicker({ value, onChange, secondaryLabel, secondaryValue, o
   const hasSecondary = !!(secondaryLabel && onSecondaryChange);
   const secondaryPreset = hasSecondary ? resolveColor(secondaryValue ?? '') : undefined;
 
-  // Preset labels (Red, Blue, ...) come from lib/colorPalette and are not localized here.
   const noneLabel = t('colorPicker.none', { defaultValue: 'None' });
-  const primaryLabel = preset?.label ?? noneLabel;
-  const secondaryDisplayLabel = secondaryPreset?.label ?? noneLabel;
+  const primaryLabel = preset ? translateColorLabel(t, preset.label) : noneLabel;
+  const secondaryDisplayLabel = secondaryPreset ? translateColorLabel(t, secondaryPreset.label) : noneLabel;
 
   return (
     <div className="space-y-2">
@@ -196,7 +196,7 @@ export function ColorPicker({ value, onChange, secondaryLabel, secondaryValue, o
           <HueGradientPicker value={value} onChange={onChange} />
           {hasSecondary && (
             <>
-              <p className="text-[12px] text-[var(--text-tertiary)]">{secondaryLabel}</p>
+              <p className="text-[12px] text-[var(--text-tertiary)]">{secondaryLabel ? translateSecondaryColorLabel(t, secondaryLabel) : null}</p>
               <HueGradientPicker
                 value={secondaryValue ?? ''}
                 onChange={(v) => onSecondaryChange?.(v)}

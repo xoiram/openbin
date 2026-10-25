@@ -1,18 +1,16 @@
 import { parseAnalysisItemCount } from '@/features/ai/parsePartialAnalysis';
-import { plural } from '@/lib/utils';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
 /** Used when no `t` is supplied — mirrors the pre-i18n hardcoded English text exactly. */
-const englishFallback: Translate = (_key, options) => (options?.defaultValue as string) ?? '';
-
-function itemWord(count: number, translate: Translate): string {
-  return plural(
-    count,
-    translate('itemQuery.item', { defaultValue: 'item' }),
-    translate('itemQuery.items', { defaultValue: 'items' }),
-  );
-}
+const englishFallback: Translate = (_key, options) => {
+  const count = options?.count;
+  const raw =
+    typeof count === 'number'
+      ? (options?.[count === 1 ? 'defaultValue_one' : 'defaultValue_other'] ?? options?.defaultValue)
+      : options?.defaultValue;
+  return String(raw ?? '').replace(/\{\{count\}\}/g, String(count));
+};
 
 export type AnalyzeStreamMode = 'analyze' | 'reanalyze' | 'correction' | 'locking' | 'idle';
 
@@ -48,7 +46,11 @@ export function computeAnalyzeLabel(
     const text =
       itemCount === 0
         ? translate('analyzeLabel.noItemsFound', { defaultValue: 'No items found' })
-        : `${itemCount} ${itemWord(itemCount, translate)} ${translate('analyzeLabel.foundSuffix', { defaultValue: 'found' })}`;
+        : translate('analyzeLabel.itemsFound', {
+            count: itemCount,
+            defaultValue_one: '{{count}} item found',
+            defaultValue_other: '{{count}} items found',
+          });
     return { text, showEllipsis: false, itemCount };
   }
 
@@ -73,7 +75,11 @@ export function computeAnalyzeLabel(
   }
 
   return {
-    text: `${translate('analyzeLabel.foundPrefix', { defaultValue: 'Found' })} ${itemCount} ${itemWord(itemCount, translate)}`,
+    text: translate('analyzeLabel.foundItems', {
+      count: itemCount,
+      defaultValue_one: 'Found {{count}} item',
+      defaultValue_other: 'Found {{count}} items',
+    }),
     showEllipsis: true,
     itemCount,
   };

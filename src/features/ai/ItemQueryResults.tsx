@@ -12,7 +12,7 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/lib/auth';
 import { usePermissions } from '@/lib/usePermissions';
-import { getErrorMessage, plural } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/utils';
 import { BinItemGroup } from './BinItemGroup';
 import { ItemSelectionBar } from './ItemSelectionBar';
 import { executeBatch } from './useActionExecutor';
@@ -32,8 +32,6 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
   const { canWrite } = usePermissions();
   const { activeLocationId } = useAuth();
   const { showToast } = useToast();
-  const itemWord = (count: number) =>
-    plural(count, t('itemQuery.item', { defaultValue: 'item' }), t('itemQuery.items', { defaultValue: 'items' }));
 
   // Defensive: the prompt says "at most 8 bins", but a misbehaving model
   // could return more. Also dedup — two matches with the same bin_id would
@@ -91,17 +89,19 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
           variant: 'error',
         });
       } else {
-        const verb =
-          kind === 'checkout'
-            ? t('itemQuery.checkedOutVerb', { defaultValue: 'checked out' })
-            : t('itemQuery.removedVerb', { defaultValue: 'removed' });
         showToast({
-          message: t('itemQuery.bulkDone', {
-            defaultValue: 'Done — {{count}} {{word}} {{verb}}',
-            count: selection.selectionCount,
-            word: itemWord(selection.selectionCount),
-            verb,
-          }),
+          message:
+            kind === 'checkout'
+              ? t('itemQuery.bulkDoneCheckout', {
+                  count: selection.selectionCount,
+                  defaultValue_one: 'Done — {{count}} item checked out',
+                  defaultValue_other: 'Done — {{count}} items checked out',
+                })
+              : t('itemQuery.bulkDoneRemove', {
+                  count: selection.selectionCount,
+                  defaultValue_one: 'Done — {{count}} item removed',
+                  defaultValue_other: 'Done — {{count}} items removed',
+                }),
         });
       }
       if (kind === 'remove' && failed === 0) {
@@ -148,15 +148,16 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
           <DialogHeader>
             <DialogTitle>
               {t('itemQuery.removeCountTitle', {
-                defaultValue: 'Remove {{count}} {{word}}?',
                 count: selection.selectionCount,
-                word: itemWord(selection.selectionCount),
+                defaultValue_one: 'Remove {{count}} item?',
+                defaultValue_other: 'Remove {{count}} items?',
               })}
             </DialogTitle>
             <DialogDescription>
               {t('itemQuery.removeCountDescription', {
-                defaultValue: 'This will permanently remove the selected {{word}} from their bins.',
-                word: itemWord(selection.selectionCount),
+                count: selection.selectionCount,
+                defaultValue_one: 'This will permanently remove the selected item.',
+                defaultValue_other: 'This will permanently remove the selected items.',
               })}
             </DialogDescription>
           </DialogHeader>
