@@ -12,18 +12,20 @@ import {
 import { RadioOption } from '@/components/ui/radio-option';
 import { useToast } from '@/components/ui/toast';
 import { useTerminology } from '@/lib/terminology';
-import { returnItem } from './useCheckouts';
+import { returnItem, returnItemInLocation } from './useCheckouts';
 
 interface ReturnItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   itemName: string;
-  binId: string;
+  /** Origin box of the checkout; null when the item had no box (area or unassigned). */
+  binId: string | null;
+  locationId: string;
   itemId: string;
   originBinName?: string;
 }
 
-export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, originBinName }: ReturnItemDialogProps) {
+export function ReturnItemDialog({ open, onOpenChange, itemName, binId, locationId, itemId, originBinName }: ReturnItemDialogProps) {
   const { t } = useTranslation(['checkouts', 'common']);
   const term = useTerminology();
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,8 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
     setLoading(true);
     try {
       const target = mode === 'different' && targetId ? targetId : undefined;
-      await returnItem(binId, itemId, target);
+      if (binId) await returnItem(binId, itemId, target);
+      else await returnItemInLocation(locationId, itemId, target);
       handleOpenChange(false);
       showToast({ message: t('returnItem.returned', { defaultValue: '{{name}} returned', name: itemName }) });
     } catch {
@@ -70,7 +73,9 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
           <RadioOption
             selected={mode === 'origin'}
             onClick={() => { setMode('origin'); setTargetId(null); }}
-            label={t('returnItem.originalBin', { defaultValue: 'Original {{bin}}', bin: term.bin })}
+            label={binId
+              ? t('returnItem.originalBin', { defaultValue: 'Original {{bin}}', bin: term.bin })
+              : t('returnItem.originalPlace', { defaultValue: 'Original place' })}
             description={originBinName}
           />
           <RadioOption
@@ -83,7 +88,7 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
         {mode === 'different' && (
           <div className="mt-3 animate-fade-in">
             <BinPickerList
-              excludeBinId={binId}
+              excludeBinId={binId ?? undefined}
               selectedBinId={targetId}
               onSelect={setTargetId}
               search={search}

@@ -260,6 +260,10 @@ export function ShoppingListPage() {
                           />
                         </span>
                       </>
+                    ) : entry.origin_area_name ? (
+                      <span className="truncate text-[13px] text-[var(--text-tertiary)]">
+                        <Highlight text={entry.origin_area_name} query={debouncedSearch} />
+                      </span>
                     ) : (
                       <span className="text-[13px] text-[var(--text-tertiary)]">
                         &mdash;

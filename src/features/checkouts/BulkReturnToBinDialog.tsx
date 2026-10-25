@@ -26,7 +26,7 @@ export function BulkReturnToBinDialog({
   const { bins } = useBinList(undefined, 'name', undefined, !open);
   const targetName = bins.find((b) => b.id === targetId)?.name ?? '';
   const originBinCount = useMemo(
-    () => new Set(checkouts.map((c) => c.origin_bin_id)).size,
+    () => new Set(checkouts.flatMap((c) => (c.origin_bin_id ? [c.origin_bin_id] : []))).size,
     [checkouts],
   );
 
@@ -48,13 +48,18 @@ export function BulkReturnToBinDialog({
         defaultValue_one: 'Return {{count}} item to chosen {{bin}}',
         defaultValue_other: 'Return {{count}} items to chosen {{bin}}',
       })}
-      description={t('bulkReturnToBin.description', {
-        count: originBinCount,
-        bin: term.bin,
-        bins: term.bins,
-        defaultValue_one: "Items currently span {{count}} {{bin}}. They'll all move to the picked destination.",
-        defaultValue_other: "Items currently span {{count}} {{bins}}. They'll all move to the picked destination.",
-      })}
+      description={originBinCount === 0
+        ? t('bulkReturnToBin.descriptionNoBin', {
+            bin: term.bin,
+            defaultValue: "None of these items came from a {{bin}}. They'll all move to the picked destination.",
+          })
+        : t('bulkReturnToBin.description', {
+            count: originBinCount,
+            bin: term.bin,
+            bins: term.bins,
+            defaultValue_one: "Items currently span {{count}} {{bin}}. They'll all move to the picked destination.",
+            defaultValue_other: "Items currently span {{count}} {{bins}}. They'll all move to the picked destination.",
+          })}
       selectedIds={ids}
       onApply={async (checkoutIds) => {
         if (!targetId) return;

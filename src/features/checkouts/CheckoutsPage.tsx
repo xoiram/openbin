@@ -62,7 +62,7 @@ export function CheckoutsPage() {
       const q = search.toLowerCase();
       list = list.filter((co) =>
         co.item_name.toLowerCase().includes(q) ||
-        co.origin_bin_name.toLowerCase().includes(q) ||
+        (co.origin_bin_name ?? co.origin_area_name ?? '').toLowerCase().includes(q) ||
         co.checked_out_by_name.toLowerCase().includes(q),
       );
     }
@@ -200,8 +200,9 @@ export function CheckoutsPage() {
           onOpenChange={(next) => { if (!next) setReturningCheckout(null); }}
           itemName={returningCheckout.item_name}
           binId={returningCheckout.origin_bin_id}
+          locationId={returningCheckout.location_id}
           itemId={returningCheckout.item_id}
-          originBinName={returningCheckout.origin_bin_name}
+          originBinName={returningCheckout.origin_bin_name ?? returningCheckout.origin_area_name ?? undefined}
         />
       )}
 
@@ -269,20 +270,30 @@ function CheckoutRow({
     index,
     selectable,
     onSelect,
-    onActivate: () => navigate(`/bin/${co.origin_bin_id}`),
+    onActivate: () => {
+      // Checkouts that originate from an area (or nowhere) have no box page to open.
+      if (!co.origin_bin_id) return;
+      navigate(`/bin/${co.origin_bin_id}`);
+    },
   });
-  const BinIcon = resolveIcon(co.origin_bin_icon);
-  const colorPreset = resolveColor(co.origin_bin_color);
+  const hasBin = co.origin_bin_id != null;
+  const BinIcon = resolveIcon(co.origin_bin_icon ?? '');
+  const colorPreset = resolveColor(co.origin_bin_color ?? '');
+  const originName = co.origin_bin_name ?? co.origin_area_name;
+  const originLabel = originName ?? t('page.unassigned', { defaultValue: 'Unassigned' });
   return (
     <TableRow
       tabIndex={0}
-      role={selectable ? 'option' : 'button'}
+      role={selectable ? 'option' : hasBin ? 'button' : 'row'}
       aria-selected={selectable ? selected : undefined}
-      aria-label={t('page.rowLabel', {
-        defaultValue: '{{name}} checked out from {{bin}}',
-        name: co.item_name,
-        bin: co.origin_bin_name,
-      })}
+      aria-label={originName
+        ? t('page.rowLabel', {
+            defaultValue: '{{name}} checked out from {{bin}}',
+            name: co.item_name,
+            bin: originName,
+          })
+        : t('page.rowLabelUnassigned', { defaultValue: '{{name}} checked out, unassigned', name: co.item_name })}
+      className={cn(!hasBin && !selectable && 'cursor-default')}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onTouchStart={longPress.onTouchStart}
@@ -304,9 +315,9 @@ function CheckoutRow({
         </span>
       </div>
       <div className="flex-1 min-w-0 row">
-        <BinIconBadge icon={BinIcon} colorPreset={colorPreset} />
-        <span className="truncate text-[13px] text-[var(--text-tertiary)]">
-          <Highlight text={co.origin_bin_name} query={search} />
+        {hasBin && <BinIconBadge icon={BinIcon} colorPreset={colorPreset} />}
+        <span className={cn('truncate text-[13px] text-[var(--text-tertiary)]', !originName && 'italic')}>
+          <Highlight text={originLabel} query={search} />
         </span>
       </div>
       <div className="hidden md:block flex-1 min-w-0">

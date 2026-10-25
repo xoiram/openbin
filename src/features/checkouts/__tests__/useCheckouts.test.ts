@@ -13,7 +13,7 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 import { apiFetch } from '@/lib/api';
-import { checkoutItem, returnItem, useCheckouts, useLocationCheckouts } from '../useCheckouts';
+import { checkoutItem, checkoutItemInLocation, returnItem, returnItemInLocation, useCheckouts, useLocationCheckouts } from '../useCheckouts';
 
 const mockApiFetch = vi.mocked(apiFetch);
 
@@ -107,5 +107,31 @@ describe('useLocationCheckouts', () => {
 
     expect(result.current.checkouts).toEqual(checkouts);
     expect(mockApiFetch).toHaveBeenCalledWith('/api/locations/loc-1/checkouts');
+  });
+});
+
+describe('location-scoped checkout and return', () => {
+  it('checkoutItemInLocation posts to the location endpoint', async () => {
+    mockApiFetch.mockResolvedValue({ checkout: { id: 'co-1' } });
+    await checkoutItemInLocation('loc-1', 'item-1');
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/locations/loc-1/items/item-1/checkout', { method: 'POST' });
+  });
+
+  it('returnItemInLocation defaults to an empty body', async () => {
+    mockApiFetch.mockResolvedValue({ checkout: { id: 'co-1' } });
+    await returnItemInLocation('loc-1', 'item-1');
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/locations/loc-1/items/item-1/return', {
+      method: 'POST',
+      body: {},
+    });
+  });
+
+  it('returnItemInLocation passes targetBinId', async () => {
+    mockApiFetch.mockResolvedValue({ checkout: { id: 'co-1' } });
+    await returnItemInLocation('loc-1', 'item-1', 'bin-2');
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/locations/loc-1/items/item-1/return', {
+      method: 'POST',
+      body: { targetBinId: 'bin-2' },
+    });
   });
 });

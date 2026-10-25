@@ -8,7 +8,9 @@
     "returnItem": "Return item",
     "returnNamed": "Return {{item}}",
     "rowLabel": "{{item}} checked out by {{user}} from {{bin}}",
-    "title": "Checked out ({{n}})"
+    "title": "Checked out ({{n}})",
+    "unassigned": "Unassigned",
+    "rowLabelUnassigned": "{{item}} checked out by {{user}}, unassigned"
   },
   "dialogs": {
     "binCount_one": "{{count}} {{bin}}",

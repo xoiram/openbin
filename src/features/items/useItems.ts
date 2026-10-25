@@ -6,10 +6,12 @@ export interface ItemEntry {
   id: string;
   name: string;
   quantity: number | null;
-  bin_id: string;
-  bin_name: string;
-  bin_icon: string;
-  bin_color: string;
+  bin_id: string | null;
+  bin_name: string | null;
+  bin_icon: string | null;
+  bin_color: string | null;
+  area_id: string | null;
+  area_name: string | null;
 }
 
 export function usePaginatedItemList(search?: string, sort?: string, order?: 'asc' | 'desc', pageSize = 40) {

@@ -83,6 +83,9 @@
     "item": "Gjenstand",
     "qty": "Ant.",
     "rowLabel": "{{name}} i {{bin}}",
-    "rowLabelWithQuantity": "{{name}} ({{quantity}}) i {{bin}}"
+    "rowLabelWithQuantity": "{{name}} ({{quantity}}) i {{bin}}",
+    "unassigned": "Ikke tildelt",
+    "rowLabelUnassigned": "{{name}}, ikke tildelt",
+    "rowLabelWithQuantityUnassigned": "{{name}} ({{quantity}}), ikke tildelt"
   }
 }
