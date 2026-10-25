@@ -3,7 +3,7 @@ import { d, query, withTransaction } from '../../db.js';
 import { asyncHandler } from '../../lib/asyncHandler.js';
 import { cleanupBinAttachments } from '../../lib/attachmentsCleanup.js';
 import { requireAdmin, requireCreatorOrAdmin, verifyBinAccess, verifyDeletedBinAccess, verifyLocationMembership } from '../../lib/binAccess.js';
-import { assertParentNotTrashed, loadBinNode, restoreChildBins, trashChildBins } from '../../lib/binHierarchy.js';
+import { assertParentNotTrashed, countTrashedWithParent, loadBinNode, restoreChildBins, trashChildBins } from '../../lib/binHierarchy.js';
 import { BIN_SELECT_COLS, fetchBinById } from '../../lib/binQueries.js';
 import { ForbiddenError, NotFoundError, ValidationError } from '../../lib/httpErrors.js';
 import { cleanupBinPhotos } from '../../lib/photoCleanup.js';
@@ -85,10 +85,12 @@ router.post('/:id/restore', asyncHandler(async (req, res) => {
   // Enforce bin limit inside a transaction with row lock to prevent concurrent bypass
   await withTransaction(async (tx) => {
     const { assertBinCreationAllowedTx: assertLimitTx } = await import('../../lib/planGate.js');
-    await assertLimitTx(req.user!.id, tx);
     const node = await loadBinNode(tx, id);
     if (!node?.deleted_at) throw new NotFoundError('Deleted bin not found');
     await assertParentNotTrashed(tx, node);
+    // children trashed with this bin come back with it, so they count against the plan limit too
+    const restoring = await countTrashedWithParent(tx, id, node.deleted_at);
+    await assertLimitTx(req.user!.id, tx, 1 + restoring);
     await tx(
       `UPDATE bins SET deleted_at = NULL, updated_at = ${d.now()} WHERE id = $1`,
       [id],

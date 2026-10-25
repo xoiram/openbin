@@ -1,7 +1,7 @@
 import type { TxQueryFn } from '../../db.js';
 import { d, generateUuid, isUniqueViolation } from '../../db.js';
 import { requireAdmin } from '../binAccess.js';
-import { assertParentNotTrashed, loadBinNode, restoreChildBins, trashChildBins } from '../binHierarchy.js';
+import { assertParentNotTrashed, countTrashedWithParent, loadBinNode, restoreChildBins, trashChildBins } from '../binHierarchy.js';
 import type { ActionResult } from '../commandExecutor.js';
 import type { CommandAction } from '../commandParser.js';
 import { replaceCustomFieldValues } from '../customFieldHelpers.js';
@@ -98,12 +98,13 @@ export async function handleDeleteBin(action: Extract<CommandAction, { type: 'de
 
 export async function handleRestoreBin(action: Extract<CommandAction, { type: 'restore_bin' }>, ctx: ActionContext, tx: TxQueryFn): Promise<ActionResult> {
   await requireAdmin(ctx.locationId, ctx.userId, 'restore bins');
-  await assertBinCreationAllowedTx(ctx.userId, tx);
   const bin = await tx<{ id: string; name: string; visibility: string; created_by: string }>('SELECT id, name, visibility, created_by FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NOT NULL', [action.bin_id, ctx.locationId]);
   if (bin.rows.length === 0) throw new Error(`Bin not found in trash: ${action.bin_name}`);
   assertBinVisible(bin.rows[0], ctx.userId);
   const node = await loadBinNode(tx, action.bin_id);
   await assertParentNotTrashed(tx, node!);
+  // children trashed with this bin come back with it, so they count against the plan limit too
+  await assertBinCreationAllowedTx(ctx.userId, tx, 1 + (await countTrashedWithParent(tx, action.bin_id, node!.deleted_at!)));
   await tx(`UPDATE bins SET deleted_at = NULL, updated_at = ${d.now()} WHERE id = $1`, [action.bin_id]);
   await restoreChildBins(tx, action.bin_id, node!.deleted_at!);
   ctx.pendingActivities.push({

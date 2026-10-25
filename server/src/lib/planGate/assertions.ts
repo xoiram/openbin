@@ -45,8 +45,10 @@ export async function assertReorganizeBinLimit(
  * Transaction-safe variant of assertBinCreationAllowed.
  * Must be called inside withTransaction(). Locks the user row (FOR UPDATE on PG)
  * to serialize concurrent bin-creation requests and prevent limit bypass.
+ * `additional` is how many bins the operation adds (restoring a bin brings its trashed
+ * children back with it, so it adds 1 + the number of children).
  */
-export async function assertBinCreationAllowedTx(userId: string, tx: TxQueryFn): Promise<void> {
+export async function assertBinCreationAllowedTx(userId: string, tx: TxQueryFn, additional = 1): Promise<void> {
   if (config.selfHosted) return;
 
   // Lock user row to serialize concurrent creates (PG: FOR UPDATE; SQLite: no-op, WAL serializes)
@@ -71,7 +73,7 @@ export async function assertBinCreationAllowedTx(userId: string, tx: TxQueryFn):
     'SELECT COUNT(*) as cnt FROM bins WHERE created_by = $1 AND deleted_at IS NULL',
     [userId],
   );
-  if (countResult.rows[0].cnt >= maxBins) {
+  if (Number(countResult.rows[0].cnt) + additional > maxBins) {
     throw new PlanRestrictedError(
       `You've reached the ${maxBins}-bin limit on your current plan. Upgrade to create more bins.`,
     );

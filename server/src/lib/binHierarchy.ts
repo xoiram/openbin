@@ -131,6 +131,12 @@ export async function trashChildBins(q: Q, parentId: string, deletedAt: string):
   );
 }
 
+/** How many children were trashed together with their parent (same deleted_at): what restoring it brings back. */
+export async function countTrashedWithParent(q: Q, parentId: string, parentDeletedAt: string): Promise<number> {
+  const result = await q('SELECT COUNT(*) AS n FROM bins WHERE parent_bin_id = $1 AND deleted_at = $2', [parentId, parentDeletedAt]);
+  return Number(result.rows[0]?.n ?? 0);
+}
+
 /** Restore the children that were trashed together with their parent (same deleted_at). */
 export async function restoreChildBins(q: Q, parentId: string, parentDeletedAt: string): Promise<void> {
   await q(
