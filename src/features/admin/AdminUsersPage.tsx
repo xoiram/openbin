@@ -1,5 +1,6 @@
 import { BarChart3, Globe, Lock, Mail, Search, Settings, UserPlus, Users } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ export function AdminUsersPage() {
   const { user } = useAuth();
   const { isSelfHosted } = usePlan();
   const { showToast } = useToast();
+  const { t } = useTranslation(['admin', 'common']);
   const navigate = useNavigate();
 
   // Redirect non-admins
@@ -68,21 +70,30 @@ export function AdminUsersPage() {
     if (!deleteTarget) return;
     try {
       await deleteUser(deleteTarget.id);
-      showToast({ message: `User ${deleteTarget.email} deleted`, variant: 'success' });
+      showToast({ message: t('users.deletedToast', { defaultValue: 'User {{email}} deleted', email: deleteTarget.email }), variant: 'success' });
       setDeleteTarget(null);
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to delete user'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('users.deleteFailed', { defaultValue: 'Failed to delete user' })), variant: 'error' });
     }
-  }, [deleteTarget, deleteUser, showToast]);
+  }, [deleteTarget, deleteUser, showToast, t]);
 
-  const handleRegistrationChange = useCallback(async (mode: string) => {
+  const registrationLabels = useMemo<Record<'open' | 'invite' | 'closed', string>>(() => ({
+    open: t('registration.open', { defaultValue: 'Open' }),
+    invite: t('registration.invite', { defaultValue: 'Invite' }),
+    closed: t('registration.closed', { defaultValue: 'Closed' }),
+  }), [t]);
+
+  const handleRegistrationChange = useCallback(async (mode: 'open' | 'invite' | 'closed') => {
     try {
-      await updateRegistrationMode(mode as 'open' | 'invite' | 'closed');
-      showToast({ message: `Registration mode set to ${mode}`, variant: 'success' });
+      await updateRegistrationMode(mode);
+      showToast({
+        message: t('registration.updatedToast', { defaultValue: 'Registration mode set to {{mode}}', mode: registrationLabels[mode] }),
+        variant: 'success',
+      });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to update registration mode'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('registration.updateFailed', { defaultValue: 'Failed to update registration mode' })), variant: 'error' });
     }
-  }, [updateRegistrationMode, showToast]);
+  }, [updateRegistrationMode, showToast, t, registrationLabels]);
 
   const handleCreate = useCallback(async () => {
     setCreateLoading(true);
@@ -93,18 +104,20 @@ export function AdminUsersPage() {
         displayName: createForm.displayName || undefined,
         isAdmin: createForm.isAdmin,
       });
-      showToast({ message: `User ${createForm.email} created`, variant: 'success' });
+      showToast({ message: t('users.createdToast', { defaultValue: 'User {{email}} created', email: createForm.email }), variant: 'success' });
       setCreateOpen(false);
       setCreateForm({ email: '', password: '', displayName: '', isAdmin: false });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to create user'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('users.createFailed', { defaultValue: 'Failed to create user' })), variant: 'error' });
     } finally {
       setCreateLoading(false);
     }
-  }, [createForm, createUser, showToast]);
+  }, [createForm, createUser, showToast, t]);
 
   // Prevent flash of admin content for non-admins
   if (user && !user.isAdmin) return null;
+
+  const lockedTitle = t('registration.lockedShort', { defaultValue: 'Locked by env var' });
 
   const registrationSection = (
     <Card>
@@ -113,17 +126,17 @@ export function AdminUsersPage() {
           <div>
             <p className="text-[15px] font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               {registration.locked ? <Lock className="h-3.5 w-3.5" /> : <Globe className="h-3.5 w-3.5" />}
-              Registration
+              {t('registration.title', { defaultValue: 'Registration' })}
             </p>
             {registration.locked && (
-              <p className="text-[13px] text-[var(--text-tertiary)] mt-0.5">Locked by REGISTRATION_MODE env var</p>
+              <p className="text-[13px] text-[var(--text-tertiary)] mt-0.5">{t('registration.lockedByEnv', { defaultValue: 'Locked by REGISTRATION_MODE env var' })}</p>
             )}
           </div>
           <OptionGroup
             options={[
-              { key: 'open' as const, label: 'Open', icon: UserPlus, disabled: registration.locked, disabledTitle: 'Locked by env var' },
-              { key: 'invite' as const, label: 'Invite', icon: Mail, disabled: registration.locked, disabledTitle: 'Locked by env var' },
-              { key: 'closed' as const, label: 'Closed', icon: Lock, disabled: registration.locked, disabledTitle: 'Locked by env var' },
+              { key: 'open' as const, label: registrationLabels.open, icon: UserPlus, disabled: registration.locked, disabledTitle: lockedTitle },
+              { key: 'invite' as const, label: registrationLabels.invite, icon: Mail, disabled: registration.locked, disabledTitle: lockedTitle },
+              { key: 'closed' as const, label: registrationLabels.closed, icon: Lock, disabled: registration.locked, disabledTitle: lockedTitle },
             ]}
             value={registration.mode}
             onChange={handleRegistrationChange}
@@ -136,15 +149,15 @@ export function AdminUsersPage() {
   return (
     <div className="page-content-wide">
       <PageHeader
-        title="Admin"
+        title={t('users.pageTitle', { defaultValue: 'Admin' })}
         back
         actions={
           <div className="flex items-center gap-2">
             {__EE__ && !isSelfHosted && (
               <OptionGroup
                 options={[
-                  { key: 'users' as const, label: 'Users', icon: Users },
-                  { key: 'metrics' as const, label: 'Metrics', icon: BarChart3 },
+                  { key: 'users' as const, label: t('users.tabUsers', { defaultValue: 'Users' }), icon: Users },
+                  { key: 'metrics' as const, label: t('users.tabMetrics', { defaultValue: 'Metrics' }), icon: BarChart3 },
                 ]}
                 value={tab}
                 onChange={setTab}
@@ -152,11 +165,11 @@ export function AdminUsersPage() {
             )}
             <Button variant="outline" size="sm" onClick={() => navigate('/admin/system')}>
               <Settings className="h-3.5 w-3.5 mr-1.5" />
-              System
+              {t('users.systemButton', { defaultValue: 'System' })}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
               <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-              Create User
+              {t('users.createUserButton', { defaultValue: 'Create User' })}
             </Button>
           </div>
         }
@@ -172,13 +185,13 @@ export function AdminUsersPage() {
           {/* Section label */}
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-[var(--text-secondary)]" />
-            <h2 className="text-[17px] font-semibold text-[var(--text-primary)]">Users</h2>
+            <h2 className="text-[17px] font-semibold text-[var(--text-primary)]">{t('users.sectionTitle', { defaultValue: 'Users' })}</h2>
             <Badge variant="secondary" className="text-[11px]">{count}</Badge>
           </div>
 
           <div className="flex items-center gap-2">
             <SearchInput
-              placeholder="Search users..."
+              placeholder={t('users.searchPlaceholder', { defaultValue: 'Search users...' })}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               onClear={search ? () => { setSearch(''); setPage(1); } : undefined}
@@ -224,8 +237,8 @@ export function AdminUsersPage() {
           ) : users.length === 0 ? (
             <EmptyState
               icon={Search}
-              title="No users found"
-              subtitle={search ? 'Try a different search term' : undefined}
+              title={t('users.noUsers', { defaultValue: 'No users found' })}
+              subtitle={search ? t('users.tryDifferentSearch', { defaultValue: 'Try a different search term' }) : undefined}
               variant="search"
             />
           ) : (
@@ -247,7 +260,7 @@ export function AdminUsersPage() {
             onPageChange={setPage}
             totalCount={count}
             pageSize={PAGE_SIZE}
-            itemLabel="users"
+            itemLabel={t('users.paginationLabel', { defaultValue: 'users' })}
           />
         </>
       )}
@@ -265,14 +278,24 @@ export function AdminUsersPage() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
+            <DialogTitle>{t('users.deleteDialog.title', { defaultValue: 'Delete User' })}</DialogTitle>
             <DialogDescription>
-              Permanently delete <strong>{deleteTarget?.email}</strong>? This cannot be undone. All their data will be removed.
+              <Trans
+                t={t}
+                i18nKey="users.deleteDialog.description"
+                defaults="Permanently delete <strong>{{email}}</strong>? This cannot be undone. All their data will be removed."
+                values={{ email: deleteTarget?.email ?? '' }}
+                components={{ strong: <strong /> }}
+              />
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              {t('users.deleteDialog.confirm', { defaultValue: 'Delete' })}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -286,36 +309,40 @@ export function AdminUsersPage() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create User</DialogTitle>
-            <DialogDescription>Create a new user account.</DialogDescription>
+            <DialogTitle>{t('users.createDialog.title', { defaultValue: 'Create User' })}</DialogTitle>
+            <DialogDescription>{t('users.createDialog.description', { defaultValue: 'Create a new user account.' })}</DialogDescription>
           </DialogHeader>
           <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }} className="space-y-5">
-            <FormField label="Email" htmlFor="create-email">
+            <FormField label={t('users.createDialog.emailLabel', { defaultValue: 'Email' })} htmlFor="create-email">
               <Input
                 id="create-email"
                 type="email"
                 value={createForm.email}
                 onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="Email"
+                placeholder={t('users.createDialog.emailPlaceholder', { defaultValue: 'Email' })}
                 autoComplete="email"
               />
             </FormField>
-            <FormField label="Password" htmlFor="create-password" hint="8+ characters, mixed case, one digit">
+            <FormField
+              label={t('users.createDialog.passwordLabel', { defaultValue: 'Password' })}
+              htmlFor="create-password"
+              hint={t('users.createDialog.passwordHint', { defaultValue: '8+ characters, mixed case, one digit' })}
+            >
               <Input
                 id="create-password"
                 type="password"
                 value={createForm.password}
                 onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))}
-                placeholder="Password"
+                placeholder={t('users.createDialog.passwordPlaceholder', { defaultValue: 'Password' })}
                 autoComplete="new-password"
               />
             </FormField>
-            <FormField label="Display Name" htmlFor="create-displayName">
+            <FormField label={t('users.createDialog.displayNameLabel', { defaultValue: 'Display Name' })} htmlFor="create-displayName">
               <Input
                 id="create-displayName"
                 value={createForm.displayName}
                 onChange={(e) => setCreateForm((f) => ({ ...f, displayName: e.target.value }))}
-                placeholder="Optional"
+                placeholder={t('users.createDialog.displayNamePlaceholder', { defaultValue: 'Optional' })}
               />
             </FormField>
             <div className="flex items-center gap-2">
@@ -323,12 +350,16 @@ export function AdminUsersPage() {
                 checked={createForm.isAdmin}
                 onCheckedChange={(checked) => setCreateForm((f) => ({ ...f, isAdmin: checked }))}
               />
-              <Label>Admin</Label>
+              <Label>{t('users.createDialog.adminLabel', { defaultValue: 'Admin' })}</Label>
             </div>
             <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button variant="outline" type="button" onClick={() => setCreateOpen(false)}>
+                {t('common:actions.cancel', { defaultValue: 'Cancel' })}
+              </Button>
               <Button type="submit" disabled={!createForm.email || !createForm.password || createLoading}>
-                {createLoading ? 'Creating...' : 'Create'}
+                {createLoading
+                  ? t('users.createDialog.creating', { defaultValue: 'Creating...' })
+                  : t('users.createDialog.create', { defaultValue: 'Create' })}
               </Button>
             </DialogFooter>
           </form>

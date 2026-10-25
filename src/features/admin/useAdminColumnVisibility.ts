@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { STORAGE_KEYS } from '@/lib/storageKeys';
 
 export type AdminFieldKey =
@@ -16,13 +17,31 @@ const DEFAULT_VISIBILITY: Record<AdminFieldKey, boolean> = {
   binPct: false, storagePct: false, binsCreated7d: false, accountAge: false,
 };
 
-export const ADMIN_FIELD_LABELS: Record<AdminFieldKey, string> = {
-  email: 'Email', role: 'Role', plan: 'Plan', status: 'Status',
-  bins: 'Bins', locations: 'Locations', storage: 'Storage', created: 'Created',
-  lastActive: 'Last Active', items: 'Items', photos: 'Photos', scans30d: 'Scans (30d)',
-  aiCredits: 'AI Credits', apiKeys: 'API Keys', apiRequests7d: 'API Reqs (7d)',
-  binPct: 'Bin %', storagePct: 'Storage %', binsCreated7d: 'New Bins (7d)', accountAge: 'Age',
-};
+/** Localized labels for the column-visibility menu. */
+export function useAdminFieldLabels(): Record<AdminFieldKey, string> {
+  const { t } = useTranslation('admin');
+  return useMemo(() => ({
+    email: t('columns.email', { defaultValue: 'Email' }),
+    role: t('columns.role', { defaultValue: 'Role' }),
+    plan: t('columns.plan', { defaultValue: 'Plan' }),
+    status: t('columns.status', { defaultValue: 'Status' }),
+    bins: t('columns.bins', { defaultValue: 'Bins' }),
+    locations: t('columns.locations', { defaultValue: 'Locations' }),
+    storage: t('columns.storage', { defaultValue: 'Storage' }),
+    created: t('columns.created', { defaultValue: 'Created' }),
+    lastActive: t('columns.lastActive', { defaultValue: 'Last Active' }),
+    items: t('columns.items', { defaultValue: 'Items' }),
+    photos: t('columns.photos', { defaultValue: 'Photos' }),
+    scans30d: t('columns.scans30d', { defaultValue: 'Scans (30d)' }),
+    aiCredits: t('columns.aiCredits', { defaultValue: 'AI Credits' }),
+    apiKeys: t('columns.apiKeys', { defaultValue: 'API Keys' }),
+    apiRequests7d: t('columns.apiRequests7d', { defaultValue: 'API Reqs (7d)' }),
+    binPct: t('columns.binPct', { defaultValue: 'Bin %' }),
+    storagePct: t('columns.storagePct', { defaultValue: 'Storage %' }),
+    binsCreated7d: t('columns.binsCreated7d', { defaultValue: 'New Bins (7d)' }),
+    accountAge: t('columns.accountAge', { defaultValue: 'Age' }),
+  }), [t]);
+}
 
 export const TOGGLEABLE_FIELDS: AdminFieldKey[] = [
   'email', 'role', 'bins', 'locations', 'storage', 'created',

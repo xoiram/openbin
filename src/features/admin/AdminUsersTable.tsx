@@ -1,11 +1,13 @@
 import { Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type SortDirection, SortHeader } from '@/components/ui/sort-header';
 import { Table, TableHeader, TableRow } from '@/components/ui/table';
 import { cn, relativeTime } from '@/lib/utils';
+import { useAdminLabels } from './adminUserDetailConstants';
 import type { AdminFieldKey } from './useAdminColumnVisibility';
-import { type AdminUser, capitalize, statusVariant } from './useAdminUsers';
+import { type AdminUser, statusVariant } from './useAdminUsers';
 
 function pctColor(pct: number): string {
   if (pct > 90) return 'text-[var(--destructive)]';
@@ -34,101 +36,103 @@ export function AdminUsersTable({
   onClickUser,
   isVisible,
 }: AdminUsersTableProps) {
+  const { t, i18n } = useTranslation('admin');
+  const labels = useAdminLabels();
   return (
     <Table>
       <TableHeader>
         <div className="flex-1 min-w-0">
-          <SortHeader label="User" column="email" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
+          <SortHeader label={t('columns.user', { defaultValue: 'User' })} column="email" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
         </div>
         {isVisible('email') && (
           <div className="hidden lg:block w-40">
-            <SortHeader label="Email" column="email" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
+            <SortHeader label={t('columns.email', { defaultValue: 'Email' })} column="email" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
           </div>
         )}
         {isVisible('role') && (
           <div className="w-16">
-            <span className="ui-col-header">Role</span>
+            <span className="ui-col-header">{t('columns.role', { defaultValue: 'Role' })}</span>
           </div>
         )}
         <div className="w-16">
-          <SortHeader label="Plan" column="plan" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
+          <SortHeader label={t('columns.plan', { defaultValue: 'Plan' })} column="plan" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
         </div>
         <div className="w-24">
-          <SortHeader label="Status" column="status" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
+          <SortHeader label={t('columns.status', { defaultValue: 'Status' })} column="status" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
         </div>
         {isVisible('bins') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Bins" column="bins" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.binsShort', { defaultValue: 'Bins' })} column="bins" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('locations') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Locs" column="locations" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.locationsShort', { defaultValue: 'Locs' })} column="locations" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('storage') && (
           <div className="hidden lg:block w-20 text-right">
-            <SortHeader label="Storage" column="storage" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.storage', { defaultValue: 'Storage' })} column="storage" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('lastActive') && (
           <div className="hidden sm:block w-24">
-            <SortHeader label="Last Active" column="lastActive" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
+            <SortHeader label={t('columns.lastActive', { defaultValue: 'Last Active' })} column="lastActive" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
           </div>
         )}
         {isVisible('items') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Items" column="items" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.items', { defaultValue: 'Items' })} column="items" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('photos') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Photos" column="photos" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.photos', { defaultValue: 'Photos' })} column="photos" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('scans30d') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Scans" column="scans30d" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.scansShort', { defaultValue: 'Scans' })} column="scans30d" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('aiCredits') && (
           <div className="hidden lg:block w-20 text-right">
-            <SortHeader label="AI Credits" column="aiCredits" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.aiCredits', { defaultValue: 'AI Credits' })} column="aiCredits" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('apiKeys') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Keys" column="apiKeys" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.apiKeysShort', { defaultValue: 'Keys' })} column="apiKeys" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('apiRequests7d') && (
           <div className="hidden lg:block w-20 text-right">
-            <SortHeader label="Reqs (7d)" column="apiRequests7d" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.apiRequestsShort', { defaultValue: 'Reqs (7d)' })} column="apiRequests7d" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('binPct') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Bin %" column="binPct" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.binPct', { defaultValue: 'Bin %' })} column="binPct" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('storagePct') && (
           <div className="hidden lg:block w-20 text-right">
-            <SortHeader label="Stor %" column="storagePct" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.storagePctShort', { defaultValue: 'Stor %' })} column="storagePct" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('binsCreated7d') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="New (7d)" column="binsCreated7d" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.binsCreatedShort', { defaultValue: 'New (7d)' })} column="binsCreated7d" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('accountAge') && (
           <div className="hidden lg:block w-14 text-right">
-            <SortHeader label="Age" column="accountAge" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
+            <SortHeader label={t('columns.accountAge', { defaultValue: 'Age' })} column="accountAge" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} defaultDirection="desc" className="justify-end" />
           </div>
         )}
         {isVisible('created') && (
           <div className="hidden sm:block w-24">
-            <SortHeader label="Created" column="created" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
+            <SortHeader label={t('columns.created', { defaultValue: 'Created' })} column="created" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSort} />
           </div>
         )}
         <div className="w-9" />
@@ -161,21 +165,21 @@ export function AdminUsersTable({
             )}
             {isVisible('role') && (
               <div className="w-16 text-[14px]">
-                {u.isAdmin ? <Badge variant="default" className="text-[11px]">Admin</Badge> : <span className="text-[var(--text-tertiary)]">—</span>}
+                {u.isAdmin ? <Badge variant="default" className="text-[11px]">{t('badges.admin', { defaultValue: 'Admin' })}</Badge> : <span className="text-[var(--text-tertiary)]">—</span>}
               </div>
             )}
             <div className="w-16 text-[14px]">
-              <Badge variant="secondary" className="text-[11px]">{capitalize(u.plan)}</Badge>
+              <Badge variant="secondary" className="text-[11px]">{labels.plan[u.plan]}</Badge>
             </div>
             <div className="w-24 text-[14px]">
               <span className="flex items-center gap-1.5">
                 {u.deletionScheduledAt && new Date(u.deletionScheduledAt).getTime() > Date.now() ? (
-                  <Badge className="text-[11px] bg-[var(--color-warning-soft)] text-[var(--color-warning)]">Deletion pending</Badge>
+                  <Badge className="text-[11px] bg-[var(--color-warning-soft)] text-[var(--color-warning)]">{t('badges.deletionPending', { defaultValue: 'Deletion pending' })}</Badge>
                 ) : u.deletedAt ? (
-                  <Badge variant="destructive" className="text-[11px]">Deleted</Badge>
+                  <Badge variant="destructive" className="text-[11px]">{t('badges.deleted', { defaultValue: 'Deleted' })}</Badge>
                 ) : null}
-                {u.suspendedAt && <Badge variant="destructive" className="text-[11px]">Suspended</Badge>}
-                <Badge variant={statusVariant(u.status)} className="text-[11px]">{capitalize(u.status)}</Badge>
+                {u.suspendedAt && <Badge variant="destructive" className="text-[11px]">{t('badges.suspended', { defaultValue: 'Suspended' })}</Badge>}
+                <Badge variant={statusVariant(u.status)} className="text-[11px]">{labels.status[u.status]}</Badge>
               </span>
             </div>
             {isVisible('bins') && (
@@ -185,7 +189,7 @@ export function AdminUsersTable({
               <div className="hidden lg:block w-14 text-[14px] text-[var(--text-secondary)] text-right tabular-nums">{u.deletedAt ? '—' : u.locationCount}</div>
             )}
             {isVisible('storage') && (
-              <div className="hidden lg:block w-20 text-[14px] text-[var(--text-secondary)] text-right tabular-nums">{u.deletedAt ? '—' : `${u.photoStorageMb} MB`}</div>
+              <div className="hidden lg:block w-20 text-[14px] text-[var(--text-secondary)] text-right tabular-nums">{u.deletedAt ? '—' : t('users.storageMb', { defaultValue: '{{mb}} MB', mb: u.photoStorageMb })}</div>
             )}
             {isVisible('lastActive') && (
               <div className="hidden sm:block w-24">
@@ -228,11 +232,11 @@ export function AdminUsersTable({
               <div className="hidden lg:block w-14 text-[14px] text-[var(--text-secondary)] text-right tabular-nums">{u.deletedAt ? '—' : u.binsCreated7d}</div>
             )}
             {isVisible('accountAge') && (
-              <div className="hidden lg:block w-14 text-[14px] text-[var(--text-secondary)] text-right tabular-nums">{u.deletedAt ? '—' : `${accountAge}d`}</div>
+              <div className="hidden lg:block w-14 text-[14px] text-[var(--text-secondary)] text-right tabular-nums">{u.deletedAt ? '—' : t('users.accountAgeDays', { defaultValue: '{{days}}d', days: accountAge })}</div>
             )}
             {isVisible('created') && (
               <div className="hidden sm:block w-24">
-                <span className="text-[12px] text-[var(--text-tertiary)] whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString()}</span>
+                <span className="text-[12px] text-[var(--text-tertiary)] whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString(i18n.language)}</span>
               </div>
             )}
             <div className="w-9 flex justify-center">
@@ -241,7 +245,7 @@ export function AdminUsersTable({
                 size="icon-sm"
                 onClick={(e) => { e.stopPropagation(); onDelete(u); }}
                 disabled={isSelf}
-                aria-label={`Delete ${u.email}`}
+                aria-label={t('users.deleteUserAria', { defaultValue: 'Delete {{email}}', email: u.email })}
                 className="text-[var(--destructive)] hover:text-[var(--destructive)]"
               >
                 <Trash2 className="h-3.5 w-3.5" />

@@ -1,4 +1,5 @@
 import 'i18next';
+import type admin from './locales/en/admin.json';
 import type ai from './locales/en/ai.json';
 import type auth from './locales/en/auth.json';
 import type bins from './locales/en/bins.json';
@@ -20,6 +21,7 @@ declare module 'i18next' {
       settings: typeof settings;
       ai: typeof ai;
       bins: typeof bins;
+      admin: typeof admin;
     };
   }
 }
