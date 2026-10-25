@@ -1,6 +1,6 @@
 # Nested boxes and items in areas
 
-Status: **in progress**. This extends `Location → Area → Bin → Item` in two ways:
+Status: **in progress** (PR 1, the server core, is built; see "PR 1 implementation notes"). This extends `Location → Area → Bin → Item` in two ways:
 
 1. a box can contain one more level of boxes (a "child box"),
 2. an area can contain items directly ("loose items"), without a box.
@@ -104,3 +104,20 @@ Search and chat results include the full path ("Garage › Shelf A › Toolbox �
 5. **Docs**: the "items exist only inside a bin" line in `CLAUDE.md`, the demo seed.
 
 Every PR is audited with `git diff --name-status origin/main` for unexpected deletions before merging.
+
+## PR 1 implementation notes
+
+Decisions made while building the server core that the plan above didn't settle:
+
+- **API shape.** Boxes: `parentBinId` on create/update (`null` takes a box out of its parent); `parent`/`top_level` list filters; responses carry `parent_bin_id`, `parent_bin_name`, `child_count`. Items: `GET /api/items` rows have nullable box fields plus `area_id`/`area_name`; new `POST/PUT/DELETE /api/locations/:loc/items[/:itemId]` for items outside a box; checkout/return also at `/api/locations/:loc/items/:itemId/{checkout,return}`; bulk move takes exactly one of `targetBinId`, `targetAreaId` or `unassigned: true`.
+- **Area filter.** `GET /api/items?area_id=` matches an item's *effective* area: items in the area itself plus items in boxes located there. `loose=true` narrows to items not in a box, so unassigned loose items are `unassigned=true&loose=true`. An area's `item_count` counts only items directly in it, so a card linking to the filtered list shows a different number; settle this in the area UI PR.
+- **Returning a checked-out item** (default, no target) goes back to where it came from, even if it was moved while checked out, and falls back to unassigned when the origin is gone, trashed or private to someone else. (Previously a return into a missing box failed.)
+- **Shopping list purchase** re-adds the item to the origin box or area; an entry with no origin, or whose origin box is trashed or hidden, is just removed as before. A deleted area clears `origin_area_id` through the foreign key, so such an entry looks like one without an origin.
+- **Restoring a parent** checks the plan's box limit for the parent plus the children that come back with it.
+- **Duplicating** a child makes a sibling under the same parent; duplicating any other box makes a top-level copy without children. Moving a parent to another location takes its children and its items' `location_id` along; a child can't be moved on its own.
+- **Known limitation.** Children are restored with their parent by matching `deleted_at`, which has one-second resolution. A child trashed on its own and then its parent within the same second is restored with the parent. A proper fix needs a restore marker.
+- **Not seeded.** The demo data contains nested boxes but no loose or unassigned items yet.
+
+### Follow-ups for the frontend PRs
+- Re-add loose and unassigned items to the demo seed once the UI shows them.
+- PR 1 only hardens the existing item, checkout and shopping-list screens so a boxless item doesn't crash them; area UI, item move targets and nested-box UI are PRs 3 and 4.

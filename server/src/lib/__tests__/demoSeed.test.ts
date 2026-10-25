@@ -17,7 +17,7 @@ beforeEach(() => {
 });
 
 describe('seedDemoData', () => {
-  it('seeds nested boxes and loose items that pass the hierarchy rules', async () => {
+  it('seeds nested boxes that pass the hierarchy rules', async () => {
     await seedDemoData();
     await expectNoHierarchyViolations();
 
@@ -37,14 +37,9 @@ describe('seedDemoData', () => {
       expect(child.location_id).toBe(parent.rows[0].location_id);
     }
 
-    const loose = await query<{ name: string; location_id: string; area_id: string | null }>(
-      'SELECT name, location_id, area_id FROM bin_items WHERE bin_id IS NULL ORDER BY name',
-    );
-    expect(loose.rows.map((r) => r.name)).toEqual(['Extension cord', 'Shop vac filters', 'Spare house keys']);
-    const unassigned = loose.rows.find((r) => r.name === 'Spare house keys');
-    expect(unassigned?.area_id).toBeNull();
-    expect(loose.rows.find((r) => r.name === 'Extension cord')?.area_id).not.toBeNull();
-    expect(loose.rows.every((r) => r.location_id === parent.rows[0].location_id)).toBe(true);
+    // loose and unassigned items are not seeded until the UI for them exists
+    const loose = await query('SELECT id FROM bin_items WHERE bin_id IS NULL');
+    expect(loose.rows).toHaveLength(0);
 
     const missingLocation = await query('SELECT id FROM bin_items WHERE location_id IS NULL');
     expect(missingLocation.rows).toHaveLength(0);

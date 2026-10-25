@@ -263,8 +263,9 @@ async function createTrashedBins(
   }
 }
 
-// Nested boxes and loose items (see docs/nested-boxes.md). Defined here rather than in demoSeedData.ts
-// so the demo shows the newer features without changing the shared demo catalogue.
+// Nested boxes (see docs/nested-boxes.md). Defined here rather than in demoSeedData.ts so the demo
+// shows the newer feature without changing the shared demo catalogue. Loose items (in an area, or
+// unassigned) are not seeded yet: the UI that displays them comes with the frontend PRs.
 const DEMO_NESTED_PARENT = {
   name: 'Tool Chest',
   location: 'home' as const,
@@ -281,13 +282,6 @@ const DEMO_NESTED_PARENT = {
 const DEMO_NESTED_CHILDREN: Array<{ name: string; items: DemoItem[] }> = [
   { name: 'Drill Bits', items: ['Brad point bits', 'Masonry bits', { name: 'Spade bits', quantity: 3 }] },
   { name: 'Socket Set', items: [{ name: '10mm socket', quantity: 2 }, 'Extension bar', 'Socket adapter'] },
-];
-
-/** Loose items: directly in an area (no box), or unassigned in the location (neither box nor area). */
-const DEMO_LOOSE_ITEMS: Array<{ area: string | null; name: string; quantity?: number }> = [
-  { area: 'Garage', name: 'Extension cord' },
-  { area: 'Garage', name: 'Shop vac filters', quantity: 2 },
-  { area: null, name: 'Spare house keys', quantity: 2 },
 ];
 
 async function insertDemoBinRow(
@@ -324,7 +318,7 @@ async function insertDemoItems(tx: TxQueryFn, binId: string, locationId: string,
   }
 }
 
-async function createNestedAndLooseItems(
+async function createNestedBoxes(
   tx: TxQueryFn,
   homeLocationId: string,
   areaMap: Map<string, string>,
@@ -367,13 +361,6 @@ async function createNestedAndLooseItems(
     });
     binIdMap.set(child.name, childId);
     await insertDemoItems(tx, childId, homeLocationId, child.items);
-  }
-
-  for (const loose of DEMO_LOOSE_ITEMS) {
-    await tx(
-      'INSERT INTO bin_items (id, bin_id, area_id, location_id, name, quantity, position) VALUES ($1, NULL, $2, $3, $4, $5, $6)',
-      [generateUuid(), loose.area ? (areaMap.get(loose.area) ?? null) : null, homeLocationId, loose.name, loose.quantity ?? null, 0],
-    );
   }
 }
 
@@ -873,7 +860,7 @@ export async function seedDemoData(): Promise<void> {
       const areaMap = await createAreas(tx, homeLocationId, storageLocationId, userId, homeAreaNames, nestedAreaDefs, storageAreaNames);
       const binIdMap = await createBins(tx, homeLocationId, storageLocationId, areaMap, userIdMap, bins);
       await createTrashedBins(tx, homeLocationId, storageLocationId, areaMap, userIdMap, binIdMap, trashedBinsList);
-      await createNestedAndLooseItems(tx, homeLocationId, areaMap, userIdMap, binIdMap);
+      await createNestedBoxes(tx, homeLocationId, areaMap, userIdMap, binIdMap);
 
       await seedTagColors(tx, homeLocationId, storageLocationId, tagColorDefs, tagHierarchyDefs);
       await seedPins(tx, userId, userIdMap.get('pat')!, binIdMap, pinnedNames, pinnedNamesPat);
