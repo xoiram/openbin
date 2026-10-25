@@ -1,12 +1,14 @@
 import { Columns3 } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { usePopover } from '@/lib/usePopover';
 import { cn } from '@/lib/utils';
-import { FIELD_LABELS, type FieldKey } from './useColumnVisibility';
+import type { FieldKey } from './useColumnVisibility';
+import { useFieldLabels } from './useFieldLabels';
 
 /** Shared field toggle list used by both ColumnVisibilityMenu and SearchBarOverflowMenu */
 export function FieldToggleList({ fields, visibility, onToggle, customFieldLabels }: {
@@ -15,10 +17,11 @@ export function FieldToggleList({ fields, visibility, onToggle, customFieldLabel
   onToggle: (field: string) => void;
   customFieldLabels?: Record<string, string>;
 }) {
+  const fieldLabels = useFieldLabels();
   return (
     <>
       {fields.map((field) => {
-        const label = customFieldLabels?.[field] ?? FIELD_LABELS[field as FieldKey];
+        const label = customFieldLabels?.[field] ?? fieldLabels[field as FieldKey];
         const checked = visibility[field] ?? field.startsWith('cf_');
         return (
           <label
@@ -47,6 +50,7 @@ interface ColumnVisibilityMenuProps {
 }
 
 export function ColumnVisibilityMenu({ applicableFields, visibility, onToggle, customFieldLabels }: ColumnVisibilityMenuProps) {
+  const { t } = useTranslation('bins');
   const { visible, animating, close, toggle } = usePopover();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -54,13 +58,13 @@ export function ColumnVisibilityMenu({ applicableFields, visibility, onToggle, c
 
   return (
     <div ref={menuRef} className="relative">
-      <Tooltip content="Fields" side="bottom">
+      <Tooltip content={t('viewMenu.fields', { defaultValue: 'Fields' })} side="bottom">
         <Button
           variant="secondary"
           size="icon"
           onClick={toggle}
           className="shrink-0 rounded-[var(--radius-sm)]"
-          aria-label="Toggle field visibility"
+          aria-label={t('viewMenu.toggleFieldVisibility', { defaultValue: 'Toggle field visibility' })}
         >
           <Columns3 className="h-4 w-4" />
         </Button>
@@ -71,7 +75,7 @@ export function ColumnVisibilityMenu({ applicableFields, visibility, onToggle, c
           'absolute right-0 mt-1 w-52 rounded-[var(--radius-md)] flat-popover overflow-hidden z-20',
         )}>
           <div className="ui-eyebrow px-3.5 py-2">
-            Visible Fields
+            {t('viewMenu.visibleFields', { defaultValue: 'Visible Fields' })}
           </div>
           <FieldToggleList fields={applicableFields} visibility={visibility} onToggle={onToggle} customFieldLabels={customFieldLabels} />
         </div>

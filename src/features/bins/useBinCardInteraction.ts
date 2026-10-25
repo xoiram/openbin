@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEntitySelectionInteraction } from '@/lib/bulk/useEntitySelectionInteraction';
 import { useTerminology } from '@/lib/terminology';
@@ -16,9 +17,10 @@ interface UseBinCardInteractionOptions {
 export function useBinCardInteraction({ binId, index, selectable, onSelect, searchQuery, sort, filters }: UseBinCardInteractionOptions) {
   const navigate = useNavigate();
   const loc = useLocation();
-  const t = useTerminology();
+  const { t } = useTranslation('common');
+  const term = useTerminology();
   const backPath = loc.pathname + loc.search;
-  const backLabel = loc.pathname === '/' ? 'Home' : t.Bins;
+  const backLabel = loc.pathname === '/' ? t('nav.home', { defaultValue: 'Home' }) : term.Bins;
   const navState = { backLabel, backPath, searchQuery, sort, filters };
 
   return useEntitySelectionInteraction({

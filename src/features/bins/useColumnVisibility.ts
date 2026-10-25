@@ -24,6 +24,7 @@ const DEFAULT_VISIBILITY: Record<FieldKey, boolean> = {
   customFields: false,
 };
 
+/** English field labels (defaults for useFieldLabels(), which renders the localized ones). */
 export const FIELD_LABELS: Record<FieldKey, string> = {
   icon: 'Icon',
   area: 'Area',

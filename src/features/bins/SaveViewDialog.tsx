@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ interface SaveViewDialogProps {
 }
 
 export function SaveViewDialog({ open, onOpenChange, searchQuery, sort, filters }: SaveViewDialogProps) {
+  const { t } = useTranslation(['bins', 'common']);
   const [viewName, setViewName] = useState('');
   const { showToast } = useToast();
 
@@ -22,7 +24,7 @@ export function SaveViewDialog({ open, onOpenChange, searchQuery, sort, filters 
     if (!viewName.trim()) return;
     await saveView({ name: viewName.trim(), searchQuery, sort, filters });
     onOpenChange(false);
-    showToast({ message: 'View saved', variant: 'success' });
+    showToast({ message: t('saveView.saved', { defaultValue: 'View saved' }), variant: 'success' });
   }
 
   return (
@@ -35,17 +37,17 @@ export function SaveViewDialog({ open, onOpenChange, searchQuery, sort, filters 
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Save Search</DialogTitle>
+          <DialogTitle>{t('saveView.title', { defaultValue: 'Save Search' })}</DialogTitle>
         </DialogHeader>
         <Input
           value={viewName}
           onChange={(e) => setViewName(e.target.value)}
-          placeholder="View name..."
+          placeholder={t('saveView.namePlaceholder', { defaultValue: 'View name...' })}
           onKeyDown={(e) => { if (e.key === 'Enter' && viewName.trim()) handleSave(); }}
         />
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!viewName.trim()}>Save</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t('common:actions.cancel', { defaultValue: 'Cancel' })}</Button>
+          <Button onClick={handleSave} disabled={!viewName.trim()}>{t('common:actions.save', { defaultValue: 'Save' })}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

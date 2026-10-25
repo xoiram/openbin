@@ -1,5 +1,6 @@
 import { Check, Lock } from 'lucide-react';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Highlight } from '@/components/ui/highlight';
 import { useTagStyle } from '@/features/tags/useTagStyle';
@@ -28,6 +29,7 @@ interface BinCardProps {
 }
 
 export const BinCard = React.memo(function BinCard({ bin, index = 0, onTagClick, selectable, selected, onSelect, searchQuery = '', sort, filters, isVisible }: BinCardProps) {
+  const { t } = useTranslation('bins');
   const { theme } = useTheme();
   const getTagStyle = useTagStyle();
   const BinIcon = resolveIcon(bin.icon);
@@ -208,7 +210,7 @@ export const BinCard = React.memo(function BinCard({ bin, index = 0, onTagClick,
           tabIndex={0}
           className="relative mt-0.5 h-5 w-5 shrink-0 appearance-none bg-transparent border-none p-0"
           onClick={handleCheckboxClick}
-          aria-label="Select"
+          aria-label={t('card.select', { defaultValue: 'Select' })}
         >
           {/* Default icon — fades out on hover (hover:hover targets pointer devices only) */}
           {isVisible?.('icon') !== false && (
