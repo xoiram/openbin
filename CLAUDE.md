@@ -4,7 +4,7 @@
 
 AI-powered bin inventory. Multi-user web app where AI does the organizing work: photo recognition identifies bin contents, chat answers "where is X," and bulk reorganization suggests how to restructure your storage. QR codes and manual entry are supported, but the product is built around AI as the primary interface. Data persists in SQLite (or PostgreSQL) via Express API.
 
-**Data model**: Location → Area → **Bin** → Items. The bin is the core entity — not individual items. Items exist only inside a bin (name + optional quantity, no independent identity). Custom fields, photos, tags, and QR codes all attach to bins. This is a "what's in this container" tool, not an asset tracker.
+**Data model**: Location → Area → **Bin** → Items. The bin is the core entity. A bin can hold one level of child bins (`parent_bin_id`). An item lives in a bin, or directly in an area ("loose"), or unassigned (name + optional quantity). Custom fields, photos, tags, and QR codes all attach to bins. This is a "what's in this container" tool, not an asset tracker.
 
 **AI capabilities**: Photo-to-bin suggestions (name + items + custom fields), turn-based Ask AI chat, AI-powered bulk reorganize, per-task provider overrides (vision / quickText / deepText). Supported providers: OpenAI, Anthropic, Gemini, OpenAI-compatible (incl. Ollama).
 
@@ -58,6 +58,11 @@ OpenAPI spec at `server/openapi.yaml`.
 - **Export streaming**: Large exports stream JSON via `res.write()` to prevent OOM. Don't buffer the full response in `server/src/routes/export.ts`.
 - **Ask AI chat**: `useConversation` in `src/features/ai/useConversation.ts` drives turn-based chat. Per-session memory only — conversation clears on dialog close. Both desktop and mobile use the `CommandInput` dialog (bottom sheet on mobile, centered dialog on desktop). Consumes `ConversationThread` + `ConversationComposer`. Server accepts optional `history` on `/ai/ask/stream`, `/ai/query/stream`, `/ai/command/stream` via `parseHistoryFromBody()` (`server/src/lib/conversationHistory.ts`). Command-action turns execute in a single round-trip via `POST /api/batch` (`server/src/routes/batch.ts`).
 - **i18n**: see `docs/i18n.md` — `useTerminology()` uses `term`, not `t`, to avoid colliding with i18next's `t`.
+- **Nested boxes**: child-box rules (depth ≤ 2, child area/visibility follow the parent, trash together) live in `server/src/lib/binHierarchy.ts`. Every writer of `area_id`, `visibility`, `deleted_at` or `parent_bin_id` must go through it. `findHierarchyViolations()` is the checker the tests use. See `docs/nested-boxes.md`.
+- **Item queries**: use `ITEM_FROM` and `itemScopePredicate()` from `server/src/lib/itemQueries.ts`. Never `JOIN bins` for items: loose items have no box and would silently drop out.
+- **`bin_items.location_id` is NOT NULL**: set it on every insert, including loose items, which have no box to take it from.
+- **Schema vs migrations**: `schema.*.sql` runs before migrations on every start, so indexes on newly added columns belong in a migration (see `NESTED_BOXES_INDEXES_*` in `0015_nested_boxes.ts`), not in the schema files.
+- **Postgres tests**: `npm run test:postgres` in `server/` runs `*.postgres.integration.test.ts` (the `postgres` CI job). Server unit tests run on SQLite only, so migration changes need this too.
 
 ## Security (non-obvious)
 

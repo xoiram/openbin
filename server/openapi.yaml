@@ -41,7 +41,7 @@ tags:
   - name: PrintSettings
     description: Per-user print label settings
   - name: Export
-    description: Export and import location data
+    description: Export and import location data as JSON, ZIP or CSV. JSON and ZIP use format version 4
   - name: AI
     description: AI provider settings and image analysis
   - name: Activity
@@ -57,7 +57,9 @@ tags:
   - name: Tags
     description: Tag listing and search across a location
   - name: Items
-    description: Item search across all bins in a location
+    description: Item search across a location, including loose items (in an area or unassigned) and their checkouts
+  - name: Shopping List
+    description: Per-location shopping list. Purchasing an entry re-adds the item to its origin box or area
   - name: Batch
     description: Execute multiple bin operations in a single transaction
   - name: Health
@@ -123,6 +125,21 @@ components:
             - MALWARE_DETECTED
             - SCAN_UNAVAILABLE
             - SERVICE_NOT_CONFIGURED
+            - SELECTION_TOO_LARGE
+            - PLAN_RESTRICTED
+            - OVER_LIMIT
+            - REORGANIZE_BIN_LIMIT_EXCEEDED
+            - BIN_PHOTO_LIMIT
+            - USER_QUOTA_EXCEEDED
+            - GLOBAL_QUOTA_EXCEEDED
+            - PAYLOAD_TOO_LARGE
+            - PARENT_CYCLE
+            - DEMO_RESTRICTION
+            - ACCOUNT_DELETION_PENDING
+            - SUBSCRIPTION_EXPIRED
+            - AI_CREDITS_EXHAUSTED
+            - AI_RATE_LIMITED
+            - AI_CONCURRENCY_LIMITED
         message:
           type: string
       example:
@@ -423,6 +440,12 @@ components:
         descendant_bin_count:
           type: integer
           description: Number of non-deleted bins in this area and all its descendants (only present in list response)
+        item_count:
+          type: integer
+          description: Loose items directly in this area (items not inside a box). Items inside boxes are not counted here. Only present in list response
+        descendant_item_count:
+          type: integer
+          description: Loose items in this area and all its sub-areas. Only present in list response
         created_by:
           type: string
           format: uuid
@@ -541,6 +564,17 @@ components:
         is_pinned:
           type: boolean
           description: Whether the current user has pinned this bin
+        parent_bin_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Parent box ID when this is a child box (one level only). Null for top-level boxes. A child's area_id always equals its parent's
+        parent_bin_name:
+          type: string
+          description: Name of the parent box, or an empty string for top-level boxes
+        child_count:
+          type: integer
+          description: Number of live (non-trashed) child boxes directly inside this box
 
     BinItem:
       type: object
@@ -605,6 +639,11 @@ components:
           additionalProperties:
             type: string
           description: "Custom field values as { fieldId: value } map"
+        parentBinId:
+          type: string
+          format: uuid
+          description: >
+            Create the box inside this box. Rules (422 otherwise): the parent must be a live top-level box of the same location that you can see; nesting is one level deep, so a box inside a box can't contain boxes and a box that contains boxes can't be nested; the child takes the parent's area (its areaId can't be set separately); a child can't be more public than its parent.
 
     UpdateBinRequest:
       type: object
@@ -644,6 +683,12 @@ components:
           additionalProperties:
             type: string
           description: "Custom field values as { fieldId: value } map"
+        parentBinId:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Move the box inside another box, or pass null to take it out of its parent (a top-level box stays as it is). Rules (422 otherwise): the parent must be a live top-level box of the same location that you can see; nesting is one level deep, so a box inside a box can't contain boxes and a box that contains boxes can't be nested; the child takes the parent's area (its areaId can't be set separately); a child can't be more public than its parent.
 
     AddTagsRequest:
       type: object
@@ -757,7 +802,14 @@ components:
           format: uuid
         origin_bin_id:
           type: string
-          description: 6-character alphanumeric bin short code
+          format: uuid
+          nullable: true
+          description: Box the item was checked out from. Null for a loose item (see origin_area_id)
+        origin_area_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Area a loose item was checked out from. Null for items checked out of a box
         location_id:
           type: string
           format: uuid
@@ -777,8 +829,14 @@ components:
           nullable: true
         return_bin_id:
           type: string
+          format: uuid
           nullable: true
-          description: Bin the item was returned to (null if same as origin)
+          description: Box the item was returned to. Null when it went to an area or to unassigned, and while still checked out
+        return_area_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Area the item was returned to. Null when it went to a box or to unassigned, and while still checked out
 
     ItemCheckoutWithContext:
       allOf:
@@ -789,17 +847,27 @@ components:
               type: string
             origin_bin_name:
               type: string
+              nullable: true
             origin_bin_icon:
               type: string
+              nullable: true
             origin_bin_color:
               type: string
+              nullable: true
+            origin_area_id:
+              type: string
+              format: uuid
+              nullable: true
+            origin_area_name:
+              type: string
+              nullable: true
             checked_out_by_name:
               type: string
 
     # ── Shopping List ─────────────────────────────────────
     ShoppingListEntry:
       type: object
-      required: [id, location_id, name, origin_bin_id, origin_bin_trashed, created_by, created_by_name, created_at]
+      required: [id, location_id, name, origin_bin_id, origin_bin_trashed, origin_area_id, origin_area_name, created_by, created_by_name, created_at]
       properties:
         id:
           type: string
@@ -821,6 +889,14 @@ components:
           nullable: true
         origin_bin_trashed:
           type: boolean
+        origin_area_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Area the entry was added from (loose item origin). Null when the entry has a box origin or none
+        origin_area_name:
+          type: string
+          nullable: true
         created_by:
           type: string
         created_by_name:
@@ -828,6 +904,144 @@ components:
         created_at:
           type: string
           format: date-time
+
+    # ── Item targets (move, return, bulk-return) ──────────
+    ItemTarget:
+      description: >
+        Where an item goes. Send exactly one of the three fields. Omit the body entirely for the
+        default (on return: back to the original box or area, or unassigned if that place is gone).
+        Two or more fields, or none where a target is required, give 422.
+      oneOf:
+        - type: object
+          required: [targetBinId]
+          properties:
+            targetBinId:
+              type: string
+              format: uuid
+              description: A live box in this location that the caller can see. The item is appended to the box
+        - type: object
+          required: [targetAreaId]
+          properties:
+            targetAreaId:
+              type: string
+              format: uuid
+              description: An area in this location. The item becomes loose in that area
+        - type: object
+          required: [unassigned]
+          properties:
+            unassigned:
+              type: boolean
+              enum: [true]
+              description: The item has no box and no area
+
+    CreateLocationItemRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        quantity:
+          type: integer
+          nullable: true
+          description: Optional quantity (null = not tracked). Values below 1 are stored as 1
+        areaId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Area to put the item in. Omit or null for unassigned
+
+    UpdateLocationItemRequest:
+      type: object
+      description: At least one of name or quantity is required
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        quantity:
+          type: integer
+          nullable: true
+          description: New quantity (null = not tracked). Values below 1 are stored as 1
+
+    LocationItem:
+      type: object
+      description: A loose item (in an area or unassigned). bin_id is always null
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        quantity:
+          type: integer
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+        bin_id:
+          type: string
+          nullable: true
+        area_id:
+          type: string
+          format: uuid
+          nullable: true
+        area_name:
+          type: string
+          nullable: true
+
+    ItemListEntry:
+      type: object
+      description: One item in a location item search. Items inside a box carry the box fields; loose items carry area_id and area_name
+      required: [id, name, bin_id, area_id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        quantity:
+          type: integer
+          nullable: true
+        bin_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Box holding the item. Null for loose items
+        bin_name:
+          type: string
+          nullable: true
+        bin_icon:
+          type: string
+          nullable: true
+        bin_color:
+          type: string
+          nullable: true
+        area_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Area the item is directly in. Only loose items have one; for items inside a box this is null (the box's area is not repeated here)
+        area_name:
+          type: string
+          nullable: true
+
+    LocationStats:
+      type: object
+      properties:
+        total_bins:
+          type: integer
+          description: Live boxes, including child boxes
+        total_items:
+          type: integer
+          description: Live items inside live boxes plus loose items
+        total_areas:
+          type: integer
+        needs_organizing:
+          type: integer
+          description: Live boxes with no area, no items and no tags
+        loose_item_count:
+          type: integer
+          description: Live loose items (not inside a box)
 
     # ── Activity ───────────────────────────────────────────
     ActivityLogEntry:
@@ -1267,100 +1481,449 @@ components:
           format: date-time
 
     # ── Export ─────────────────────────────────────────────
-    ExportDataV2:
+    ExportItem:
+      description: An item in an export. A bare name, or an object with an optional quantity
+      oneOf:
+        - type: string
+        - type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+            quantity:
+              type: integer
+              minimum: 1
+              nullable: true
+
+    ExportPhoto:
       type: object
+      description: Photo embedded in a JSON export or import (`data` is base64). ZIP archives store `zipPath` instead
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        data:
+          type: string
+          format: byte
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    ExportBin:
+      type: object
+      required: [id, name, items, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The bin's UUID. Imports do not match bins by this id; parents are matched by shortCode
+        name:
+          type: string
+        location:
+          type: string
+          description: Area path, segments joined with " / " (e.g. "Garage / Shelf A"). Empty string when the bin has no area
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportItem'
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        icon:
+          type: string
+        color:
+          type: string
+        cardStyle:
+          type: string
+          description: JSON-encoded card style configuration
+        visibility:
+          type: string
+          enum: [location, private]
+          description: Omitted for location-visible bins
+        customFields:
+          type: object
+          additionalProperties:
+            type: string
+          description: Custom field values keyed by field name
+        shortCode:
+          type: string
+          description: The bin's short code (the value shown on its QR label)
+        parentShortCode:
+          type: string
+          description: Short code of the parent box. Only child boxes carry it. Omitted when the parent is not part of the export, in which case the child is skipped on import
+        createdBy:
+          type: string
+          format: uuid
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Only present on entries of trashedBins
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportPhoto'
+
+    ExportArea:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+          description: Area path, segments joined with " / "
+        createdBy:
+          type: string
+          format: uuid
+        items:
+          type: array
+          description: Loose items directly in this area. Present only when the area has some
+          items:
+            $ref: '#/components/schemas/ExportItem'
+
+    ExportData:
+      type: object
+      description: JSON export of a location (format version 4)
+      required: [version, exportedAt, bins]
       properties:
         version:
           type: integer
-          enum: [2]
+          enum: [4]
         exportedAt:
           type: string
           format: date-time
         locationName:
           type: string
+        locationSettings:
+          type: object
+          properties:
+            activityRetentionDays:
+              type: integer
+            trashRetentionDays:
+              type: integer
+            appName:
+              type: string
+            termBin:
+              type: string
+            termLocation:
+              type: string
+            termArea:
+              type: string
+            defaultJoinRole:
+              type: string
+              enum: [member, viewer]
         bins:
+          type: array
+          description: Live bins, top-level and child boxes
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        trashedBins:
+          type: array
+          description: Trashed bins. Present only when there are some
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        areas:
+          type: array
+          description: Every area of the location. Present only when there are some
+          items:
+            $ref: '#/components/schemas/ExportArea'
+        unassignedItems:
+          type: array
+          description: Loose items in no area. Present only when there are some
+          items:
+            $ref: '#/components/schemas/ExportItem'
+        tagColors:
           type: array
           items:
             type: object
             properties:
-              id:
-                type: string
-                description: 6-character alphanumeric short code
-              name:
-                type: string
-              location:
-                type: string
-                description: Area name for backward compatibility
-              items:
-                type: array
-                items:
-                  type: string
-              notes:
-                type: string
-              tags:
-                type: array
-                items:
-                  type: string
-              icon:
+              tag:
                 type: string
               color:
                 type: string
-              cardStyle:
-                type: string
-                description: JSON-encoded card style configuration
-              shortCode:
-                type: string
-                description: Same as id (kept for export format compatibility)
-              customFields:
-                type: object
-                additionalProperties:
-                  type: string
-                description: "Custom field values as { fieldName: value } map"
-              createdAt:
-                type: string
-                format: date-time
-              updatedAt:
-                type: string
-                format: date-time
-              photos:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    filename:
-                      type: string
-                    mimeType:
-                      type: string
-                    data:
-                      type: string
-                      format: byte
-
-    ImportRequest:
-      type: object
-      required: [version, bins]
-      properties:
-        version:
-          type: integer
-          enum: [1, 2]
-        exportedAt:
-          type: string
-          format: date-time
-        locationName:
-          type: string
-        bins:
+        customFieldDefinitions:
           type: array
           items:
             type: object
-        photos:
+            properties:
+              name:
+                type: string
+              position:
+                type: integer
+        pinnedBins:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+              binId:
+                type: string
+                format: uuid
+              position:
+                type: integer
+        savedViews:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+              name:
+                type: string
+              searchQuery:
+                type: string
+              sort:
+                type: string
+              filters:
+                type: string
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+              email:
+                type: string
+              role:
+                type: string
+                enum: [admin, member, viewer]
+              joinedAt:
+                type: string
+                format: date-time
+
+    ImportRequest:
+      type: object
+      description: Body of the JSON import. Same shape as ExportData, with `version` optional and `mode`/`dryRun` added
+      required: [bins]
+      properties:
+        version:
+          type: integer
+          minimum: 2
+          maximum: 4
+          nullable: true
+          description: "Export format version. Optional: a missing or null version is accepted. Any other value outside 2 to 4 gives 422"
+        bins:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        trashedBins:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportArea'
+        unassignedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportItem'
+        tagColors:
+          type: array
+          items:
+            type: object
+        customFieldDefinitions:
+          type: array
+          items:
+            type: object
+        locationSettings:
+          type: object
+        pinnedBins:
+          type: array
+          items:
+            type: object
+        savedViews:
+          type: array
+          items:
+            type: object
+        members:
           type: array
           items:
             type: object
         mode:
           type: string
           enum: [merge, replace]
-          description: Import mode — merge adds to existing, replace clears first
+          default: merge
+          description: merge adds to existing data. replace deletes all bins, items and areas of the location first (admins only)
+        dryRun:
+          type: boolean
+          description: When true, returns an ImportPreview and changes nothing
+
+    ImportResult:
+      type: object
+      description: Counts from a JSON or ZIP import
+      properties:
+        binsImported:
+          type: integer
+          description: Live bins imported (top-level and children)
+        binsSkipped:
+          type: integer
+          description: Live bins skipped because they already exist (merge)
+        trashedBinsImported:
+          type: integer
+        trashedBinsSkipped:
+          type: integer
+        childBinsImported:
+          type: integer
+          description: Imported bins (live and trashed) that are child boxes
+        binsSkippedUnresolvedParent:
+          type: integer
+          description: Child boxes skipped because their parent can't be resolved
+        photosImported:
+          type: integer
+        photosSkipped:
+          type: integer
+        areasImported:
+          type: integer
+        pinsImported:
+          type: integer
+        viewsImported:
+          type: integer
+        membersImported:
+          type: integer
+        settingsApplied:
+          type: boolean
+        looseItemsImported:
+          type: integer
+          description: Loose items (in an area or unassigned) inserted
+        looseItemsSkipped:
+          type: integer
+          description: Loose items skipped because an item with the same name is already in that place (merge)
+
+    ImportPreview:
+      type: object
+      description: Dry-run result of a JSON or ZIP import. Nothing is written
+      properties:
+        preview:
+          type: boolean
+          enum: [true]
+        toCreate:
+          type: array
+          items:
+            type: object
+            required: [name, itemCount, tags, trashed, isChild]
+            properties:
+              name:
+                type: string
+              itemCount:
+                type: integer
+              tags:
+                type: array
+                items:
+                  type: string
+              trashed:
+                type: boolean
+              isChild:
+                type: boolean
+              parentShortCode:
+                type: string
+                description: Present for child boxes
+        toSkip:
+          type: array
+          items:
+            type: object
+            required: [name, reason, code]
+            properties:
+              name:
+                type: string
+              reason:
+                type: string
+              code:
+                type: string
+                enum: [exists, unresolved_parent]
+        totalBins:
+          type: integer
+          description: Entries in bins
+        totalTrashedBins:
+          type: integer
+          description: Entries in trashedBins
+        totalChildBins:
+          type: integer
+          description: Child boxes across bins and trashedBins
+        binsSkippedUnresolvedParent:
+          type: integer
+        totalItems:
+          type: integer
+          description: Items inside bins, including skipped bins
+        looseItemsTotal:
+          type: integer
+        looseItemsToCreate:
+          type: integer
+        looseItemsToSkip:
+          type: integer
+
+    CsvImportResult:
+      type: object
+      properties:
+        binsImported:
+          type: integer
+        binsSkipped:
+          type: integer
+        itemsImported:
+          type: integer
+        looseItemsImported:
+          type: integer
+        looseItemsSkipped:
+          type: integer
+
+    CsvImportPreview:
+      type: object
+      description: Dry-run result of a CSV import. Nothing is written
+      properties:
+        preview:
+          type: boolean
+          enum: [true]
+        toCreate:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              itemCount:
+                type: integer
+              tags:
+                type: array
+                items:
+                  type: string
+        toSkip:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              reason:
+                type: string
+        totalBins:
+          type: integer
+        totalItems:
+          type: integer
+        looseItemsTotal:
+          type: integer
+        looseItemsToCreate:
+          type: integer
+        looseItemsToSkip:
+          type: integer
 
     # ── Plan ───────────────────────────────────────────────
     PlanFeatures:
@@ -2619,7 +3182,7 @@ paths:
                     type: integer
                   unassigned_count:
                     type: integer
-                    description: Number of non-deleted bins with no area assigned
+                    description: Number of non-deleted boxes with no area assigned (a count of boxes, not items)
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2956,7 +3519,7 @@ paths:
       tags: [Bins]
       summary: List bins for a location
       description: |
-        Returns non-deleted bins. Supports server-side search, filtering, sorting,
+        Returns non-deleted bins, child boxes included (use `top_level=true` to hide them). Supports server-side search, filtering, sorting,
         and optional offset-based pagination.
 
         When `limit` is provided, responses include a `count` field with the total
@@ -3025,6 +3588,18 @@ paths:
             type: string
             enum: ['true']
           description: Filter bins missing tags, area, and items
+        - name: parent
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Only the child boxes of this box
+        - name: top_level
+          in: query
+          schema:
+            type: string
+            enum: ['true']
+          description: Only top-level boxes (no parent). `topLevel=true` is accepted as an alias
         - name: sort
           in: query
           schema:
@@ -3336,6 +3911,9 @@ paths:
     post:
       tags: [Bins]
       summary: Restore a soft-deleted bin
+      description: |
+        Restores the bin together with the child boxes that were trashed with it. A child box
+        can't be restored while its parent is still in the trash (422).
       parameters:
         - name: id
           in: path
@@ -3365,6 +3943,7 @@ paths:
         Moves a bin from its current location to a target location.
         The user must be a member of both locations.
         The area assignment is cleared since areas are location-scoped.
+        A box inside another box can't be moved on its own (422): it moves with its parent.
       parameters:
         - name: id
           in: path
@@ -3834,17 +4413,20 @@ paths:
   /bins/{id}/items/{itemId}/return:
     post:
       tags: [Bins]
-      summary: Return a checked-out item
+      summary: Return a checked-out item to a box
       description: |
-        Closes the active checkout. Optionally moves the item to a different bin
-        in the same location via targetBinId. Requires member role or above.
+        Closes the active checkout for an item checked out of this box. Without a body the item
+        goes back to this box. Optionally send `targetBinId` to return it to another live box in
+        the same location instead. Requires member role or above.
+        For loose items and for targets other than a box, use `POST /locations/{locationId}/items/{itemId}/return`.
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-            description: 6-character alphanumeric bin short code (origin bin)
+            format: uuid
+            description: Origin box ID
         - name: itemId
           in: path
           required: true
@@ -3852,6 +4434,7 @@ paths:
             type: string
             format: uuid
       requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -3859,7 +4442,8 @@ paths:
               properties:
                 targetBinId:
                   type: string
-                  description: Return item to a different bin (must be in same location)
+                  format: uuid
+                  description: Return the item to a different box in the same location (must be visible to the caller)
       responses:
         '200':
           description: Item returned
@@ -3919,7 +4503,8 @@ paths:
       summary: List active checkouts across a location
       description: |
         Returns all items currently checked out from any bin in the location,
-        enriched with item name, bin name, icon, and color.
+        enriched with item name, origin box (name, icon, color) or origin area for loose items.
+        Box and area fields are null when they don't apply.
       parameters:
         - name: locationId
           in: path
@@ -3951,11 +4536,11 @@ paths:
       tags: [Locations]
       summary: Bulk return checked-out items
       description: |
-        Closes up to 200 active checkouts in a single transaction. By default each item
-        returns to its origin bin. When `targetBinId` is provided, all items move to
-        that bin (which must belong to the same location). Checkouts that are missing
-        or already returned are skipped and reported in the `errors` array. Requires
-        member role or above.
+        Closes up to 200 active checkouts in a single transaction. By default each item returns to
+        its origin: the box it came from, or the area for a loose item, or unassigned if that place
+        is gone. Send exactly one ItemTarget to send all of them to one place (the box or area must
+        be in the same location). Checkouts that are missing or already returned are skipped and
+        reported in `errors`. Requires member role or above.
       parameters:
         - name: locationId
           in: path
@@ -3968,20 +4553,18 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [checkoutIds]
-              properties:
-                checkoutIds:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-                  minItems: 1
-                  maxItems: 200
-                targetBinId:
-                  type: string
-                  format: uuid
-                  description: Optional destination bin in the same location. Omit to return each item to its origin bin.
+              allOf:
+                - type: object
+                  required: [checkoutIds]
+                  properties:
+                    checkoutIds:
+                      type: array
+                      items:
+                        type: string
+                        format: uuid
+                      minItems: 1
+                      maxItems: 200
+                - $ref: '#/components/schemas/ItemTarget'
       responses:
         '200':
           description: Bulk return result
@@ -3997,7 +4580,7 @@ paths:
                     description: Number of checkouts successfully closed
                   errors:
                     type: array
-                    description: Per-checkout failure entries (e.g. NOT_FOUND for missing or already-returned IDs)
+                    description: Per-checkout failure entries (NOT_FOUND for missing or already-returned IDs)
                     items:
                       $ref: '#/components/schemas/BulkErrorEntry'
         '401':
@@ -4005,17 +4588,260 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
-          description: Target bin not found in this location
+          description: Target box or area not found in this location
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '422':
-          description: Validation error (empty checkoutIds, invalid targetBinId, or selection over cap)
+          description: Validation error (empty or oversized checkoutIds, more than one target, or invalid target)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /locations/{locationId}/items:
+    post:
+      tags: [Items]
+      summary: Create a loose item in an area or unassigned
+      description: |
+        Creates an item that is not inside a box: in `areaId` when given, otherwise unassigned.
+        Items inside boxes are created with `POST /bins/{id}/items`. Requires member role or above
+        (viewers can't create items).
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLocationItemRequest'
+      responses:
+        '201':
+          description: Loose item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /locations/{locationId}/items/{itemId}:
+    put:
+      tags: [Items]
+      summary: Edit a loose item
+      description: |
+        Renames a loose item or changes its quantity. An item inside a box returns 422: edit it with
+        `PUT /bins/{id}/items/{itemId}` instead. Requires member role or above.
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationItemRequest'
+      responses:
+        '200':
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  quantity:
+                    type: integer
+                    nullable: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Items]
+      summary: Delete a loose item
+      description: |
+        Hard-deletes a loose item. An item inside a box returns 422: delete it with
+        `DELETE /bins/{id}/items/{itemId}` instead. Requires member role or above.
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Item deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /locations/{locationId}/items/{itemId}/checkout:
+    post:
+      tags: [Items]
+      summary: Check out an item (in a box or loose)
+      description: |
+        Location-scoped version of `POST /bins/{id}/items/{itemId}/checkout`, so it works for loose
+        items as well. Records the origin box or area. Fails with 409 if the item is already checked out.
+        Requires member role or above.
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Item checked out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checkout:
+                    $ref: '#/components/schemas/ItemCheckout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Item is already checked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /locations/{locationId}/items/{itemId}/return:
+    post:
+      tags: [Items]
+      summary: Return a checked-out item (box, area or unassigned)
+      description: |
+        Closes the active checkout. Without a body the item goes back to its origin box or area;
+        if that place is gone or trashed, it becomes unassigned. Send one ItemTarget to choose the
+        place instead. The item only moves when the return place differs from where it is now.
+        Requires member role or above.
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemTarget'
+      responses:
+        '200':
+          description: Item returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checkout:
+                    $ref: '#/components/schemas/ItemCheckout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Item not found, not checked out, or target not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /locations/{id}/stats:
+    get:
+      tags: [Locations]
+      summary: Location dashboard counts
+      description: Aggregate counts for a location. Any member, viewers included, may read them.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   # Shopping List
   /bins/{id}/shopping-list:
@@ -4080,6 +4906,9 @@ paths:
                   count: { type: integer }
     post:
       summary: Manually add an entry to the shopping list
+      description: |
+        Optional origin: `originBinId` (a box the caller can see) or `originAreaId` (an area in the
+        location). Send at most one; both give 422. Purchasing the entry re-adds the item to that origin.
       tags: [Shopping List]
       parameters:
         - in: path
@@ -4094,8 +4923,9 @@ paths:
               type: object
               required: [name]
               properties:
-                name: { type: string }
-                originBinId: { type: string, nullable: true }
+                name: { type: string, maxLength: 200 }
+                originBinId: { type: string, format: uuid, nullable: true }
+                originAreaId: { type: string, format: uuid, nullable: true }
       responses:
         '201':
           description: Entry created
@@ -4106,10 +4936,17 @@ paths:
                 properties:
                   entry:
                     $ref: '#/components/schemas/ShoppingListEntry'
+        '404':
+          description: Origin box not found
+        '422':
+          description: Validation error (empty name, both origins given, or origin area not in this location)
 
   /shopping-list/{id}/purchase:
     post:
-      summary: Mark entry as bought — deletes entry and re-adds to origin bin if possible
+      summary: Mark entry as bought — deletes entry and re-adds to its origin box or area
+      description: |
+        Re-adds the item as a box item (origin box) or as a loose item (origin area). An entry with no
+        origin, or whose origin box is trashed or hidden from the caller, is just removed.
       tags: [Shopping List]
       parameters:
         - in: path
@@ -4128,9 +4965,19 @@ paths:
                   restored:
                     type: object
                     nullable: true
+                    description: Where the item was re-added. Null when the entry had no usable origin
                     properties:
-                      binId: { type: string }
-                      itemId: { type: string }
+                      binId:
+                        type: string
+                        format: uuid
+                        nullable: true
+                        description: Box the item was added to (null for a loose item)
+                      areaId:
+                        type: string
+                        format: uuid
+                        nullable: true
+                        description: Area the loose item was added to. Null with binId null means unassigned. Only present for area origins
+                      itemId: { type: string, format: uuid }
                       name: { type: string }
         '404': { description: Entry not found }
 
@@ -5016,10 +5863,17 @@ paths:
   /items:
     get:
       tags: [Items]
-      summary: Search items across all bins
+      summary: Search items across a location
       description: |
-        Searches items across all non-deleted, visible bins in a location.
-        Returns each item with its parent bin metadata.
+        Returns live items the caller can see in a location: items inside visible boxes, plus loose
+        items (which are visible to every member). Each row carries its box when it has one and, for
+        loose items, its area.
+
+        **Area filters use the effective area.** `area_id=A` returns the items directly in area A
+        plus the items inside boxes located in A. `loose=true` narrows the result to items that are
+        not in a box, so unassigned loose items are `unassigned=true&loose=true`. `unassigned=true`
+        alone also includes items inside boxes that have no area. `area_id` together with
+        `unassigned=true` gives 422.
       parameters:
         - name: location_id
           in: query
@@ -5031,14 +5885,32 @@ paths:
           in: query
           schema:
             type: string
-          description: Search text (word-match across item and bin names)
+          description: Search text, matched against item, box and area names
+        - name: area_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Items whose effective area is this area. Alias `areaId`
+        - name: unassigned
+          in: query
+          schema:
+            type: string
+            enum: ['true']
+          description: Items with no effective area (unassigned loose items and items in unassigned boxes)
+        - name: loose
+          in: query
+          schema:
+            type: string
+            enum: ['true']
+          description: Only items that are not inside a box
         - name: sort
           in: query
           schema:
             type: string
-            enum: [alpha, bin]
+            enum: [alpha, bin, qty]
             default: alpha
-          description: Sort by item name or bin name
+          description: Sort by item name, by box or area name, or by quantity (unset quantities last)
         - name: sort_dir
           in: query
           schema:
@@ -5060,7 +5932,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: List of items with bin metadata
+          description: Items, with box and area context
           content:
             application/json:
               schema:
@@ -5069,21 +5941,7 @@ paths:
                   results:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        name:
-                          type: string
-                        bin_id:
-                          type: string
-                        bin_name:
-                          type: string
-                        bin_icon:
-                          type: string
-                        bin_color:
-                          type: string
+                      $ref: '#/components/schemas/ItemListEntry'
                   count:
                     type: integer
                     description: Total number of matching items
@@ -5245,29 +6103,29 @@ paths:
   /items/bulk-move:
     post:
       tags: [Items]
-      summary: Bulk move items to a target bin
+      summary: Bulk move items to a box, an area, or unassigned
       description: |
-        Moves up to 200 items into `targetBinId` in a single transaction. The target bin must
-        belong to the same location as all source bins. Requires member role or above.
+        Moves up to 200 items in one transaction. The target is exactly one ItemTarget:
+        `targetBinId` (a live box the caller can see), `targetAreaId` (an area in the location), or
+        `unassigned: true` (no box and no area). Moving into a box appends the items to it. Items from
+        other locations are skipped. Requires member role or above. Zero or several targets give 422.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [ids, targetBinId]
-              properties:
-                ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-                  minItems: 1
-                  maxItems: 200
-                targetBinId:
-                  type: string
-                  format: uuid
-                  description: Destination bin ID
+              allOf:
+                - type: object
+                  required: [ids]
+                  properties:
+                    ids:
+                      type: array
+                      items:
+                        type: string
+                        format: uuid
+                      minItems: 1
+                      maxItems: 200
+                - $ref: '#/components/schemas/ItemTarget'
       responses:
         '200':
           description: Items moved
@@ -5285,8 +6143,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
-          description: Validation error (missing targetBinId, mixed locations, or selection over cap)
+          description: Validation error (no target or more than one target, mixed locations, or selection over cap)
           content:
             application/json:
               schema:
@@ -5647,7 +6507,13 @@ paths:
     get:
       tags: [Export]
       summary: Export location as JSON
-      description: Returns V2 format JSON with base64-encoded photos embedded in each bin. Requires Pro plan.
+      description: |
+        Returns the location as one JSON document (format version 4). `bins` are the live bins and
+        `trashedBins` the trashed ones; photos are embedded as base64. `areas` lists every area, with
+        its loose items when it has any, and `unassignedItems` holds loose items in no area. A child
+        box carries `parentShortCode`. Private bins are included only for their creator.
+        Requires a Plus or Pro plan (not during a trial). Self-hosted instances are not restricted.
+        Limited to 5000 bins (422).
       parameters:
         - name: id
           in: path
@@ -5661,19 +6527,30 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExportDataV2'
+                $ref: '#/components/schemas/ExportData'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           oneOf:
             - $ref: '#/components/responses/Forbidden'
             - $ref: '#/components/responses/PlanRestricted'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /locations/{id}/export/zip:
     get:
       tags: [Export]
       summary: Export location as ZIP
-      description: Returns a ZIP file containing a JSON manifest and a photos directory. Requires Pro plan.
+      description: |
+        Returns a ZIP archive:
+        - `manifest.json`: `format: "openbin-zip"`, `version: 4`, `locationName`, `locationSettings`,
+          counts, and the `areas`, `unassignedItems`, `tagColors`, `customFieldDefinitions`,
+          `pinnedBins`, `savedViews` and `members` lists (each present only when non-empty)
+        - `bins.json`: live bins, shaped like ExportBin, with each photo's `zipPath` instead of `data`
+        - `trashed-bins.json`: trashed bins (only when there are some)
+        - `photos/`: the image files that `zipPath` refers to
+        Requires a Plus or Pro plan (not during a trial). Self-hosted instances are not restricted.
+        Limited to 5000 bins (422).
       parameters:
         - name: id
           in: path
@@ -5695,15 +6572,18 @@ paths:
           oneOf:
             - $ref: '#/components/responses/Forbidden'
             - $ref: '#/components/responses/PlanRestricted'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /locations/{id}/export/csv:
     get:
       tags: [Export]
       summary: Export location as CSV
       description: |
-        Returns a CSV spreadsheet with one row per item. Columns: Bin Name, Area, Item,
-        Quantity, Tags (comma-separated). Bins with no items get a single row with empty
-        Item and Quantity fields.
+        One row per item. Columns: `Bin Name,Area,Item,Quantity,Tags`, with tags joined by `; `.
+        A bin with no items gets one row with empty Item and Quantity. Loose items have an empty
+        Bin Name and the area path in Area (empty for unassigned items). Child boxes appear as
+        ordinary rows, without their parent. Trashed bins are not exported. Member role or above.
       parameters:
         - name: id
           in: path
@@ -5726,10 +6606,22 @@ paths:
   /locations/{id}/import:
     post:
       tags: [Export]
-      summary: Import bins and photos
+      summary: Import a JSON export
       description: |
-        Imports V1 or V2 format data. Supports merge (add to existing) or replace (clear first) modes.
-        50MB body limit. Creates areas from location strings on import.
+        Imports a JSON export. Accepts `version` 2, 3 or 4, or no version at all; any other value
+        gives 422 (the message names `version`). Body limit 50 MB; at most 2000 bins (live and trashed).
+
+        - **merge** (default) adds to existing data. A bin is skipped when a bin with the same
+          `shortCode` exists. A loose item is skipped when an item with the same name is already in
+          the same area, or when both are unassigned.
+        - **replace** (admins only, 403 otherwise) first deletes all bins, items and areas of the
+          location, then imports.
+        - **Child boxes**: `parentShortCode` must name a top-level box from this import, or an
+          existing top-level box in the location that the caller can see. Otherwise the child is
+          skipped and counted in `binsSkippedUnresolvedParent`. A live child of a trashed parent is
+          imported trashed with it.
+        - **Dry run**: `dryRun: true` returns an ImportPreview and writes nothing.
+        - Plan limits: an import that would exceed the bin or photo-storage limit gives 403 PLAN_RESTRICTED.
       parameters:
         - name: id
           in: path
@@ -5745,22 +6637,19 @@ paths:
               $ref: '#/components/schemas/ImportRequest'
       responses:
         '200':
-          description: Import summary
+          description: Import result, or a preview when dryRun is true
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  imported:
-                    type: integer
-                    description: Number of bins imported
-                  photos:
-                    type: integer
-                    description: Number of photos imported
+                oneOf:
+                  - $ref: '#/components/schemas/ImportResult'
+                  - $ref: '#/components/schemas/ImportPreview'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          oneOf:
+            - $ref: '#/components/responses/Forbidden'
+            - $ref: '#/components/responses/PlanRestricted'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -5769,10 +6658,13 @@ paths:
       tags: [Export]
       summary: Import bins from CSV
       description: |
-        Imports bins from a CSV file. Supports two formats:
-        - Round-trip format (matches CSV export): Bin Name, Area, Item, Quantity, Tags
-        - One-bin-per-row format: Bin Name, Area, Items, Tags
-        Max 10MB file size. Max 2000 bins.
+        Two header formats:
+        - Round-trip (matches CSV export): `Bin Name,Area,Item,Quantity,Tags`. Rows with an empty
+          Bin Name are loose items: the Area is their area path, and an empty Area means unassigned.
+        - One bin per row: `Bin Name,Area,Items,Tags` (the first column may also be called `Name`).
+
+        Max 10 MB file, at most 2000 bins. Send `dryRun=true` to get a CSV preview without writing.
+        `mode=replace` is admin only (403 otherwise).
       parameters:
         - name: id
           in: path
@@ -5796,24 +6688,25 @@ paths:
                   type: string
                   enum: [merge, replace]
                   default: merge
+                dryRun:
+                  type: string
+                  enum: ['true']
+                  description: Send "true" to get a preview instead of importing
       responses:
         '200':
-          description: Import summary
+          description: Import result, or a preview when dryRun is "true"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  binsImported:
-                    type: integer
-                  binsSkipped:
-                    type: integer
-                  itemsImported:
-                    type: integer
+                oneOf:
+                  - $ref: '#/components/schemas/CsvImportResult'
+                  - $ref: '#/components/schemas/CsvImportPreview'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          oneOf:
+            - $ref: '#/components/responses/Forbidden'
+            - $ref: '#/components/responses/PlanRestricted'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -5822,10 +6715,11 @@ paths:
       tags: [Export]
       summary: Import from ZIP backup
       description: |
-        Imports bins, photos, tag colors, and custom field definitions from a ZIP backup
-        produced by the ZIP export endpoint. The ZIP must contain `manifest.json` (with
-        `format: "openbin-zip"`) and `bins.json`. Photos are read from `photos/` directory.
-        Max 200MB file size. Max 2000 bins.
+        Imports a ZIP produced by the ZIP export. `manifest.json` must have `format: "openbin-zip"` and
+        a `version` of 2, 3 or 4 (or none); `bins.json` is required, `trashed-bins.json` optional.
+        Photos are read from the `zipPath` entries. Max 25 MB file, at most 2000 bins. Modes, child
+        box rules, loose items and plan limits are the same as for the JSON import. Send the form
+        field `dryRun=true` for an ImportPreview.
       parameters:
         - name: id
           in: path
@@ -5849,26 +6743,25 @@ paths:
                   type: string
                   enum: [merge, replace]
                   default: merge
+                dryRun:
+                  type: string
+                  enum: ['true']
+                  description: Send "true" to get a preview instead of importing
       responses:
         '200':
-          description: Import summary
+          description: Import result, or a preview when dryRun is "true"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  binsImported:
-                    type: integer
-                  binsSkipped:
-                    type: integer
-                  photosImported:
-                    type: integer
-                  photosSkipped:
-                    type: integer
+                oneOf:
+                  - $ref: '#/components/schemas/ImportResult'
+                  - $ref: '#/components/schemas/ImportPreview'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          oneOf:
+            - $ref: '#/components/responses/Forbidden'
+            - $ref: '#/components/responses/PlanRestricted'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -6480,6 +7373,8 @@ paths:
         AI-powered bulk reorganization of bins. Analyzes current bin contents and
         suggests optimal groupings. Streams the response as SSE events.
         Requires location membership. Rate limited.
+        Every bin must be a live top-level box of this location, with an id. Child boxes, trashed
+        bins, bins from other locations and unknown ids are rejected with 422.
       requestBody:
         required: true
         content:
@@ -6556,6 +7451,8 @@ paths:
         Analyzes bin contents and suggests optimal tag hierarchy. Streams the response
         as SSE events with incremental JSON chunks.
         Requires Plus plan or above. Rate limited.
+        Every bin must be a live top-level box of this location, with an id. Child boxes, trashed
+        bins, bins from other locations and unknown ids are rejected with 422.
       requestBody:
         required: true
         content:
@@ -6657,6 +7554,12 @@ paths:
         Ideal for AI agents, MCP integrations, and bulk workflows.
         Partial-success model: individual failures are reported in `errors`; the rest commit.
         Rate limited: 60/hr for JWT, 600/hr for API keys.
+
+        Every operation is validated before any of them runs: one malformed operation (unknown
+        `type`, missing required field) fails the whole request with 422.
+        Batch does not support nesting (`parentBinId` on boxes) or loose items. Use the box and item
+        routes for those. Operations that take a box use `bin_id`, which every type needs except
+        `create_bin`, `rename_area`, `delete_area` and `set_tag_color`.
       requestBody:
         required: true
         content:
@@ -6677,6 +7580,7 @@ paths:
                   items:
                     type: object
                     required: [type]
+                    description: Fields depend on `type`, as listed on each property below
                     properties:
                       type:
                         type: string
@@ -6688,6 +7592,7 @@ paths:
                           - add_items
                           - remove_items
                           - modify_item
+                          - set_item_quantity
                           - add_tags
                           - remove_tags
                           - modify_tag
@@ -6695,27 +7600,51 @@ paths:
                           - set_notes
                           - set_icon
                           - set_color
+                          - duplicate_bin
+                          - pin_bin
+                          - unpin_bin
+                          - rename_area
+                          - delete_area
+                          - set_tag_color
+                          - reorder_items
+                          - checkout_item
+                          - return_item
                         description: Operation type
                       bin_id:
                         type: string
                         format: uuid
-                        description: Bin UUID (required for all types except create_bin)
+                        description: Box UUID (set_item_quantity, pin_bin, unpin_bin, reorder_items, checkout_item, return_item and the other box operations)
                       bin_name:
                         type: string
-                        description: Bin name (for logging)
+                        description: Box name (for logging)
                       name:
                         type: string
-                        description: Bin name (create_bin, update_bin)
+                        description: Box name (create_bin, update_bin)
                       items:
                         type: array
                         items:
                           type: string
                         description: Item names (add_items, remove_items, create_bin)
+                      item_name:
+                        type: string
+                        description: Item name (set_item_quantity, checkout_item, return_item)
+                      quantity:
+                        type: integer
+                        description: New quantity (set_item_quantity). Fractions are floored
+                      item_ids:
+                        type: array
+                        items:
+                          type: string
+                          format: uuid
+                        description: Item UUIDs in the new order (reorder_items)
                       tags:
                         type: array
                         items:
                           type: string
                         description: Tag names (add_tags, remove_tags, create_bin, update_bin)
+                      tag:
+                        type: string
+                        description: Tag name (set_tag_color)
                       notes:
                         type: string
                         description: Notes text (set_notes, create_bin, update_bin)
@@ -6727,16 +7656,19 @@ paths:
                         type: string
                         format: uuid
                         nullable: true
-                        description: Area UUID (set_area)
+                        description: Area UUID (set_area; rename_area and delete_area require it)
                       area_name:
                         type: string
-                        description: Area name — auto-creates if needed (set_area, create_bin, update_bin)
+                        description: Area name. For set_area, auto-creates the area if needed. For rename_area and delete_area it is used for logging
+                      new_name:
+                        type: string
+                        description: New name (rename_area, required; duplicate_bin, optional for the copy's name)
                       icon:
                         type: string
                         description: Icon identifier (set_icon, create_bin, update_bin)
                       color:
                         type: string
-                        description: Color value (set_color, create_bin, update_bin)
+                        description: Color value (set_color, set_tag_color, create_bin, update_bin)
                       old_item:
                         type: string
                         description: Old item name (modify_item)
@@ -6749,6 +7681,13 @@ paths:
                       new_tag:
                         type: string
                         description: New tag name (modify_tag)
+                      target_bin_id:
+                        type: string
+                        format: uuid
+                        description: Box to return the item to (return_item). Omit to return it to the box it came from
+                      target_bin_name:
+                        type: string
+                        description: Name of target_bin_id, for logging (return_item)
                       visibility:
                         type: string
                         enum: [location, private]
