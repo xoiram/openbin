@@ -83,6 +83,9 @@
     "item": "Item",
     "qty": "Qty",
     "rowLabel": "{{name}} in {{bin}}",
-    "rowLabelWithQuantity": "{{name}} ({{quantity}}) in {{bin}}"
+    "rowLabelWithQuantity": "{{name}} ({{quantity}}) in {{bin}}",
+    "unassigned": "Unassigned",
+    "rowLabelUnassigned": "{{name}}, unassigned",
+    "rowLabelWithQuantityUnassigned": "{{name}} ({{quantity}}), unassigned"
   }
 }

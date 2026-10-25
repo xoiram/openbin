@@ -92,7 +92,9 @@ export interface BinItem {
 export interface ItemCheckout {
   id: string;
   item_id: string;
-  origin_bin_id: string;
+  origin_bin_id: string | null;
+  origin_area_id: string | null;
+  origin_area_name: string | null;
   location_id: string;
   checked_out_by: string;
   checked_out_by_name: string;
@@ -104,9 +106,9 @@ export interface ItemCheckout {
 
 export interface ItemCheckoutWithContext extends ItemCheckout {
   item_name: string;
-  origin_bin_name: string;
-  origin_bin_icon: string;
-  origin_bin_color: string;
+  origin_bin_name: string | null;
+  origin_bin_icon: string | null;
+  origin_bin_color: string | null;
 }
 
 export interface Bin {
@@ -116,6 +118,9 @@ export interface Bin {
   name: string;
   area_id: string | null;
   area_name: string;
+  parent_bin_id?: string | null;
+  parent_bin_name?: string;
+  child_count?: number;
   items: BinItem[];
   notes: string;
   tags: string[];
@@ -435,6 +440,8 @@ export interface ShoppingListEntry {
   origin_bin_name: string | null;
   origin_bin_icon: string | null;
   origin_bin_color: string | null;
+  origin_area_id: string | null;
+  origin_area_name: string | null;
   origin_bin_trashed: boolean;
   created_by: string;
   created_by_name: string;

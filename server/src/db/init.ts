@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import { config } from '../lib/config.js';
 import { createLogger } from '../lib/logger.js';
 import { setDialect } from './dialect.js';
+import { NESTED_BOXES_INDEXES_PG, NESTED_BOXES_INDEXES_SQLITE } from './migrations/0015_nested_boxes.js';
 import { migrations } from './migrations/index.js';
 import { runPostgresMigrations, runSqliteMigrations } from './migrations/runner.js';
 import { createPostgresEngine, initPostgres } from './postgres.js';
@@ -208,6 +209,8 @@ async function runSqliteInit(): Promise<DatabaseEngine> {
   }
 
   runSqliteMigrations(db, migrations);
+  // New-column indexes can't live in the schema file (it runs before migrations); see 0015.
+  db.exec(NESTED_BOXES_INDEXES_SQLITE);
 
   const sqliteEngine = createSqliteEngine();
   await seedAdminUser(sqliteEngine);
@@ -261,6 +264,7 @@ async function runPostgresInit(): Promise<DatabaseEngine> {
   await pool.query('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
 
   await runPostgresMigrations(pool, migrations);
+  await pool.query(NESTED_BOXES_INDEXES_PG);
 
   const pgEngine = createPostgresEngine();
   await seedAdminUser(pgEngine);

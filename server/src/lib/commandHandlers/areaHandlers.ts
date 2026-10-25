@@ -1,15 +1,23 @@
 import type { TxQueryFn } from '../../db.js';
 import { d, generateUuid } from '../../db.js';
 import { requireAdmin } from '../binAccess.js';
+import { assertAreaSettable, syncChildrenArea } from '../binHierarchy.js';
 import type { ActionResult } from '../commandExecutor.js';
 import type { CommandAction } from '../commandParser.js';
 import { type ActionContext, assertBinVisible } from './types.js';
 
 export async function handleSetArea(action: Extract<CommandAction, { type: 'set_area' }>, ctx: ActionContext, tx: TxQueryFn): Promise<ActionResult> {
-  const bin = await tx<{ id: string; name: string; area_id: string | null; visibility: string; created_by: string }>('SELECT id, name, area_id, visibility, created_by FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL', [action.bin_id, ctx.locationId]);
+  const bin = await tx<{ id: string; name: string; area_id: string | null; visibility: string; created_by: string; parent_bin_id: string | null }>('SELECT id, name, area_id, visibility, created_by, parent_bin_id FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL', [action.bin_id, ctx.locationId]);
   if (bin.rows.length === 0) throw new Error(`Bin not found: ${action.bin_name}`);
   assertBinVisible(bin.rows[0], ctx.userId);
+  // A bin inside another bin follows its parent's area
+  assertAreaSettable(bin.rows[0]);
   let areaId = action.area_id;
+
+  if (areaId) {
+    const target = await tx('SELECT id FROM areas WHERE id = $1 AND location_id = $2', [areaId, ctx.locationId]);
+    if (target.rows.length === 0) throw new Error('Area does not belong to this location');
+  }
 
   // If area_id is null but area_name provided, look up or create
   if (!areaId && action.area_name) {
@@ -34,6 +42,7 @@ export async function handleSetArea(action: Extract<CommandAction, { type: 'set_
   }
 
   await tx(`UPDATE bins SET area_id = $1, updated_at = ${d.now()} WHERE id = $2`, [areaId, action.bin_id]);
+  await syncChildrenArea(tx, action.bin_id, areaId ?? null);
   // Resolve old area name for activity log
   const oldAreaId = bin.rows[0].area_id as string | null;
   let oldAreaName = '';

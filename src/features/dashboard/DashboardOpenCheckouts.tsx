@@ -43,30 +43,42 @@ export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: Das
       <div className={cn(flatCard, 'p-2')}>
         <ul className="flex flex-col">
           {rows.map((co) => {
-            const Icon = resolveIcon(co.origin_bin_icon);
-            const colorPreset = resolveColor(co.origin_bin_color);
+            const hasBin = co.origin_bin_id != null;
+            const Icon = resolveIcon(co.origin_bin_icon ?? '');
+            const colorPreset = resolveColor(co.origin_bin_color ?? '');
+            const originName = co.origin_bin_name ?? co.origin_area_name;
+            const openOrigin = () => {
+              // Checkouts from an area (or nowhere) have no box page to open.
+              if (co.origin_bin_id) navigate(`/bin/${co.origin_bin_id}`);
+            };
             return (
               <li key={co.id}>
                 {/* biome-ignore lint/a11y/useSemanticElements: row contains a nested Return button; native <button> nesting is invalid */}
                 <div
                   role="button"
                   tabIndex={0}
-                  aria-label={t('checkouts.rowLabel', {
-                    defaultValue: '{{item}} checked out by {{user}} from {{bin}}',
-                    item: co.item_name,
-                    user: co.checked_out_by_name,
-                    bin: co.origin_bin_name,
-                  })}
-                  onClick={() => navigate(`/bin/${co.origin_bin_id}`)}
+                  aria-label={originName
+                    ? t('checkouts.rowLabel', {
+                        defaultValue: '{{item}} checked out by {{user}} from {{bin}}',
+                        item: co.item_name,
+                        user: co.checked_out_by_name,
+                        bin: originName,
+                      })
+                    : t('checkouts.rowLabelUnassigned', {
+                        defaultValue: '{{item}} checked out by {{user}}, unassigned',
+                        item: co.item_name,
+                        user: co.checked_out_by_name,
+                      })}
+                  onClick={openOrigin}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      navigate(`/bin/${co.origin_bin_id}`);
+                      openOrigin();
                     }
                   }}
                   className="group w-full flex items-center gap-3 px-2.5 py-2 min-h-[52px] rounded-[var(--radius-sm)] cursor-pointer outline-none transition-colors duration-150 hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
-                  <BinIconBadge icon={Icon} colorPreset={colorPreset} />
+                  {hasBin && <BinIconBadge icon={Icon} colorPreset={colorPreset} />}
                   <div className="flex-1 min-w-0">
                     <p className="text-[13.5px] font-medium text-[var(--text-primary)] truncate leading-snug">
                       {co.item_name}
@@ -74,7 +86,7 @@ export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: Das
                     <p className="text-[11.5px] text-[var(--text-tertiary)] truncate leading-snug">
                       <span className="text-[var(--text-secondary)]">{co.checked_out_by_name}</span>
                       <span aria-hidden> · </span>
-                      {co.origin_bin_name}
+                      {originName ?? <span className="italic">{t('checkouts.unassigned', { defaultValue: 'Unassigned' })}</span>}
                     </p>
                   </div>
                   {showTimestamps && (
@@ -107,8 +119,9 @@ export function DashboardOpenCheckouts({ checkouts, showTimestamps = true }: Das
           onOpenChange={(next) => { if (!next) setReturning(null); }}
           itemName={returning.item_name}
           binId={returning.origin_bin_id}
+          locationId={returning.location_id}
           itemId={returning.item_id}
-          originBinName={returning.origin_bin_name}
+          originBinName={returning.origin_bin_name ?? returning.origin_area_name ?? undefined}
         />
       )}
     </section>

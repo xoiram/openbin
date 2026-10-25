@@ -3,6 +3,7 @@ import { d, query, withTransaction } from '../../db.js';
 import { asyncHandler } from '../../lib/asyncHandler.js';
 import { cleanupBinAttachments } from '../../lib/attachmentsCleanup.js';
 import { requireAdmin, requireCreatorOrAdmin, verifyBinAccess, verifyDeletedBinAccess, verifyLocationMembership } from '../../lib/binAccess.js';
+import { assertParentNotTrashed, countTrashedWithParent, loadBinNode, restoreChildBins, trashChildBins } from '../../lib/binHierarchy.js';
 import { BIN_SELECT_COLS, fetchBinById } from '../../lib/binQueries.js';
 import { ForbiddenError, NotFoundError, ValidationError } from '../../lib/httpErrors.js';
 import { cleanupBinPhotos } from '../../lib/photoCleanup.js';
@@ -57,8 +58,12 @@ router.delete('/:id', asyncHandler(async (req, res) => {
     throw new NotFoundError('Bin not found');
   }
 
-  // Soft delete
-  await query(`UPDATE bins SET deleted_at = ${d.now()}, updated_at = ${d.now()} WHERE id = $1`, [id]);
+  // Soft delete: children go to the trash with the same timestamp so they restore together
+  await withTransaction(async (tx) => {
+    await tx(`UPDATE bins SET deleted_at = ${d.now()}, updated_at = ${d.now()} WHERE id = $1`, [id]);
+    const row = await loadBinNode(tx, id);
+    await trashChildBins(tx, id, row!.deleted_at!);
+  });
 
   logRouteActivity(req, { entityType: 'bin', locationId: access.locationId, action: 'delete', entityId: id, entityName: bin.name });
 
@@ -80,11 +85,17 @@ router.post('/:id/restore', asyncHandler(async (req, res) => {
   // Enforce bin limit inside a transaction with row lock to prevent concurrent bypass
   await withTransaction(async (tx) => {
     const { assertBinCreationAllowedTx: assertLimitTx } = await import('../../lib/planGate.js');
-    await assertLimitTx(req.user!.id, tx);
+    const node = await loadBinNode(tx, id);
+    if (!node?.deleted_at) throw new NotFoundError('Deleted bin not found');
+    await assertParentNotTrashed(tx, node);
+    // children trashed with this bin come back with it, so they count against the plan limit too
+    const restoring = await countTrashedWithParent(tx, id, node.deleted_at);
+    await assertLimitTx(req.user!.id, tx, 1 + restoring);
     await tx(
       `UPDATE bins SET deleted_at = NULL, updated_at = ${d.now()} WHERE id = $1`,
       [id],
     );
+    await restoreChildBins(tx, id, node.deleted_at);
   });
 
   const bin = (await fetchBinById(id))!;
@@ -106,24 +117,34 @@ router.delete('/:id/permanent', asyncHandler(async (req, res) => {
   const { locationId, name: binName } = deletedAccess;
   await requireAdmin(locationId, req.user!.id, 'permanently delete bins');
 
-  // Snapshot disk paths before the DB delete cascades the rows away.
-  const [photosResult, attachmentsResult] = await Promise.all([
-    query<{ storage_path: string; thumb_path: string | null }>(
-      'SELECT storage_path, thumb_path FROM photos WHERE bin_id = $1',
-      [id],
-    ),
-    query<{ storage_path: string }>(
-      'SELECT storage_path FROM attachments WHERE bin_id = $1',
-      [id],
-    ),
-  ]);
+  // Snapshot disk paths (this bin and its children) before the DB delete cascades the rows away.
+  const childRows = await query<{ id: string }>('SELECT id FROM bins WHERE parent_bin_id = $1', [id]);
+  const binIds = [id, ...childRows.rows.map((r) => r.id)];
+  const snapshots = await Promise.all(
+    binIds.map(async (binId) => {
+      const [photosResult, attachmentsResult] = await Promise.all([
+        query<{ storage_path: string; thumb_path: string | null }>(
+          'SELECT storage_path, thumb_path FROM photos WHERE bin_id = $1',
+          [binId],
+        ),
+        query<{ storage_path: string }>(
+          'SELECT storage_path FROM attachments WHERE bin_id = $1',
+          [binId],
+        ),
+      ]);
+      return { binId, photos: photosResult.rows, attachments: attachmentsResult.rows };
+    }),
+  );
 
+  // Children are removed by the parent_bin_id ON DELETE CASCADE
   await query('DELETE FROM bins WHERE id = $1', [id]);
 
-  await Promise.all([
-    cleanupBinPhotos(id, photosResult.rows),
-    cleanupBinAttachments(id, attachmentsResult.rows),
-  ]);
+  await Promise.all(
+    snapshots.flatMap((s) => [
+      cleanupBinPhotos(s.binId, s.photos),
+      cleanupBinAttachments(s.binId, s.attachments),
+    ]),
+  );
 
   logRouteActivity(req, { entityType: 'bin', locationId, action: 'permanent_delete', entityId: id, entityName: binName });
 

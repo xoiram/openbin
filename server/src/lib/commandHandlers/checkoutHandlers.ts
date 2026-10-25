@@ -2,6 +2,15 @@ import type { TxQueryFn } from '../../db.js';
 import { d, generateUuid } from '../../db.js';
 import type { ActionResult } from '../commandExecutor.js';
 import type { CommandAction } from '../commandParser.js';
+import { NotFoundError } from '../httpErrors.js';
+import {
+  describeHome,
+  type ResolvedTarget,
+  resolveDefaultReturnHome,
+  resolveItemTarget,
+  setItemHome,
+  touchBins,
+} from '../itemQueries.js';
 import { type ActionContext, assertBinVisible } from './types.js';
 
 export async function handleCheckoutItem(action: Extract<CommandAction, { type: 'checkout_item' }>, ctx: ActionContext, tx: TxQueryFn): Promise<ActionResult> {
@@ -59,48 +68,53 @@ export async function handleReturnItem(action: Extract<CommandAction, { type: 'r
 
   const itemRow = item.rows[0];
 
-  const checkout = await tx<{ id: string; origin_bin_id: string }>(
-    'SELECT id, origin_bin_id FROM item_checkouts WHERE item_id = $1 AND returned_at IS NULL',
+  const checkout = await tx<{ id: string; origin_bin_id: string | null; origin_area_id: string | null }>(
+    'SELECT id, origin_bin_id, origin_area_id FROM item_checkouts WHERE item_id = $1 AND returned_at IS NULL',
     [itemRow.id],
   );
   if (checkout.rows.length === 0) throw new Error(`Item "${itemRow.name}" is not checked out`);
+  const co = checkout.rows[0];
 
-  const returnBinId = action.target_bin_id ?? checkout.rows[0].origin_bin_id;
+  // Explicit target bin, else the original place (bin or area); if that is gone the item becomes unassigned.
+  let home: ResolvedTarget;
+  if (action.target_bin_id) {
+    try {
+      home = await resolveItemTarget(tx, { kind: 'bin', id: action.target_bin_id }, ctx.userId, ctx.locationId);
+    } catch (err) {
+      if (err instanceof NotFoundError) throw new Error(`Target bin not found: ${action.target_bin_name ?? action.target_bin_id}`);
+      throw err;
+    }
+  } else {
+    home = await resolveDefaultReturnHome(tx, co, ctx.locationId, ctx.userId);
+  }
 
   await tx(
-    `UPDATE item_checkouts SET returned_at = ${d.now()}, returned_by = $1, return_bin_id = $2 WHERE id = $3`,
-    [ctx.userId, returnBinId, checkout.rows[0].id],
+    `UPDATE item_checkouts SET returned_at = ${d.now()}, returned_by = $1, return_bin_id = $2, return_area_id = $3 WHERE id = $4`,
+    [ctx.userId, home.binId, home.areaId, co.id],
   );
 
-  if (returnBinId !== checkout.rows[0].origin_bin_id) {
-    const targetBin = await tx<{ id: string; name: string }>(
-      'SELECT id, name FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL',
-      [returnBinId, ctx.locationId],
-    );
-    if (targetBin.rows.length === 0) throw new Error(`Target bin not found: ${action.target_bin_name ?? returnBinId}`);
-
-    const maxResult = await tx<{ max_pos: number | null }>(
-      'SELECT MAX(position) as max_pos FROM bin_items WHERE bin_id = $1 AND deleted_at IS NULL',
-      [returnBinId],
-    );
-    const nextPos = (maxResult.rows[0]?.max_pos ?? -1) + 1;
-    await tx('UPDATE bin_items SET bin_id = $1, position = $2 WHERE id = $3', [returnBinId, nextPos, itemRow.id]);
-    await tx(`UPDATE bins SET updated_at = ${d.now()} WHERE id IN ($1, $2)`, [checkout.rows[0].origin_bin_id, returnBinId]);
+  // The item is currently in action.bin_id (that is how it was found)
+  const moved = home.binId !== action.bin_id;
+  const base = { locationId: ctx.locationId, userId: ctx.userId, userName: ctx.userName, authMethod: ctx.authMethod, apiKeyId: ctx.apiKeyId };
+  if (moved) {
+    await setItemHome(tx, itemRow.id, home);
+    await touchBins(tx, [co.origin_bin_id, action.bin_id, home.binId]);
 
     ctx.pendingActivities.push({
-      locationId: ctx.locationId, userId: ctx.userId, userName: ctx.userName, authMethod: ctx.authMethod, apiKeyId: ctx.apiKeyId,
-      action: 'update', entityType: 'bin', entityId: checkout.rows[0].origin_bin_id, entityName: action.bin_name,
-      changes: { item_returned_to: { old: null, new: targetBin.rows[0].name } },
+      ...base,
+      action: 'update', entityType: 'bin', entityId: action.bin_id, entityName: action.bin_name,
+      changes: { item_returned_to: { old: null, new: home.name } },
     });
+    const dest = await describeHome(tx, home, ctx.locationId);
     ctx.pendingActivities.push({
-      locationId: ctx.locationId, userId: ctx.userId, userName: ctx.userName, authMethod: ctx.authMethod, apiKeyId: ctx.apiKeyId,
-      action: 'update', entityType: 'bin', entityId: returnBinId, entityName: targetBin.rows[0].name,
+      ...base,
+      action: 'update', ...dest,
       changes: { item_received: { old: null, new: itemRow.name } },
     });
   } else {
-    await tx(`UPDATE bins SET updated_at = ${d.now()} WHERE id = $1`, [action.bin_id]);
+    await touchBins(tx, [action.bin_id]);
     ctx.pendingActivities.push({
-      locationId: ctx.locationId, userId: ctx.userId, userName: ctx.userName, authMethod: ctx.authMethod, apiKeyId: ctx.apiKeyId,
+      ...base,
       action: 'update', entityType: 'bin', entityId: action.bin_id, entityName: action.bin_name,
       changes: { item_returned: { old: null, new: itemRow.name } },
     });

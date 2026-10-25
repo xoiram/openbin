@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS bins (
   location_id   TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
   area_id       TEXT REFERENCES areas(id) ON DELETE SET NULL,
+  parent_bin_id TEXT REFERENCES bins(id) ON DELETE CASCADE,
   notes         TEXT NOT NULL DEFAULT '',
   tags          JSONB NOT NULL DEFAULT '[]'::jsonb,
   icon          TEXT NOT NULL DEFAULT '',
@@ -100,14 +101,17 @@ CREATE TABLE IF NOT EXISTS bins (
 );
 
 CREATE TABLE IF NOT EXISTS bin_items (
-  id         TEXT PRIMARY KEY,
-  bin_id     TEXT NOT NULL REFERENCES bins(id) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
-  name       TEXT NOT NULL,
-  quantity   INTEGER DEFAULT NULL,
-  position   INTEGER NOT NULL DEFAULT 0,
-  deleted_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (NOW()),
-  updated_at TEXT NOT NULL DEFAULT (NOW())
+  id          TEXT PRIMARY KEY,
+  bin_id      TEXT REFERENCES bins(id) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
+  area_id     TEXT REFERENCES areas(id) ON DELETE SET NULL DEFERRABLE INITIALLY IMMEDIATE,
+  location_id TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
+  name        TEXT NOT NULL,
+  quantity    INTEGER DEFAULT NULL,
+  position    INTEGER NOT NULL DEFAULT 0,
+  deleted_at  TEXT,
+  created_at  TEXT NOT NULL DEFAULT (NOW()),
+  updated_at  TEXT NOT NULL DEFAULT (NOW()),
+  CONSTRAINT bin_items_bin_xor_area CHECK (bin_id IS NULL OR area_id IS NULL)
 );
 CREATE INDEX IF NOT EXISTS idx_bin_items_bin_id ON bin_items(bin_id, position);
 CREATE INDEX IF NOT EXISTS idx_bin_items_deleted_at ON bin_items(deleted_at);
@@ -115,13 +119,15 @@ CREATE INDEX IF NOT EXISTS idx_bin_items_deleted_at ON bin_items(deleted_at);
 CREATE TABLE IF NOT EXISTS item_checkouts (
   id              TEXT PRIMARY KEY,
   item_id         TEXT NOT NULL REFERENCES bin_items(id) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
-  origin_bin_id   TEXT NOT NULL,
+  origin_bin_id   TEXT,
+  origin_area_id  TEXT,
   location_id     TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
   checked_out_by  TEXT NOT NULL REFERENCES users(id),
   checked_out_at  TEXT NOT NULL DEFAULT (NOW()),
   returned_at     TEXT,
   returned_by     TEXT REFERENCES users(id),
-  return_bin_id   TEXT
+  return_bin_id   TEXT,
+  return_area_id  TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_item_checkouts_active
   ON item_checkouts(location_id) WHERE returned_at IS NULL;
@@ -133,6 +139,7 @@ CREATE TABLE IF NOT EXISTS shopping_list_items (
   location_id     TEXT NOT NULL REFERENCES locations(id) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
   name            TEXT NOT NULL,
   origin_bin_id   TEXT REFERENCES bins(id) ON DELETE SET NULL DEFERRABLE INITIALLY IMMEDIATE,
+  origin_area_id  TEXT REFERENCES areas(id) ON DELETE SET NULL DEFERRABLE INITIALLY IMMEDIATE,
   created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at      TEXT NOT NULL DEFAULT (NOW())
 );

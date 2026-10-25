@@ -259,7 +259,7 @@ export async function executeFullImportTransaction(params: FullImportParams): Pr
       }, areaId, resolvedCreatedBy, tx);
 
       oldToNewBinId.set(bin.id, binId);
-      await insertBinItems(binId, bin.items || [], tx);
+      await insertBinItems(binId, locationId, bin.items || [], tx);
       return true;
     }
 

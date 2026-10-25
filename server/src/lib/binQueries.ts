@@ -2,7 +2,7 @@ import { d, getDialect, query } from '../db.js';
 
 /** Shared SELECT columns for bin queries (requires b alias for bins, a alias for areas). */
 export function BIN_SELECT_COLS(): string {
-  return `b.id, b.short_code, b.location_id, b.name, b.area_id, COALESCE(a.name, '') AS area_name, COALESCE((SELECT ${d.jsonGroupArray(d.jsonObject("'id'", 'bi.id', "'name'", 'bi.name', "'quantity'", 'bi.quantity'))} FROM (SELECT id, name, quantity FROM bin_items bi WHERE bi.bin_id = b.id AND bi.deleted_at IS NULL ORDER BY bi.position) bi), '[]') AS items, b.notes, b.tags, b.icon, b.color, b.card_style, b.created_by, COALESCE((SELECT u.display_name FROM users u WHERE u.id = b.created_by), '') AS created_by_name, b.visibility, b.created_at, b.updated_at, COALESCE((SELECT ${d.jsonGroupObject('bcfv.field_id', 'bcfv.value')} FROM bin_custom_field_values bcfv WHERE bcfv.bin_id = b.id), '{}') AS custom_fields`;
+  return `b.id, b.short_code, b.location_id, b.name, b.area_id, COALESCE(a.name, '') AS area_name, COALESCE((SELECT ${d.jsonGroupArray(d.jsonObject("'id'", 'bi.id', "'name'", 'bi.name', "'quantity'", 'bi.quantity'))} FROM (SELECT id, name, quantity FROM bin_items bi WHERE bi.bin_id = b.id AND bi.deleted_at IS NULL ORDER BY bi.position) bi), '[]') AS items, b.notes, b.tags, b.icon, b.color, b.card_style, b.created_by, COALESCE((SELECT u.display_name FROM users u WHERE u.id = b.created_by), '') AS created_by_name, b.visibility, b.parent_bin_id, COALESCE((SELECT pb2.name FROM bins pb2 WHERE pb2.id = b.parent_bin_id), '') AS parent_bin_name, (SELECT CAST(COUNT(*) AS INTEGER) FROM bins cb WHERE cb.parent_bin_id = b.id AND cb.deleted_at IS NULL) AS child_count, b.created_at, b.updated_at, COALESCE((SELECT ${d.jsonGroupObject('bcfv.field_id', 'bcfv.value')} FROM bin_custom_field_values bcfv WHERE bcfv.bin_id = b.id), '{}') AS custom_fields`;
 }
 
 /**
@@ -45,6 +45,8 @@ export interface BinListFilterParams {
   hasNotes?: string;
   needsOrganizing?: string;
   unusedSince?: string;  // NEW — ISO 'YYYY-MM-DD'
+  parent?: string;       // only children of this bin
+  topLevel?: string;     // 'true' → only bins without a parent
   sort?: string;
   sortDir?: string;
 }
@@ -126,6 +128,15 @@ export function buildBinListQuery(filters: BinListFilterParams): BinListQuery {
       params.push(filters.areaId);
       paramIdx++;
     }
+  }
+
+  // Nesting filters: children of one bin, or only top-level bins
+  if (filters.parent?.trim()) {
+    whereClauses.push(`b.parent_bin_id = $${paramIdx}`);
+    params.push(filters.parent.trim());
+    paramIdx++;
+  } else if (filters.topLevel === 'true') {
+    whereClauses.push('b.parent_bin_id IS NULL');
   }
 
   // Color filter

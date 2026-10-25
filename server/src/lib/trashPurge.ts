@@ -26,7 +26,14 @@ export async function purgeExpiredTrash(locationId: string): Promise<void> {
 
     if (expired.rows.length === 0) return;
 
-    const binIds = expired.rows.map((r) => r.id as string);
+    const expiredIds = expired.rows.map((r) => r.id as string);
+    // Children are removed with their parent by the FK cascade: collect them so their files get cleaned too.
+    const expiredPh = expiredIds.map((_, i) => `$${i + 1}`).join(', ');
+    const children = await query<{ id: string }>(
+      `SELECT id FROM bins WHERE parent_bin_id IN (${expiredPh})`,
+      expiredIds
+    );
+    const binIds = [...new Set([...expiredIds, ...children.rows.map((r) => r.id)])];
     const placeholders = binIds.map((_, i) => `$${i + 1}`).join(', ');
 
     // Batch query photos for disk cleanup

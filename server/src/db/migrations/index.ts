@@ -12,6 +12,7 @@ import { clearLegacyMonthlyBillingPeriod } from './0011_clear_legacy_monthly_bil
 import { resetAiCreditPeriods } from './0012_reset_ai_credit_periods.js';
 import { userConsent } from './0013_user_consent.js';
 import { userLanguage } from './0014_user_language.js';
+import { nestedBoxes } from './0015_nested_boxes.js';
 import type { Migration } from './types.js';
 
 /**
@@ -33,4 +34,5 @@ export const migrations: Migration[] = [
   resetAiCreditPeriods,
   userConsent,
   userLanguage,
+  nestedBoxes,
 ];

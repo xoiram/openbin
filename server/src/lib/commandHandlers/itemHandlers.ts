@@ -17,7 +17,7 @@ export async function handleAddItems(action: Extract<CommandAction, { type: 'add
   for (const item of action.items) {
     const itemName = typeof item === 'string' ? item : item.name;
     const qty = typeof item === 'object' && typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : null;
-    await tx('INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)', [generateUuid(), action.bin_id, itemName, qty, nextPos++]);
+    await tx('INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)', [generateUuid(), action.bin_id, ctx.locationId, itemName, qty, nextPos++]);
     itemNames.push(itemName);
   }
   await tx(`UPDATE bins SET updated_at = ${d.now()} WHERE id = $1`, [action.bin_id]);

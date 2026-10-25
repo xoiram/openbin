@@ -193,9 +193,9 @@ describe('pg-concurrency: DEFERRABLE FK in transaction', () => {
         [binId, locationId, userId],
       );
       await txQuery(
-        `INSERT INTO bin_items (id, bin_id, name, position)
-         VALUES ($1, $2, 'DeferItem', 0)`,
-        [itemId, binId],
+        `INSERT INTO bin_items (id, bin_id, location_id, name, position)
+         VALUES ($1, $2, $3, 'DeferItem', 0)`,
+        [itemId, binId, locationId],
       );
     });
 
@@ -208,15 +208,16 @@ describe('pg-concurrency: DEFERRABLE FK in transaction', () => {
   });
 
   it('insert bin_items with non-existent bin_id — fails immediately (INITIALLY IMMEDIATE)', async () => {
+    const { locationId } = await seedUserAndLocation();
     const fakeBinId = crypto.randomUUID();
     const itemId = crypto.randomUUID();
 
     await expect(
       engine.withTransaction(async (txQuery) => {
         await txQuery(
-          `INSERT INTO bin_items (id, bin_id, name, position)
-           VALUES ($1, $2, 'Ghost', 0)`,
-          [itemId, fakeBinId],
+          `INSERT INTO bin_items (id, bin_id, location_id, name, position)
+           VALUES ($1, $2, $3, 'Ghost', 0)`,
+          [itemId, fakeBinId, locationId],
         );
       }),
     ).rejects.toThrow();

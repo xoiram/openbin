@@ -51,8 +51,8 @@ router.post('/:id/items', asyncHandler(async (req, res) => {
       : null;
     const itemId = generateUuid();
     await query(
-      'INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)',
-      [itemId, id, name.trim(), qty, nextPos++]
+      'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+      [itemId, id, access.locationId, name.trim(), qty, nextPos++]
     );
     newItems.push({ id: itemId, name: name.trim(), quantity: qty });
   }

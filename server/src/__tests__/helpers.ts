@@ -1,6 +1,8 @@
 import type { Express } from 'express';
 import request from 'supertest';
+import { expect } from 'vitest';
 import { getDb, query } from '../db.js';
+import { findHierarchyViolations } from '../lib/binHierarchy.js';
 
 /** Minimal 1x1 PNG for upload tests. */
 export const TEST_PNG = Buffer.from(
@@ -129,4 +131,20 @@ export async function createTestArea(app: Express, token: string, locationId: st
     name: string;
     location_id: string;
   };
+}
+
+/** Asserts the nested-bin rules hold across the whole test database (or one location). See lib/binHierarchy.ts. */
+export async function expectNoHierarchyViolations(locationId?: string): Promise<void> {
+  expect(await findHierarchyViolations(query, locationId)).toEqual([]);
+}
+
+/** Direct fixture helpers: nest a bin / put an item in an area without going through the API under test. */
+export async function setParentBinByDb(childId: string, parentId: string): Promise<void> {
+  const parent = await query<{ area_id: string | null; visibility: string }>('SELECT area_id, visibility FROM bins WHERE id = $1', [parentId]);
+  await query('UPDATE bins SET parent_bin_id = $1, area_id = $2, visibility = $3 WHERE id = $4', [
+    parentId,
+    parent.rows[0].area_id,
+    parent.rows[0].visibility,
+    childId,
+  ]);
 }

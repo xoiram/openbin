@@ -1,7 +1,9 @@
-import { d, generateUuid, isUniqueViolation, query, withTransaction } from '../db.js';
+import { d, generateUuid, isUniqueViolation, query, type TxQueryFn, withTransaction } from '../db.js';
 import { computeChanges } from './activityLog.js';
+import { assertValidParent, type BinNode, childFieldsFromParent, type Visibility } from './binHierarchy.js';
 import { fetchBinById } from './binQueries.js';
 import { replaceCustomFieldValues } from './customFieldHelpers.js';
+import { ValidationError } from './httpErrors.js';
 import { assertBinCreationAllowedTx } from './planGate.js';
 import { generateShortCode } from './shortCode.js';
 
@@ -55,31 +57,43 @@ export function buildBinSetClauses(fields: {
   return { setClauses, params, nextParamIdx: paramIdx };
 }
 
+/** A private parent can only be used by its creator; anyone else sees it as missing. */
+export function assertParentUsableBy(parent: Pick<BinNode, 'visibility' | 'created_by'>, userId: string): void {
+  if (parent.visibility === 'private' && parent.created_by !== userId) {
+    throw new ValidationError('Parent bin not found');
+  }
+}
+
 export interface ItemChanges {
   items_added?: { old: null; new: string[] };
   items_removed?: { old: string[]; new: null };
 }
 
-export async function replaceBinItems(binId: string, newItems: unknown[]): Promise<ItemChanges | null> {
-  const oldItemsResult = await query<{ name: string }>(
-    'SELECT name FROM bin_items WHERE bin_id = $1 AND deleted_at IS NULL ORDER BY position',
-    [binId]
-  );
-  const oldItemNames = oldItemsResult.rows.map((r) => r.name);
-
-  await withTransaction(async (tx) => {
-    await tx('DELETE FROM bin_items WHERE bin_id = $1', [binId]);
+export async function replaceBinItems(
+  binId: string,
+  newItems: unknown[],
+  locationId: string,
+  tx?: TxQueryFn,
+): Promise<ItemChanges | null> {
+  const run = async (q: TxQueryFn): Promise<string[]> => {
+    const oldItemsResult = await q<{ name: string }>(
+      'SELECT name FROM bin_items WHERE bin_id = $1 AND deleted_at IS NULL ORDER BY position',
+      [binId]
+    );
+    await q('DELETE FROM bin_items WHERE bin_id = $1', [binId]);
     for (let i = 0; i < newItems.length; i++) {
       const item = newItems[i];
       const itemName = typeof item === 'string' ? item : (item as { name: string }).name;
       const itemQty = typeof item === 'object' && item !== null ? ((item as { quantity?: number | null }).quantity ?? null) : null;
       if (!itemName) continue;
-      await tx(
-        'INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)',
-        [generateUuid(), binId, itemName, itemQty, i],
+      await q(
+        'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+        [generateUuid(), binId, locationId, itemName, itemQty, i],
       );
     }
-  });
+    return oldItemsResult.rows.map((r) => r.name);
+  };
+  const oldItemNames = tx ? await run(tx) : await withTransaction(run);
 
   const newItemNames = newItems.map((item) =>
     typeof item === 'string' ? item : (item as { name: string }).name
@@ -120,7 +134,7 @@ export async function resolveAreaNameChanges(
  */
 export async function buildBinUpdateDiff(
   oldBin: Record<string, unknown>,
-  updates: { name?: unknown; areaId?: unknown; notes?: unknown; tags?: unknown; icon?: unknown; color?: unknown; cardStyle?: unknown; visibility?: unknown; customFields?: Record<string, string> },
+  updates: { name?: unknown; areaId?: unknown; notes?: unknown; tags?: unknown; icon?: unknown; color?: unknown; cardStyle?: unknown; visibility?: unknown; parentBinId?: string | null; customFields?: Record<string, string> },
   itemChanges: ItemChanges | null,
 ): Promise<Record<string, { old: unknown; new: unknown }> | null> {
   const newObj: Record<string, unknown> = {};
@@ -132,6 +146,7 @@ export async function buildBinUpdateDiff(
   if (updates.color !== undefined) newObj.color = updates.color;
   if (updates.cardStyle !== undefined) newObj.card_style = updates.cardStyle;
   if (updates.visibility !== undefined) newObj.visibility = updates.visibility;
+  if (updates.parentBinId !== undefined) newObj.parent_bin_id = updates.parentBinId;
 
   const binFieldChanges = computeChanges(oldBin, newObj, Object.keys(newObj));
 
@@ -158,6 +173,8 @@ export interface InsertBinFields {
   visibility: string;
   items: unknown[];
   customFields?: Record<string, string>;
+  /** Create the bin inside this bin (depth 2 at most). Area and visibility then follow the parent. */
+  parentBinId?: string | null;
 }
 
 /**
@@ -182,10 +199,24 @@ export async function insertBinWithItems(fields: InsertBinFields, assertLimitUse
           await assertBinCreationAllowedTx(assertLimitUserId, tx);
         }
 
+        let areaId = fields.areaId;
+        let visibility = fields.visibility;
+        const parentBinId = fields.parentBinId || null;
+        if (parentBinId) {
+          const parent = await assertValidParent(tx, { binId: null, parentId: parentBinId, locationId: fields.locationId });
+          if (areaId && areaId !== parent.area_id) {
+            throw new ValidationError("The area of a bin inside another bin follows its parent");
+          }
+          assertParentUsableBy(parent, fields.createdBy);
+          const inherited = childFieldsFromParent(parent, visibility as Visibility);
+          areaId = inherited.area_id;
+          visibility = inherited.visibility;
+        }
+
         await tx(
-          `INSERT INTO bins (id, short_code, location_id, name, area_id, notes, tags, icon, color, card_style, created_by, visibility)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-          [binId, shortCode, fields.locationId, fields.name.trim(), fields.areaId, fields.notes, fields.tags, fields.icon, fields.color, fields.cardStyle, fields.createdBy, fields.visibility]
+          `INSERT INTO bins (id, short_code, location_id, name, area_id, notes, tags, icon, color, card_style, created_by, visibility, parent_bin_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          [binId, shortCode, fields.locationId, fields.name.trim(), areaId, fields.notes, fields.tags, fields.icon, fields.color, fields.cardStyle, fields.createdBy, visibility, parentBinId]
         );
 
         // Insert items
@@ -197,8 +228,8 @@ export async function insertBinWithItems(fields: InsertBinFields, assertLimitUse
             ? ((item as { quantity?: number | null }).quantity ?? null)
             : null;
           await tx(
-            'INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)',
-            [generateUuid(), binId, itemName, itemQty, i]
+            'INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)',
+            [generateUuid(), binId, fields.locationId, itemName, itemQty, i]
           );
         }
 
