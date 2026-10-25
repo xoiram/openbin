@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export type SortDirection = 'asc' | 'desc';
@@ -22,6 +23,7 @@ export function SortHeader<C extends string>({
   defaultDirection = 'asc',
   className,
 }: SortHeaderProps<C>) {
+  const { t } = useTranslation('common');
   const active = currentColumn === column;
   const Chevron = active && currentDirection === 'desc' ? ChevronDown : ChevronUp;
 
@@ -37,7 +39,13 @@ export function SortHeader<C extends string>({
     <button
       type="button"
       onClick={handleClick}
-      aria-label={active ? `${label}, sorted ${currentDirection === 'asc' ? 'ascending' : 'descending'}` : `Sort by ${label}`}
+      aria-label={
+        !active
+          ? t('sortHeader.sortBy', { defaultValue: 'Sort by {{label}}', label })
+          : currentDirection === 'asc'
+            ? t('sortHeader.sortedAscending', { defaultValue: '{{label}}, sorted ascending', label })
+            : t('sortHeader.sortedDescending', { defaultValue: '{{label}}, sorted descending', label })
+      }
       className={cn(
         'ui-col-header flex items-center gap-0.5 transition-colors min-h-[44px] -my-2',
         active ? 'text-[var(--text-primary)]' : 'hover:text-[var(--text-secondary)]',

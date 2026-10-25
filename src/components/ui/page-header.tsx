@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -15,30 +16,32 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, actions, back, backTo, className }: PageHeaderProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
+  const goBackLabel = t('pageHeader.goBack', { defaultValue: 'Go back' });
 
   return (
     <div className={cn(actions ? 'flex items-center justify-between' : 'flex items-center gap-2', className)}>
       <div className="flex items-center gap-2">
         {backTo ? (
-          <Tooltip content="Go back" side="bottom">
+          <Tooltip content={goBackLabel} side="bottom">
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => navigate(backTo)}
               className="shrink-0"
-              aria-label="Go back"
+              aria-label={goBackLabel}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Tooltip>
         ) : back && (
-          <Tooltip content="Go back" side="bottom">
+          <Tooltip content={goBackLabel} side="bottom">
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => navigate(-1)}
               className="hidden lg:inline-flex shrink-0"
-              aria-label="Go back"
+              aria-label={goBackLabel}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>

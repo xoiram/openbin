@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import type { ProgressTone } from '@/components/ui/progress-bar';
 import type { PlanInfo, SubscriptionStatus } from '@/types';
 import { usePlan } from './usePlan';
-import { cn, pluralize } from './utils';
+import { cn } from './utils';
 
 // Mirror of the server-side weights. Kept as a small duplicate (instead
 // of a shared package) because the cost is ~10 lines of arithmetic and
@@ -9,6 +10,13 @@ import { cn, pluralize } from './utils';
 // value here, change the matching constant in
 // `server/src/lib/aiCreditWeights.ts` too — the UI hint and the actual
 // debit must agree.
+
+// Structural stand-in for i18next's TFunction. The suffix helpers take their
+// translator as `unknown` and cast it to a local named `t` (so the extractor
+// still sees the literal keys) — see src/features/ai/aiConstants.ts for why a
+// branded TFunction<Ns> parameter type doesn't work here.
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
 const PER_PHOTO = 5;
 const PER_BIN = 2;
 
@@ -62,18 +70,25 @@ export function computeCreditEstimate(
 /** Inline tooltip suffix: ` (12%)` or ` (would exceed monthly limit)`.
  *  Returns '' when there's no estimate to surface, so callers can
  *  unconditionally concat without an extra null check. */
-export function formatCreditSuffix(estimate: CreditEstimate | null): string {
+export function formatCreditSuffix(estimate: CreditEstimate | null, translate: unknown): string {
+  const t = translate as Translate;
   if (!estimate) return '';
   if (estimate.overLimit) {
-    return ` (would exceed ${estimate.isTrial ? 'trial credits' : 'monthly limit'})`;
+    const reason = estimate.isTrial
+      ? t('creditCost.wouldExceedTrial', { defaultValue: 'would exceed trial credits' })
+      : t('creditCost.wouldExceedMonthly', { defaultValue: 'would exceed monthly limit' });
+    return ` (${reason})`;
   }
   return ` (${estimate.percent}%)`;
 }
 
 /** Compact mobile suffix: ` · 12%` or ` · over`. */
-export function formatCreditCompactSuffix(estimate: CreditEstimate | null): string {
+export function formatCreditCompactSuffix(estimate: CreditEstimate | null, translate: unknown): string {
+  const t = translate as Translate;
   if (!estimate) return '';
-  return estimate.overLimit ? ' · over' : ` · ${estimate.percent}%`;
+  return estimate.overLimit
+    ? ` · ${t('creditCost.over', { defaultValue: 'over' })}`
+    : ` · ${estimate.percent}%`;
 }
 
 /** Compose a "${baseLabel} · N credits (X%)" tooltip label plus a
@@ -82,11 +97,17 @@ export function formatCreditCompactSuffix(estimate: CreditEstimate | null): stri
  *  `computeCreditEstimate` returns null and the suffixes collapse to ''
  *  — the label degrades to "baseLabel · N credits" without a gate. */
 export function useCreditCostLabel(baseLabel: string, cost: number): { label: string; compactSuffix: string } {
+  const { t } = useTranslation('common');
   const { planInfo } = usePlan();
   const estimate = computeCreditEstimate(cost, planInfo.aiCredits, planInfo.status);
+  const credits = t('creditCost.credits', {
+    count: cost,
+    defaultValue_one: '{{count}} credit',
+    defaultValue_other: '{{count}} credits',
+  });
   return {
-    label: `${baseLabel} · ${pluralize(cost, 'credit')}${formatCreditSuffix(estimate)}`,
-    compactSuffix: formatCreditCompactSuffix(estimate),
+    label: `${baseLabel} · ${credits}${formatCreditSuffix(estimate, t)}`,
+    compactSuffix: formatCreditCompactSuffix(estimate, t),
   };
 }
 
@@ -96,10 +117,15 @@ interface CreditCostProps {
 }
 
 export function CreditCost({ cost, className }: CreditCostProps): React.JSX.Element | null {
+  const { t } = useTranslation('common');
   if (cost <= 0) return null;
   return (
     <span className={cn('text-xs text-zinc-500 dark:text-zinc-400', className)}>
-      Uses {pluralize(cost, 'credit')}
+      {t('creditCost.uses', {
+        count: cost,
+        defaultValue_one: 'Uses {{count}} credit',
+        defaultValue_other: 'Uses {{count}} credits',
+      })}
     </span>
   );
 }

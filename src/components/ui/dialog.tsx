@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatedHeight } from '@/components/ui/animated-height';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import { useOverlayAnimation } from '@/lib/useOverlayAnimation';
@@ -64,6 +65,7 @@ function DialogContent({
   flush?: boolean;
 }) {
   const { open, onOpenChange } = React.useContext(DialogContext);
+  const { t } = useTranslation('common');
   const contentRef = React.useRef<HTMLDivElement>(null);
   const titleId = React.useId();
   const [portalNode, setPortalNode] = React.useState<HTMLDivElement | null>(null);
@@ -116,7 +118,7 @@ function DialogContent({
           >
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t('dialog.close', { defaultValue: 'Close' })}
               className={closeButton}
               onClick={() => onOpenChange(false)}
             >

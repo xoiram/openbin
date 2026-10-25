@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,10 +33,11 @@ export function BulkUpdateDialog({
   onApply,
   onApplied,
   applyDisabled = false,
-  applyLabel = 'Apply',
-  loadingLabel = 'Applying...',
+  applyLabel,
+  loadingLabel,
   children,
 }: BulkUpdateDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
 
   async function handleApply() {
@@ -59,10 +61,12 @@ export function BulkUpdateDialog({
         {children}
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button onClick={handleApply} disabled={loading || applyDisabled}>
-            {loading ? loadingLabel : applyLabel}
+            {loading
+              ? loadingLabel ?? t('bulk.applying', { defaultValue: 'Applying...' })
+              : applyLabel ?? t('bulk.apply', { defaultValue: 'Apply' })}
           </Button>
         </DialogFooter>
       </DialogContent>

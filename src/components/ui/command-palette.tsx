@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { formatKeys, SHORTCUTS, type ShortcutDef } from '@/lib/shortcuts';
+import { useTranslation } from 'react-i18next';
+import { formatKeys, SHORTCUT_CATEGORY_ORDER, SHORTCUTS, type ShortcutDef, useShortcutLabels } from '@/lib/shortcuts';
 import { useOverlayAnimation } from '@/lib/useOverlayAnimation';
 import { categoryHeader, cn, overlayBackdrop } from '@/lib/utils';
 
@@ -10,17 +11,12 @@ interface CommandPaletteProps {
   onAction: (id: string) => void;
 }
 
-const CATEGORY_ORDER = ['Navigation', 'Actions', 'General'] as const;
-const CATEGORY_MAP: Record<ShortcutDef['category'], string> = {
-  navigation: 'Navigation',
-  action: 'Actions',
-  general: 'General',
-};
-
 export function CommandPalette({ open, onOpenChange, onAction }: CommandPaletteProps) {
   const [query, setQuery] = React.useState('');
   const [activeIndex, setActiveIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const { t } = useTranslation('common');
+  const { label, categoryLabel } = useShortcutLabels();
 
   const { visible, isEntered } = useOverlayAnimation({
     open,
@@ -45,18 +41,18 @@ export function CommandPalette({ open, onOpenChange, onAction }: CommandPaletteP
     const items = SHORTCUTS.filter((s) => s.id !== 'command-palette');
     if (!query.trim()) return items;
     const q = query.toLowerCase();
-    return items.filter((s) => s.label.toLowerCase().includes(q));
-  }, [query]);
+    return items.filter((s) => label(s).toLowerCase().includes(q));
+  }, [query, label]);
 
   // Group filtered items by category
   const groups = React.useMemo(() => {
     const result: { label: string; items: ShortcutDef[] }[] = [];
-    for (const cat of CATEGORY_ORDER) {
-      const items = filtered.filter((s) => CATEGORY_MAP[s.category] === cat);
-      if (items.length > 0) result.push({ label: cat, items });
+    for (const cat of SHORTCUT_CATEGORY_ORDER) {
+      const items = filtered.filter((s) => s.category === cat);
+      if (items.length > 0) result.push({ label: categoryLabel(cat), items });
     }
     return result;
-  }, [filtered]);
+  }, [filtered, categoryLabel]);
 
   // Flat list for index tracking
   const flatItems = React.useMemo(() => groups.flatMap((g) => g.items), [groups]);
@@ -137,8 +133,8 @@ export function CommandPalette({ open, onOpenChange, onAction }: CommandPaletteP
             role="combobox"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command..."
-            aria-label="Search commands"
+            placeholder={t('commandPalette.placeholder', { defaultValue: 'Type a command...' })}
+            aria-label={t('commandPalette.searchLabel', { defaultValue: 'Search commands' })}
             aria-expanded="true"
             aria-controls="command-palette-listbox"
             aria-activedescendant={flatItems[activeIndex] ? `cmd-${flatItems[activeIndex].id}` : undefined}
@@ -146,9 +142,11 @@ export function CommandPalette({ open, onOpenChange, onAction }: CommandPaletteP
           />
         </div>
         {/* Results */}
-        <div ref={listRef} id="command-palette-listbox" role="listbox" aria-label="Commands" className="overflow-y-auto max-h-[50vh] py-2">
+        <div ref={listRef} id="command-palette-listbox" role="listbox" aria-label={t('commandPalette.listLabel', { defaultValue: 'Commands' })} className="overflow-y-auto max-h-[50vh] py-2">
           {flatItems.length === 0 ? (
-            <p className="text-center text-[13px] text-[var(--text-tertiary)] py-6">No matching commands</p>
+            <p className="text-center text-[13px] text-[var(--text-tertiary)] py-6">
+              {t('commandPalette.noMatches', { defaultValue: 'No matching commands' })}
+            </p>
           ) : (
             groups.map((group) => {
               return (
@@ -179,7 +177,7 @@ export function CommandPalette({ open, onOpenChange, onAction }: CommandPaletteP
                             : 'text-[var(--text-primary)] hover:bg-[var(--bg-hover)]',
                         )}
                       >
-                        <span>{item.label}</span>
+                        <span>{label(item)}</span>
                         <div className="flex items-center gap-1">
                           {keys.map((k, i) => (
                             <kbd

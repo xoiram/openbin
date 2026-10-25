@@ -2,17 +2,27 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { Events, useRefreshOn } from '@/lib/eventBus';
+import i18n from '@/lib/i18n';
 import { isSelfHostedInstance } from '@/lib/qrConfig';
 import type { OverLimits, PlanFeatures, PlanInfo, PlanUsage } from '@/types';
 
+// Uses the i18n singleton (not a hook) so callers, including src/ee/, keep the
+// plain-function signature; they re-render on language change via their own
+// useTranslation().
 export function getLockedMessage(previousSubStatus: 'trial' | 'active' | null): string {
-  if (previousSubStatus === 'trial') return 'Your trial has ended. Subscribe to continue using OpenBin.';
-  if (previousSubStatus === 'active') return 'Your subscription has expired. Resubscribe to continue using OpenBin.';
-  return 'Your plan is inactive. Subscribe to continue using OpenBin.';
+  if (previousSubStatus === 'trial') {
+    return i18n.t('plan.locked.trialEnded', { defaultValue: 'Your trial has ended. Subscribe to continue using OpenBin.' });
+  }
+  if (previousSubStatus === 'active') {
+    return i18n.t('plan.locked.expired', { defaultValue: 'Your subscription has expired. Resubscribe to continue using OpenBin.' });
+  }
+  return i18n.t('plan.locked.inactive', { defaultValue: 'Your plan is inactive. Subscribe to continue using OpenBin.' });
 }
 
 export function getLockedCta(previousSubStatus: 'trial' | 'active' | null): string {
-  return previousSubStatus === 'trial' ? 'Subscribe' : 'Resubscribe';
+  return previousSubStatus === 'trial'
+    ? i18n.t('plan.locked.subscribe', { defaultValue: 'Subscribe' })
+    : i18n.t('plan.locked.resubscribe', { defaultValue: 'Resubscribe' });
 }
 
 const SELF_HOSTED_PLAN: PlanInfo = {

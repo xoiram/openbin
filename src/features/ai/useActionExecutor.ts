@@ -38,7 +38,7 @@ interface ExecuteBatchOptions {
   selectedIndices: number[];
   locationId: string;
   /** Invoked for `delete_bin` action results so the caller can surface an undo toast. */
-  onUndoToast?: (message: string, undo: () => void) => void;
+  onUndoToast?: (binName: string, undo: () => void) => void;
 }
 
 /**
@@ -76,7 +76,7 @@ export async function executeBatch(opts: ExecuteBatchOptions): Promise<Execution
       }
       if (r.type === 'delete_bin' && r.bin_id && onUndoToast) {
         const binId = r.bin_id;
-        onUndoToast(`Deleted "${r.bin_name}"`, () => {
+        onUndoToast(r.bin_name ?? '', () => {
           apiFetch(`/api/bins/${binId}/restore`, { method: 'POST' }).then(() => notifyBinsChanged());
         });
       }

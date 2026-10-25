@@ -65,7 +65,7 @@ export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
     try {
       const blob = await handle.stop();
       if (blob.size < 1000) {
-        showToast({ message: 'No audio recorded', variant: 'warning' });
+        showToast({ message: t('transcription.noAudio', { defaultValue: 'No audio recorded' }), variant: 'warning' });
         setState('idle');
         return;
       }
@@ -85,7 +85,10 @@ export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
 
       const text = result.text.trim();
       if (!text) {
-        showToast({ message: 'No speech detected. Try again.', variant: 'warning' });
+        showToast({
+          message: t('transcription.noSpeech', { defaultValue: 'No speech detected. Try again.' }),
+          variant: 'warning',
+        });
         setState('idle');
         return;
       }
@@ -100,7 +103,7 @@ export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
       showToast({
         message,
         variant: 'error',
-        action: { label: 'Retry', onClick: () => startRef.current() },
+        action: { label: t('transcription.retry', { defaultValue: 'Retry' }), onClick: () => startRef.current() },
       });
       setState('idle');
     }
@@ -118,16 +121,21 @@ export function useTranscription({ onTranscribed }: UseTranscriptionOptions) {
       recordingRef.current = handle;
       setState('recording');
     } catch (err) {
-      let message = 'Could not start recording';
+      let message = t('transcription.startFailed', { defaultValue: 'Could not start recording' });
       if (err instanceof DOMException) {
-        if (err.name === 'NotAllowedError') message = 'Microphone access was denied by the browser';
-        else if (err.name === 'NotFoundError') message = 'No microphone found on this device';
-        else if (err.name === 'NotReadableError') message = 'Microphone is in use by another application';
-        else message = `Recording error: ${err.name}`;
+        if (err.name === 'NotAllowedError') {
+          message = t('transcription.micDenied', { defaultValue: 'Microphone access was denied by the browser' });
+        } else if (err.name === 'NotFoundError') {
+          message = t('transcription.noMic', { defaultValue: 'No microphone found on this device' });
+        } else if (err.name === 'NotReadableError') {
+          message = t('transcription.micInUse', { defaultValue: 'Microphone is in use by another application' });
+        } else {
+          message = t('transcription.recordingError', { defaultValue: 'Recording error: {{name}}', name: err.name });
+        }
       }
       showToast({ message, variant: 'error' });
     }
-  }, [state, showToast, handleStopInternal]);
+  }, [state, showToast, handleStopInternal, t]);
   startRef.current = start;
 
   const stop = useCallback(() => {

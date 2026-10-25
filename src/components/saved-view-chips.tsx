@@ -1,4 +1,5 @@
 import { Bookmark, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { SavedView } from '@/lib/savedViews';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +11,7 @@ interface SavedViewChipsProps {
 }
 
 export function SavedViewChips({ views, onApply, onDelete, className }: SavedViewChipsProps) {
+  const { t } = useTranslation('common');
   if (views.length === 0) return null;
 
   return (
@@ -20,7 +22,7 @@ export function SavedViewChips({ views, onApply, onDelete, className }: SavedVie
           key={view.id}
           role="button"
           tabIndex={0}
-          aria-label={`Apply saved view: ${view.name}`}
+          aria-label={t('savedViews.apply', { defaultValue: 'Apply saved view: {{name}}', name: view.name })}
           onClick={() => onApply(view)}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onApply(view); } }}
           className="group/chip shrink-0 rounded-[var(--radius-md)] pl-2 pr-3 py-2 flex items-center gap-1.5 max-w-[200px] transition-colors duration-150 cursor-pointer bg-[var(--accent)]/18 [@media(hover:hover)]:hover:bg-[var(--accent)]/28"
@@ -28,7 +30,7 @@ export function SavedViewChips({ views, onApply, onDelete, className }: SavedVie
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(view.id); }}
-            aria-label={`Remove saved view ${view.name}`}
+            aria-label={t('savedViews.remove', { defaultValue: 'Remove saved view {{name}}', name: view.name })}
             className="grid place-items-center h-5 w-5 shrink-0 rounded-[var(--radius-md)] [@media(hover:hover)]:hover:bg-[var(--bg-active)]"
           >
             <Bookmark

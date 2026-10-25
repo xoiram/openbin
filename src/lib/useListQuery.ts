@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import type { EventName } from '@/lib/eventBus';
 import { notify, useRefreshOn } from '@/lib/eventBus';
+import i18n from '@/lib/i18n';
 import { getErrorMessage } from '@/lib/utils';
 import type { ListResponse } from '@/types';
 
@@ -75,7 +76,7 @@ export function useListData<T, R = T>(
       .catch((err) => {
         if (cancelled) return;
         setData([]);
-        setError(getErrorMessage(err, 'Failed to load'));
+        setError(getErrorMessage(err, i18n.t('list.loadFailed', { defaultValue: 'Failed to load' })));
         hasData.current = false;
       })
       .finally(() => {
@@ -156,7 +157,7 @@ export function usePaginatedList<T>(
         if (generation !== generationRef.current) return;
         setItems([]);
         setTotalCount(0);
-        setError(getErrorMessage(err, 'Failed to load'));
+        setError(getErrorMessage(err, i18n.t('list.loadFailed', { defaultValue: 'Failed to load' })));
       })
       .finally(() => {
         if (generation !== generationRef.current) return;
@@ -184,7 +185,7 @@ export function usePaginatedList<T>(
       })
       .catch((err) => {
         if (generation !== generationRef.current) return;
-        setError(getErrorMessage(err, 'Failed to load more'));
+        setError(getErrorMessage(err, i18n.t('list.loadMoreFailed', { defaultValue: 'Failed to load more' })));
       })
       .finally(() => {
         isLoadingMoreRef.current = false;
@@ -258,7 +259,7 @@ export function usePagedList<T>(
         if (generation !== generationRef.current) return;
         setItems([]);
         setTotalCount(0);
-        setError(getErrorMessage(err, 'Failed to load'));
+        setError(getErrorMessage(err, i18n.t('list.loadFailed', { defaultValue: 'Failed to load' })));
       })
       .finally(() => {
         if (generation !== generationRef.current) return;

@@ -1,5 +1,6 @@
 import { CheckCircle2, type LucideIcon, MoreHorizontal, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useClickOutside } from '@/lib/useClickOutside';
@@ -28,6 +29,7 @@ export interface BulkActionBarProps {
 }
 
 export function BulkActionBar({ selectedCount, actions, onClear, isBusy, selectionLabel }: BulkActionBarProps) {
+  const { t } = useTranslation('common');
   const [moreOpen, setMoreOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ export function BulkActionBar({ selectedCount, actions, onClear, isBusy, selecti
       <div className="rounded-[var(--radius-md)] row px-3 py-2 bg-[var(--accent)] border border-[var(--accent-hover)] text-white sm:min-w-[400px] lg:min-w-[480px]">
         <CheckCircle2 className="h-4 w-4 text-white/80" />
         <span className="text-[13px] font-medium text-white/90 whitespace-nowrap">
-          {selectionLabel ?? `${selectedCount} selected`}
+          {selectionLabel ?? t('bulk.selected', { defaultValue: '{{n}} selected', n: selectedCount })}
         </span>
         <div className="h-4 border-l border-white/20" />
 
@@ -90,14 +92,14 @@ export function BulkActionBar({ selectedCount, actions, onClear, isBusy, selecti
 
         {more.length > 0 && (
           <div className="relative" ref={moreRef}>
-            <Tooltip content="More actions" side="top">
+            <Tooltip content={t('bulk.moreActions', { defaultValue: 'More actions' })} side="top">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-[var(--radius-xs)] text-white hover:bg-white/15"
                 onClick={() => setMoreOpen((o) => !o)}
                 disabled={isBusy}
-                aria-label="More actions"
+                aria-label={t('bulk.moreActions', { defaultValue: 'More actions' })}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -127,13 +129,13 @@ export function BulkActionBar({ selectedCount, actions, onClear, isBusy, selecti
         )}
 
         <div className="h-4 border-l border-white/20" />
-        <Tooltip content="Clear selection" side="top">
+        <Tooltip content={t('bulk.clearSelection', { defaultValue: 'Clear selection' })} side="top">
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 rounded-[var(--radius-xs)] text-white/70 hover:bg-white/15 hover:text-white"
             onClick={onClear}
-            aria-label="Clear selection"
+            aria-label={t('bulk.clearSelection', { defaultValue: 'Clear selection' })}
           >
             <X className="h-4 w-4" />
           </Button>

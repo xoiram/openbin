@@ -1,8 +1,9 @@
 export const PASSWORD_CHECKS = [
-  { key: 'length', label: 'At least 8 characters' },
-  { key: 'uppercase', label: 'Uppercase letter' },
-  { key: 'lowercase', label: 'Lowercase letter' },
-  { key: 'digit', label: 'Number' },
+  // Labels are translated at render time (PasswordChecklist, common:password.checks.*).
+  { key: 'length' },
+  { key: 'uppercase' },
+  { key: 'lowercase' },
+  { key: 'digit' },
 ] as const;
 
 export type PasswordCheckKey = (typeof PASSWORD_CHECKS)[number]['key'];
