@@ -1,0 +1,106 @@
+# Nested boxes and items in areas
+
+Status: **in progress**. This extends `Location → Area → Bin → Item` in two ways:
+
+1. a box can contain one more level of boxes (a "child box"),
+2. an area can contain items directly ("loose items"), without a box.
+
+User-facing nouns stay admin-configurable ("bin"/"box" etc. via `useTerminology()`); this document says "box" and "bin" interchangeably.
+
+## Decisions
+
+| Topic | Decision |
+|---|---|
+| What a nested box is | A full box with a new `parent_bin_id`: own QR/short code, photos, items, tags, custom fields, pin, share. |
+| Depth | A child cannot have children. Invalid nesting is **blocked with a clear 4xx** (no auto-flatten). |
+| Child's area | Always equals the parent's. A child's area cannot be set directly; moving the parent moves its children. |
+| Loose items | An item has a box **or** an area **or neither** ("unassigned in the location", mirroring unassigned boxes). Deleting an area leaves its loose items unassigned. |
+| Loose item features | Full parity with box items from day one: checkout/return, shopping list, search, AI "where is X", export, batch API. |
+| Areas | Unchanged: already nest to any depth via `areas.parent_id`. |
+| Deleting a parent | Trashes its children with it (same timestamp); restoring the parent restores them. |
+| Lists/search/scan | Child boxes appear everywhere, labelled "inside {parent}"; a filter can hide them. |
+| Privacy | Children inherit the parent's visibility and can't be more public. Loose items are never private. |
+| AI | Aware first: results show the full path; context lists child boxes and loose items. Photo analysis and reorganize stay top-level only. |
+| Naming | Same noun, "inside {parent}". No new terminology setting. |
+| Compatibility | Additive. Old API calls, MCP tools, exports and backups keep working; the export format version is bumped. |
+| UI | Reuse existing pages with filters. No new area page. |
+| Rollout | Always on, no per-location setting. |
+| Plan limits | Every box, children included, counts toward `maxBins`. |
+
+### Defaults for behavior we did not discuss (change if wrong)
+
+1. Restoring a child whose parent is still in the trash is blocked ("restore the parent first").
+2. An AI command or bulk "move to area" targeting a child box is rejected.
+3. A parent's public share link does not show its children (first version).
+4. Returning a checkout whose original area was deleted lets the user pick a new place; "unassigned" is allowed.
+5. Activity log entries record parent changes and loose-item moves under the item or box, as today.
+
+## Data model
+
+| Change | Detail |
+|---|---|
+| `bins.parent_bin_id` | Nullable `REFERENCES bins(id) ON DELETE CASCADE`, indexed. |
+| `bin_items.bin_id` | Becomes nullable. |
+| `bin_items.area_id` | New, nullable, `REFERENCES areas(id) ON DELETE SET NULL`. |
+| `bin_items.location_id` | New, `NOT NULL`, backfilled from the item's box. An unassigned item has neither box nor area, so it needs its own location for scoping and permission checks. |
+| `bin_items` constraint | `CHECK (bin_id IS NULL OR area_id IS NULL)`. |
+| `item_checkouts` | `origin_bin_id` / `return_bin_id` become nullable; add `origin_area_id` / `return_area_id`. |
+| `shopping_list_items` | Add `origin_area_id`. |
+
+A child box keeps its own `bins.area_id`, always equal to its parent's. Existing area filters, counts and `area_name` keep working untouched. Changing a parent's area updates its children in the same transaction.
+
+Privacy: a child of a private box is private; making a parent private makes its children private; moving a box into a private parent makes it private. Child boxes can't be made public while their parent is private.
+
+### Invariants (checked in tests after every write path)
+
+- depth ≤ 2: a box with a parent has no children, and a parent has no parent
+- a child's `area_id` equals its parent's
+- no public child under a private parent
+- no live (non-trashed) child under a trashed parent
+- parent and child are in the same location
+
+Every write path that changes these fields goes through one helper, `server/src/lib/binHierarchy.ts`: box create/update/move routes, bulk move, batch and AI command handlers, the reorganize apply step, import and restore, area deletion. Reorganize leaves child boxes out of its candidates.
+
+## Migration safety
+
+- SQLite cannot drop `NOT NULL`, so `bin_items` and `item_checkouts` are rebuilt. SQLite runs with `foreign_keys = ON` and `item_checkouts.item_id` cascades from `bin_items`: a naive rebuild would delete all checkout history. The migration reuses the FK-off, transaction, `foreign_key_check` pattern from `0010_relax_created_by_fks.ts`.
+- Row counts of `bin_items`, `item_checkouts` and `shopping_list_items` are asserted unchanged by a test on a populated database.
+- Server tests run on SQLite only and CI had no Postgres service: a Postgres CI job covers the migration and a smoke test.
+
+## API (additive)
+
+- **Boxes:** `parent_bin_id` on create/update; responses add `parent_bin_id`, parent name and child count; lists accept `?parent=` and `?top_level=`.
+- **Items:** responses gain `area_id`, `area_name` and a nullable `bin_id`; new endpoint to create an item in an area; move endpoint with a box, area or no target; items list accepts `?area_id=` and `?unassigned=`. New item endpoints get the same location-membership and viewer checks as box routes.
+- **Checkouts / shopping list:** accept and return an area as origin or return place.
+- OpenAPI and the MCP tools are updated; existing clients keep working.
+
+**Main regression risk:** most of the ~80 `bin_items` queries join `bins`. Turning them into `LEFT JOIN`s makes any `WHERE b.deleted_at IS NULL` / `b.visibility …` silently drop loose items. Item queries go through one shared helper, and tests assert that loose and unassigned items appear in: the items list and search, AI context and "where is X", checkouts, the shopping list, export, admin counts.
+
+## Export / import
+
+- Boxes reference their parent by **short code** (merge import matches boxes by short code and ignores ids); parents are imported before children.
+- Loose items are exported under their area's path.
+- The export format version is bumped (the ZIP export is at `version: 3`, the JSON types at V2: check which one first). Old exports still import.
+
+## AI (aware first)
+
+Search and chat results include the full path ("Garage › Shelf A › Toolbox › Parts box"); AI context lists child boxes and loose items. Photo analysis and reorganize still create and move top-level boxes only.
+
+## Frontend
+
+- Box form: "Inside box" picker offering only valid targets; a child shows its inherited area read-only.
+- Box page: breadcrumb (Area › Parent › This) and an "Inside this box" section with an add button.
+- Lists/cards: "inside {parent}" label and a toggle to hide nested boxes.
+- Areas: cards show "3 boxes · 5 items", linking to the box list and items list filtered by area. The items list gets a location column (box or area).
+- Item move dialog: targets are a box, an area or unassigned. Checkouts and the shopping list show the origin as a box or an area.
+- Every new string goes into en and nb in the same PR (the i18n lint baseline is empty, so CI enforces it).
+
+## PRs (merge in this order)
+
+1. **Schema and server core**: migration (SQLite and Postgres), `binHierarchy.ts`, box and item routes, checkouts, shopping list, counts, shared item-query helper, invariant test, Postgres CI job.
+2. **Export, import, backup, MCP, batch/command handlers, AI context and paths, `openapi.yaml`.**
+3. **Frontend, boxes**: types, parent picker, breadcrumb, child section, card labels and filters.
+4. **Frontend, areas and items**: loose items, area counts, move dialogs, checkout and shopping list display.
+5. **Docs**: the "items exist only inside a bin" line in `CLAUDE.md`, the demo seed.
+
+Every PR is audited with `git diff --name-status origin/main` for unexpected deletions before merging.
