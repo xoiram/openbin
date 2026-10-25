@@ -1,5 +1,6 @@
 import { AlertTriangle, Clock } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Crossfade } from '@/components/ui/crossfade';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,7 +17,8 @@ import { usePaginatedActivityLog } from './useActivity';
 export function ActivityPage() {
   const navigate = useNavigate();
   const { isAdmin, isLoading: permissionsLoading } = usePermissions();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('activity');
 
   // Filter state
   const [entityTypeFilter, setEntityTypeFilter] = useState<EntityTypeFilter>('');
@@ -41,10 +43,10 @@ export function ActivityPage() {
     return entries.filter((e) => {
       if (e.display_name.toLowerCase().includes(q)) return true;
       if (e.entity_name?.toLowerCase().includes(q)) return true;
-      if (getActionLabel(e, t).toLowerCase().includes(q)) return true;
+      if (getActionLabel(e, term, t).toLowerCase().includes(q)) return true;
       return false;
     });
-  }, [entries, searchQuery, t]);
+  }, [entries, searchQuery, term, t]);
 
   useEffect(() => {
     if (!permissionsLoading && !isAdmin) {
@@ -60,7 +62,13 @@ export function ActivityPage() {
 
   return (
     <>
-      <SettingsPageHeader title="Activity Log" description="View changes and actions across your location." />
+      <SettingsPageHeader
+        title={t('page.title', { defaultValue: 'Activity Log' })}
+        description={t('page.description', {
+          defaultValue: 'View changes and actions across your {{location}}.',
+          location: term.location,
+        })}
+      />
 
       <ActivityFilterBar
         entityTypeFilter={entityTypeFilter}
@@ -82,17 +90,24 @@ export function ActivityPage() {
         {error ? (
           <EmptyState
             icon={AlertTriangle}
-            title="Failed to load activity"
+            title={t('page.loadFailed', { defaultValue: 'Failed to load activity' })}
             subtitle={error}
           />
         ) : filteredEntries.length === 0 ? (
           <EmptyState
             icon={Clock}
-            title={hasFilters ? 'No matching activity' : 'No activity yet'}
+            title={
+              hasFilters
+                ? t('page.noMatches', { defaultValue: 'No matching activity' })
+                : t('page.empty', { defaultValue: 'No activity yet' })
+            }
             subtitle={
               hasFilters
-                ? 'Try different filters or search terms'
-                : `Actions like creating, editing, and deleting ${t.bins} will appear here`
+                ? t('page.noMatchesHint', { defaultValue: 'Try different filters or search terms' })
+                : t('page.emptyHint', {
+                    defaultValue: 'Actions like creating, editing, and deleting {{bins}} will appear here',
+                    bins: term.bins,
+                  })
             }
             variant={hasFilters ? 'search' : undefined}
           />

@@ -1,6 +1,8 @@
+import type { TFunction } from 'i18next';
 import { Check, Copy, EllipsisVertical, KeyRound, LogOut, UserMinus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,6 +21,7 @@ import { useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useAuth } from '@/lib/auth';
+import { useTerminology } from '@/lib/terminology';
 import { usePopover } from '@/lib/usePopover';
 import { cn, getErrorMessage } from '@/lib/utils';
 import type { LocationMember } from '@/types';
@@ -36,6 +39,8 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
   const { members, isLoading } = useLocationMembers(locationId);
   const { locations } = useLocationList();
   const { showToast } = useToast();
+  const { t } = useTranslation('locations');
+  const term = useTerminology();
   const [resetToken, setResetToken] = useState<{ token: string; userId: string } | null>(null);
   const [resetCopied, setResetCopied] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
@@ -61,9 +66,9 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
     try {
       await removeMember(locationId, memberToRemove.user_id);
       setMemberToRemove(null);
-      showToast({ message: 'Member removed', variant: 'success' });
+      showToast({ message: t('members.removed', { defaultValue: 'Member removed' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to remove member'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('members.removeFailed', { defaultValue: 'Failed to remove member' })), variant: 'error' });
     } finally {
       setRemoving(false);
     }
@@ -72,9 +77,12 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
   async function handleRoleChange(userId: string, newRole: 'admin' | 'member' | 'viewer') {
     try {
       await changeMemberRole(locationId, userId, newRole);
-      showToast({ message: `Role updated to ${newRole}`, variant: 'success' });
+      showToast({
+        message: t('members.roleUpdated', { defaultValue: 'Role updated to {{role}}', role: roleLabel(newRole, t) }),
+        variant: 'success',
+      });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to change role'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('members.roleChangeFailed', { defaultValue: 'Failed to change role' })), variant: 'error' });
     }
   }
 
@@ -91,9 +99,9 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
       }
       setConfirmLeave(false);
       onOpenChange(false);
-      showToast({ message: 'Left location', variant: 'success' });
+      showToast({ message: t('members.left', { defaultValue: 'Left {{location}}', location: term.location }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to leave'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('members.leaveFailed', { defaultValue: 'Failed to leave' })), variant: 'error' });
     } finally {
       setLeaving(false);
     }
@@ -103,9 +111,9 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
     try {
       const { token } = await resetMemberPassword(locationId, userId);
       setResetToken({ token, userId });
-      showToast({ message: 'Reset link generated', variant: 'success' });
+      showToast({ message: t('members.resetLinkGenerated', { defaultValue: 'Reset link generated' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to generate reset link'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('members.resetLinkFailed', { defaultValue: 'Failed to generate reset link' })), variant: 'error' });
     }
   }
 
@@ -118,7 +126,7 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
       setResetCopied(true);
       setTimeout(() => setResetCopied(false), 2000);
     } catch {
-      showToast({ message: 'Failed to copy', variant: 'error' });
+      showToast({ message: t('invite.copyFailed', { defaultValue: 'Failed to copy' }), variant: 'error' });
     }
   }
 
@@ -126,9 +134,11 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setResetToken(null); setMemberSearch(''); setMemberToRemove(null); setConfirmLeave(false); } onOpenChange(v); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{location?.name ?? 'Location'} Members</DialogTitle>
+          <DialogTitle>
+            {t('members.title', { defaultValue: '{{name}} Members', name: location?.name ?? term.Location })}
+          </DialogTitle>
           <DialogDescription>
-            Manage members and share the invite code.
+            {t('members.description', { defaultValue: 'Manage members and share the invite code.' })}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +162,7 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
                 onClear={memberSearch ? () => setMemberSearch('') : undefined}
-                placeholder="Search members..."
+                placeholder={t('members.searchPlaceholder', { defaultValue: 'Search members...' })}
                 containerClassName="mb-2"
               />
             )}
@@ -171,7 +181,7 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
                   />
                   <div className="flex-1 min-w-0">
                     <span className="text-[14px] text-[var(--text-primary)] truncate block">
-                      {isSelf ? 'You' : displayName}
+                      {isSelf ? t('members.you', { defaultValue: 'You' }) : displayName}
                     </span>
                     {showEmail && (
                       <span className="text-[12px] text-[var(--text-tertiary)] truncate block">
@@ -200,7 +210,7 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
         {resetToken && (
           <div className="space-y-2 p-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)]">
             <p className="text-[13px] text-[var(--text-secondary)]">
-              Share this link with the member to reset their password:
+              {t('members.resetLinkHint', { defaultValue: 'Share this link with the member to reset their password:' })}
             </p>
             <div className="row gap-2">
               <code className="flex-1 min-w-0 text-[12px] text-[var(--text-primary)] break-all">
@@ -211,7 +221,7 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
                 size="icon-sm"
                 onClick={handleCopyResetLink}
                 className="shrink-0"
-                aria-label="Copy reset link"
+                aria-label={t('members.copyResetLink', { defaultValue: 'Copy reset link' })}
               >
                 {resetCopied ? <Check className="h-4 w-4 text-[var(--color-success)]" /> : <Copy className="h-4 w-4" />}
               </Button>
@@ -227,20 +237,23 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
             className="w-full rounded-[var(--radius-sm)]"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Leave Location
+            {t('members.leaveLocation', { defaultValue: 'Leave {{location}}', location: term.Location })}
           </Button>
         )}
         {!isAdmin && confirmLeave && (
           <div className="space-y-2 p-3 rounded-[var(--radius-sm)] bg-[var(--destructive-soft)]">
             <p className="text-[13px] text-[var(--text-secondary)]">
-              You&apos;ll lose access to all content in this location. Continue?
+              {t('members.leaveConfirm', {
+                defaultValue: "You'll lose access to all content in this {{location}}. Continue?",
+                location: term.location,
+              })}
             </p>
             <div className="flex gap-2 justify-end">
               <Button variant="ghost" size="sm" onClick={() => setConfirmLeave(false)} disabled={leaving}>
-                Cancel
+                {t('common:actions.cancel', { defaultValue: 'Cancel' })}
               </Button>
               <Button variant="destructive" size="sm" onClick={handleLeaveConfirmed} disabled={leaving}>
-                {leaving ? 'Leaving...' : 'Leave'}
+                {leaving ? t('members.leaving', { defaultValue: 'Leaving...' }) : t('members.leave', { defaultValue: 'Leave' })}
               </Button>
             </div>
           </div>
@@ -251,17 +264,23 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
       <Dialog open={memberToRemove !== null} onOpenChange={(v) => { if (!v) setMemberToRemove(null); }}>
         <DialogContent className="flat-popover">
           <DialogHeader>
-            <DialogTitle>Remove member</DialogTitle>
+            <DialogTitle>{t('members.removeTitle', { defaultValue: 'Remove member' })}</DialogTitle>
             <DialogDescription>
-              Remove {memberToRemove?.display_name || memberToRemove?.email || 'this member'} from {location?.name ?? 'this location'}? They will lose access to all bins in this location.
+              {t('members.removeDescription', {
+                defaultValue: 'Remove {{member}} from {{location}}? They will lose access to all {{bins}} in this {{locationTerm}}.',
+                member: memberToRemove?.display_name || memberToRemove?.email || t('members.thisMember', { defaultValue: 'this member' }),
+                location: location?.name ?? t('members.thisLocation', { defaultValue: 'this {{location}}', location: term.location }),
+                bins: term.bins,
+                locationTerm: term.location,
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setMemberToRemove(null)} disabled={removing}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button variant="destructive" onClick={handleRemoveConfirmed} disabled={removing}>
-              {removing ? 'Removing...' : 'Remove'}
+              {removing ? t('members.removing', { defaultValue: 'Removing...' }) : t('members.remove', { defaultValue: 'Remove' })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -271,6 +290,7 @@ export function LocationMembersDialog({ locationId, open, onOpenChange }: Locati
 }
 
 function MemberActionMenu({ onResetPassword, onRemove }: { onResetPassword: () => void; onRemove: () => void }) {
+  const { t } = useTranslation('locations');
   const dialogPortal = useDialogPortal();
   const { visible, animating, isOpen, toggle, close } = usePopover();
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -311,7 +331,7 @@ function MemberActionMenu({ onResetPassword, onRemove }: { onResetPassword: () =
         className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
       >
         <KeyRound className="h-4 w-4" />
-        Reset password
+        {t('members.resetPassword', { defaultValue: 'Reset password' })}
       </button>
       <div className="my-1 border-t border-[var(--border-flat)]" />
       <button
@@ -320,19 +340,19 @@ function MemberActionMenu({ onResetPassword, onRemove }: { onResetPassword: () =
         className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--destructive)] hover:bg-[var(--bg-hover)] transition-colors"
       >
         <UserMinus className="h-4 w-4" />
-        Remove member
+        {t('members.removeTitle', { defaultValue: 'Remove member' })}
       </button>
     </div>
   );
 
   return (
     <div ref={triggerRef} className="shrink-0">
-      <Tooltip content="More actions" side="bottom">
+      <Tooltip content={t('members.moreActions', { defaultValue: 'More actions' })} side="bottom">
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={toggle}
-          aria-label="More actions"
+          aria-label={t('members.moreActions', { defaultValue: 'More actions' })}
         >
           <EllipsisVertical className="h-3.5 w-3.5" />
         </Button>
@@ -342,13 +362,17 @@ function MemberActionMenu({ onResetPassword, onRemove }: { onResetPassword: () =
   );
 }
 
-const roleOptions = [
-  { key: 'viewer' as const, label: 'Viewer' },
-  { key: 'member' as const, label: 'Member' },
-  { key: 'admin' as const, label: 'Admin' },
-];
+function roleLabel(role: LocationMember['role'], t: TFunction<'locations'>): string {
+  if (role === 'admin') return t('roles.admin', { defaultValue: 'Admin' });
+  if (role === 'viewer') return t('roles.viewer', { defaultValue: 'Viewer' });
+  return t('roles.member', { defaultValue: 'Member' });
+}
+
+const ROLE_ORDER: LocationMember['role'][] = ['viewer', 'member', 'admin'];
 
 function RoleSelector({ currentRole, onChangeRole }: { currentRole: LocationMember['role']; onChangeRole: (role: LocationMember['role']) => void }) {
+  const { t } = useTranslation('locations');
+  const roleOptions = ROLE_ORDER.map((key) => ({ key, label: roleLabel(key, t) }));
   return (
     <OptionGroup
       options={roleOptions}

@@ -24,14 +24,14 @@ interface RenderOverrides {
   settings?: Partial<DashboardSettings>;
   onUpdate?: (patch: Partial<DashboardSettings>) => void;
   onReset?: () => void;
-  terminology?: { Bins: string };
+  terminology?: { Bins: string; bins: string };
 }
 
 function renderMenu(overrides: RenderOverrides = {}) {
   const onUpdate = overrides.onUpdate ?? vi.fn();
   const onReset = overrides.onReset ?? vi.fn();
   const settings: DashboardSettings = { ...baseSettings, ...(overrides.settings ?? {}) };
-  const terminology = overrides.terminology ?? { Bins: 'Bins' };
+  const terminology = overrides.terminology ?? { Bins: 'Bins', bins: 'bins' };
   const result = render(
     <DashboardSettingsMenu
       settings={settings}
@@ -71,12 +71,12 @@ describe('DashboardSettingsMenu', () => {
   });
 
   it('substitutes terminology.Bins into the Pinned label', () => {
-    renderMenu({ terminology: { Bins: 'Containers' } });
+    renderMenu({ terminology: { Bins: 'Containers', bins: 'containers' } });
     expect(screen.getByRole('switch', { name: /pinned containers/i })).toBeInTheDocument();
   });
 
   it('substitutes terminology.Bins into the Recent bins label', () => {
-    renderMenu({ terminology: { Bins: 'Containers' } });
+    renderMenu({ terminology: { Bins: 'Containers', bins: 'containers' } });
     expect(screen.getByText(/recent containers/i)).toBeInTheDocument();
   });
 
@@ -117,7 +117,7 @@ describe('DashboardSettingsMenu', () => {
       <DashboardSettingsMenu
         settings={baseSettings}
         onUpdate={vi.fn()}
-        terminology={{ Bins: 'Bins' }}
+        terminology={{ Bins: 'Bins', bins: 'bins' }}
       />,
     );
     fireEvent.click(screen.getByLabelText('Dashboard settings'));

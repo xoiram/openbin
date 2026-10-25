@@ -1,0 +1,85 @@
+{
+  "activityFeed": {
+    "empty": "Ingen aktivitet ennå",
+    "title": "Nylig aktivitet"
+  },
+  "allBins": "Alle {{bins}}",
+  "checkouts": {
+    "returnItem": "Lever tilbake gjenstand",
+    "returnNamed": "Lever tilbake {{item}}",
+    "rowLabel": "{{item}} sjekket ut av {{user}} fra {{bin}}",
+    "title": "Utsjekket ({{n}})"
+  },
+  "dialogs": {
+    "binCount_one": "{{count}} {{bin}}",
+    "binCount_other": "{{count}} {{bins}}",
+    "styleApplied_one": "Stil brukt på {{count}} {{bin}}",
+    "styleApplied_other": "Stil brukt på {{count}} {{bins}}",
+    "styleCopied": "Stil kopiert"
+  },
+  "emptyDashboard": {
+    "subtitle": "Slå på seksjoner for å se dataene dine",
+    "title": "Oversikten din er tom"
+  },
+  "getStarted": {
+    "createBin": "Opprett {{bin}}",
+    "description": "Opprett din første {{bin}} og skriv ut en QR-etikett – neste gang skanner du bare for å se hva som er inni.",
+    "printLabels": "Skriv ut etiketter",
+    "scanQr": "Skann QR",
+    "title": "Kom i gang med {{bins}}"
+  },
+  "header": {
+    "newBin": "Ny {{bin}}",
+    "scanQr": "Skann QR-kode"
+  },
+  "needsOrganizing": {
+    "subtitle": "Ingen stikkord, {{area}} eller gjenstander",
+    "title_one": "{{count}} {{bin}} må organiseres",
+    "title_other": "{{count}} {{bins}} må organiseres"
+  },
+  "noLocation": {
+    "manage": "Administrer {{locations}}",
+    "subtitle": "Opprett eller bli med i et {{location}} for å begynne å organisere {{bins}}",
+    "title": "Ingen {{location}} valgt"
+  },
+  "recentScans": {
+    "empty": "Tom"
+  },
+  "savedViewDeleteFailed": "Kunne ikke slette lagret søk",
+  "search": {
+    "label": "Søk i {{bins}}",
+    "placeholder": "Søk i {{bins}}..."
+  },
+  "sections": {
+    "activity": "Aktivitet",
+    "checkedOut": "Utsjekket",
+    "needsOrganizing": "Må organiseres",
+    "onboardingChecklist": "Kom i gang-sjekkliste",
+    "overview": "Oversikt",
+    "pinned": "Festet",
+    "pinnedBins": "Festede {{bins}}",
+    "recentScans": "Nylige skanninger",
+    "savedSearches": "Lagrede søk",
+    "stats": "Statistikk"
+  },
+  "settings": {
+    "display": "Visning",
+    "recentBins": "Nylige {{bins}}",
+    "recentBinsCount": "Antall nylige {{bins}} som vises",
+    "reset": "Tilbakestill til standard",
+    "sections": "Seksjoner",
+    "timestamps": "Tidsstempler",
+    "title": "Innstillinger for oversikt"
+  },
+  "stats": {
+    "checkedOut": "Utsjekket",
+    "items": "Gjenstander",
+    "totalBins": "{{bins}} totalt"
+  },
+  "title": "Oversikt",
+  "upgrade": {
+    "description": "AI-drevne kommandoer, analyse og forslag er tilgjengelig med Pro-abonnementet.",
+    "feature": "AI-funksjoner"
+  },
+  "viewAll": "Vis alle"
+}

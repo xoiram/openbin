@@ -1,0 +1,118 @@
+{
+  "apiKey": "API",
+  "apiKeyNamed": "API: {{name}}",
+  "backLabel": "Activity",
+  "badge": {
+    "created": "Created",
+    "deleted": "Deleted",
+    "invite": "Invite",
+    "joined": "Joined",
+    "left": "Left",
+    "moved": "Moved",
+    "photo": "Photo",
+    "removed": "Removed",
+    "restored": "Restored",
+    "role": "Role",
+    "updated": "Updated"
+  },
+  "chips": {
+    "itemsAdded_one": "+{{count}} item",
+    "itemsAdded_other": "+{{count}} items",
+    "itemsRemoved_one": "−{{count}} item",
+    "itemsRemoved_other": "−{{count}} items",
+    "itemsRenamed_one": "renamed item",
+    "itemsRenamed_other": "renamed {{count}} items",
+    "quantity": "quantity"
+  },
+  "description": {
+    "area": "{{area}} {{name}}",
+    "bin": "{{bin}} {{name}}",
+    "binMoved": "{{bin}} {{name}} from {{from}} to {{to}}",
+    "inviteCode": "invite code",
+    "location": "{{location}} {{name}}",
+    "photo": "photo on {{bin}} {{name}}",
+    "roleFor": "role for {{name}}",
+    "theLocation": "the {{location}}"
+  },
+  "detail": {
+    "auth": "Auth: {{method}}",
+    "changes": "Changes",
+    "unknownAuth": "unknown",
+    "user": "User: {{name}}",
+    "view": "View {{type}}"
+  },
+  "diff": {
+    "itemsAdded": "+ items",
+    "itemsRemoved": "− items",
+    "renamed": "renamed"
+  },
+  "entityTypes": {
+    "member": "member"
+  },
+  "fields": {
+    "area": "{{area}}",
+    "color": "color",
+    "icon": "icon",
+    "name": "name",
+    "notes": "notes",
+    "style": "style",
+    "tags": "tags",
+    "visibility": "visibility"
+  },
+  "filters": {
+    "all": "All",
+    "allUsers": "All users",
+    "byUser": "Filter by user",
+    "filters": "Filters",
+    "filtersActive": "Filters (active)",
+    "fromDate": "From date",
+    "members": "Members",
+    "searchPlaceholder": "Search activity...",
+    "toDate": "To date"
+  },
+  "label": {
+    "areaCreated": "created {{area}} {{name}}",
+    "areaDeleted": "deleted {{area}} {{name}}",
+    "areaRenamed": "renamed {{area}} to {{name}}",
+    "binCreated": "created {{bin}} {{name}}",
+    "binDeleted": "deleted {{bin}} {{name}}",
+    "binMoved": "moved {{bin}} {{name}} from {{from}} to {{to}}",
+    "binPermanentlyDeleted": "permanently deleted {{bin}} {{name}}",
+    "binRestored": "restored {{bin}} {{name}}",
+    "binUpdated": "updated {{bin}} {{name}}",
+    "inviteRegenerated": "regenerated invite code",
+    "locationCreated": "created {{location}} {{name}}",
+    "locationUpdated": "updated {{location}} {{name}}",
+    "memberJoined": "joined the {{location}}",
+    "memberLeft": "left the {{location}}",
+    "memberRemoved": "removed {{name}}",
+    "photoAdded": "added photo to {{bin}} {{name}}",
+    "photoRemoved": "removed photo from {{bin}} {{name}}",
+    "roleChanged": "changed role for {{name}}"
+  },
+  "page": {
+    "description": "View changes and actions across your {{location}}.",
+    "empty": "No activity yet",
+    "emptyHint": "Actions like creating, editing, and deleting {{bins}} will appear here",
+    "loadFailed": "Failed to load activity",
+    "noMatches": "No matching activity",
+    "noMatchesHint": "Try different filters or search terms",
+    "title": "Activity Log"
+  },
+  "relativeTime": {
+    "days": "{{n}}d ago",
+    "hours": "{{n}}h ago",
+    "justNow": "just now",
+    "minutes": "{{n}}m ago",
+    "months": "{{n}}mo ago",
+    "years": "{{n}}y ago"
+  },
+  "table": {
+    "action": "Action",
+    "description": "Description",
+    "moreChips": "+{{n}} more",
+    "time": "Time",
+    "type": "Type",
+    "user": "User"
+  }
+}

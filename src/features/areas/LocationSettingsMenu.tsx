@@ -1,7 +1,9 @@
 import { ChevronRight, Clock, List, LogOut, Pencil, Settings, Trash2 } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useTerminology } from '@/lib/terminology';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { usePopover } from '@/lib/usePopover';
 import { cn } from '@/lib/utils';
@@ -17,6 +19,8 @@ interface LocationSettingsMenuProps {
 }
 
 export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomFields, onDelete, onLeave, compact }: LocationSettingsMenuProps) {
+  const { t } = useTranslation('areas');
+  const term = useTerminology();
   const { visible, animating, isOpen, close, toggle } = usePopover();
   const menuRef = useRef<HTMLDivElement>(null);
   useClickOutside(menuRef, close);
@@ -28,19 +32,19 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
 
   if (!isAdmin) {
     return (
-      <Tooltip content="Leave" side="bottom">
+      <Tooltip content={t('locationMenu.leave', { defaultValue: 'Leave' })} side="bottom">
         <Button
           variant="ghost"
           size={compact ? 'icon' : 'sm'}
           onClick={onLeave}
-          aria-label="Leave"
+          aria-label={t('locationMenu.leave', { defaultValue: 'Leave' })}
           className={compact
             ? 'h-7 w-7 rounded-[var(--radius-xs)] text-[var(--destructive)]'
             : 'h-8 px-3 text-[var(--destructive)]'
           }
         >
           <LogOut className="h-3.5 w-3.5" />
-          {!compact && <span className="ml-1.5">Leave</span>}
+          {!compact && <span className="ml-1.5">{t('locationMenu.leave', { defaultValue: 'Leave' })}</span>}
         </Button>
       </Tooltip>
     );
@@ -48,7 +52,7 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
 
   return (
     <div className="relative" ref={menuRef}>
-      <Tooltip content="Settings" side="bottom">
+      <Tooltip content={t('locationMenu.settings', { defaultValue: 'Settings' })} side="bottom">
         <Button
           variant="ghost"
           size={compact ? 'icon' : 'sm'}
@@ -57,12 +61,12 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
             ? 'h-7 w-7 rounded-[var(--radius-xs)]'
             : 'h-8 px-3'
           }
-          aria-label="Settings"
+          aria-label={t('locationMenu.settings', { defaultValue: 'Settings' })}
         >
           <Settings className="h-3.5 w-3.5" />
           {!compact && (
             <>
-              <span className="ml-1.5">Settings</span>
+              <span className="ml-1.5">{t('locationMenu.settings', { defaultValue: 'Settings' })}</span>
               <ChevronRight className={cn('h-3.5 w-3.5 ml-1 transition-transform', isOpen && 'rotate-90')} />
             </>
           )}
@@ -79,7 +83,7 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
             onClick={() => handleItem(onRename)}
           >
             <Pencil className="h-4 w-4 text-[var(--text-tertiary)]" />
-            Rename
+            {t('menu.rename', { defaultValue: 'Rename' })}
           </button>
           <button
             type="button"
@@ -87,7 +91,7 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
             onClick={() => handleItem(onRetention)}
           >
             <Clock className="h-4 w-4 text-[var(--text-tertiary)]" />
-            Retention & Roles
+            {t('locationMenu.retention', { defaultValue: 'Retention & Roles' })}
           </button>
           <button
             type="button"
@@ -95,7 +99,7 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
             onClick={() => handleItem(onCustomFields)}
           >
             <List className="h-4 w-4 text-[var(--text-tertiary)]" />
-            Custom Fields
+            {t('locationMenu.customFields', { defaultValue: 'Custom Fields' })}
           </button>
           <div className="my-1 border-t border-[var(--border-flat)]" />
           <button
@@ -104,7 +108,7 @@ export function LocationSettingsMenu({ isAdmin, onRename, onRetention, onCustomF
             onClick={() => handleItem(onDelete)}
           >
             <Trash2 className="h-4 w-4" />
-            Delete Location
+            {t('locationMenu.delete', { defaultValue: 'Delete {{location}}', location: term.Location })}
           </button>
         </div>
       )}

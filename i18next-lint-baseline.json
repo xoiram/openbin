@@ -1,20 +1,4 @@
 {
-  "src/features/activity/ActivityFilterBar.tsx": {
-    "hardcoded: All users": 1
-  },
-  "src/features/activity/ActivityRowDetail.tsx": {
-    "hardcoded: Auth:": 1,
-    "hardcoded: Changes": 1,
-    "hardcoded: User:": 1,
-    "hardcoded: View": 1
-  },
-  "src/features/activity/ActivityTableView.tsx": {
-    "hardcoded: Action": 1,
-    "hardcoded: Description": 1,
-    "hardcoded: Time": 1,
-    "hardcoded: Type": 1,
-    "hardcoded: User": 1
-  },
   "src/features/admin/AdminColumnVisibilityMenu.tsx": {
     "hardcoded: Toggle column visibility": 1,
     "hardcoded: Visible Columns": 1
@@ -102,45 +86,6 @@
   },
   "src/features/admin/AdminUsersTable.tsx": {
     "hardcoded: Role": 1
-  },
-  "src/features/areas/AreaActionMenu.tsx": {
-    "hardcoded: Delete": 1,
-    "hardcoded: Rename": 1
-  },
-  "src/features/areas/AreaCard.tsx": {
-    "hardcoded: Cancel": 1,
-    "hardcoded: More actions": 1,
-    "hardcoded: Save": 1,
-    "hardcoded: Unassigned": 1,
-    "hardcoded: total)": 1
-  },
-  "src/features/areas/AreaDialogs.tsx": {
-    "hardcoded: Cancel": 2,
-    "hardcoded: No parent (root": 1
-  },
-  "src/features/areas/AreaPicker.tsx": {
-    "hardcoded: Create new area...": 1,
-    "hardcoded: No area": 1
-  },
-  "src/features/areas/AreaRow.tsx": {
-    "hardcoded: Cancel": 1,
-    "hardcoded: More actions": 1,
-    "hardcoded: Save": 1
-  },
-  "src/features/areas/AreasPage.tsx": {
-    "hardcoded: Cancel": 1,
-    "hardcoded: Create Location": 1,
-    "hardcoded: Join": 1,
-    "hardcoded: Join Location": 1,
-    "hardcoded: Leave": 1
-  },
-  "src/features/areas/LocationSettingsMenu.tsx": {
-    "hardcoded: Custom Fields": 1,
-    "hardcoded: Delete Location": 1,
-    "hardcoded: Leave": 2,
-    "hardcoded: Rename": 1,
-    "hardcoded: Retention & Roles": 1,
-    "hardcoded: Settings": 2
   },
   "src/features/attachments/AttachmentsList.tsx": {
     "hardcoded: Add File": 1,
@@ -479,33 +424,6 @@
   "src/features/checkouts/ReturnItemDialog.tsx": {
     "hardcoded: Cancel": 1
   },
-  "src/features/dashboard/DashboardActivityFeed.tsx": {
-    "hardcoded: No activity yet": 1
-  },
-  "src/features/dashboard/DashboardPage.tsx": {
-    "hardcoded: Ask AI": 2,
-    "hardcoded: Create": 1,
-    "hardcoded: Create your first": 1,
-    "hardcoded: Get started with": 1,
-    "hardcoded: No tags, area, or items": 1,
-    "hardcoded: Onboarding checklist": 1,
-    "hardcoded: Print labels": 1,
-    "hardcoded: Scan QR": 1,
-    "hardcoded: Scan QR code": 1,
-    "hardcoded: Turn on sections to see your data": 1,
-    "hardcoded: Your dashboard is empty": 1,
-    "hardcoded: and print a QR label — next time, just scan to see what's inside.": 1,
-    "hardcoded: need": 1,
-    "hardcoded: organizing": 1
-  },
-  "src/features/dashboard/DashboardSettingsMenu.tsx": {
-    "hardcoded: Dashboard settings": 1,
-    "hardcoded: Display": 1,
-    "hardcoded: Recent": 1,
-    "hardcoded: Reset to defaults": 1,
-    "hardcoded: Sections": 1,
-    "hardcoded: Timestamps": 1
-  },
   "src/features/items/BulkCheckoutItemsDialog.tsx": {
     "hardcoded: Cancel": 1
   },
@@ -514,44 +432,6 @@
   },
   "src/features/items/ItemsPage.tsx": {
     "hardcoded: Browse": 1
-  },
-  "src/features/locations/LocationDialogs.tsx": {
-    "hardcoded: Cancel": 4,
-    "hardcoded: Invite Code": 1,
-    "hardcoded: Name": 2
-  },
-  "src/features/locations/LocationInviteShare.tsx": {
-    "hardcoded: Anyone with this link can join": 1,
-    "hardcoded: Cancel": 1,
-    "hardcoded: Copy invite code": 1,
-    "hardcoded: Copy invite link": 1,
-    "hardcoded: Download": 1,
-    "hardcoded: For typing manually in the Join dialog.": 1,
-    "hardcoded: Invite QR code": 1,
-    "hardcoded: Joins as": 1,
-    "hardcoded: Regenerate invite link": 1,
-    "hardcoded: Regenerate link": 1,
-    "hardcoded: Scan to join": 1,
-    "hardcoded: Share invite link": 1
-  },
-  "src/features/locations/LocationMembersDialog.tsx": {
-    "hardcoded: Cancel": 2,
-    "hardcoded: Copy reset link": 1,
-    "hardcoded: Leave Location": 1,
-    "hardcoded: More actions": 1,
-    "hardcoded: Remove member": 1,
-    "hardcoded: Reset password": 1,
-    "hardcoded: Share this link with the member to reset their password:": 1,
-    "hardcoded: You'll lose access to all content in this location. Continue?": 1
-  },
-  "src/features/locations/LocationRetentionDialog.tsx": {
-    "hardcoded: 7–365 days. Deleted": 1,
-    "hardcoded: 7–365 days. Entries older than this are automatically pruned.": 1,
-    "hardcoded: Activity log retention (days)": 1,
-    "hardcoded: Cancel": 1,
-    "hardcoded: Default role for new members": 1,
-    "hardcoded: Trash retention (days)": 1,
-    "hardcoded: are permanently purged after this period.": 1
   },
   "src/features/photos/DeletePhotoDialog.tsx": {
     "hardcoded: Cancel": 1,
@@ -791,17 +671,5 @@
     "hardcoded: Delete": 1,
     "hardcoded: Rename": 1,
     "hardcoded: Set Parent...": 1
-  },
-  "src/features/usage/BinUsageSection.tsx": {
-    "hardcoded: No activity yet. Choose which actions count in": 1,
-    "hardcoded: active": 1,
-    "hardcoded: in": 1
-  },
-  "src/features/usage/UsageHeatmap.tsx": {
-    "hardcoded: Try again": 1
-  },
-  "src/features/usage/YearChipPager.tsx": {
-    "hardcoded: Next year": 1,
-    "hardcoded: Previous year": 1
   }
 }

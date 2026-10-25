@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,8 @@ interface CreateAreaDialogProps {
 }
 
 export function CreateAreaDialog({ open, onOpenChange, locationId, areas, defaultParentId, onCreated }: CreateAreaDialogProps) {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('areas');
   const { showToast } = useToast();
   const [newAreaName, setNewAreaName] = useState('');
   const [parentId, setParentId] = useState<string | null>(defaultParentId ?? null);
@@ -51,7 +53,13 @@ export function CreateAreaDialog({ open, onOpenChange, locationId, areas, defaul
       setParentId(null);
       onOpenChange(false);
     } catch (err) {
-      showToast({ message: err instanceof ApiError && err.status === 409 ? `${t.Area} name already exists` : 'Something went wrong', variant: 'error' });
+      showToast({
+        message:
+          err instanceof ApiError && err.status === 409
+            ? t('create.nameExists', { defaultValue: '{{area}} name already exists', area: term.Area })
+            : t('genericError', { defaultValue: 'Something went wrong' }),
+        variant: 'error',
+      });
     } finally {
       setCreatingArea(false);
     }
@@ -61,9 +69,13 @@ export function CreateAreaDialog({ open, onOpenChange, locationId, areas, defaul
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`Create ${t.Area}`}</DialogTitle>
+          <DialogTitle>{t('create.title', { defaultValue: 'Create {{area}}', area: term.Area })}</DialogTitle>
           <DialogDescription>
-            {`${t.Areas} help organize ${t.bins} by zone (e.g. Garage, Kitchen, Closet).`}
+            {t('create.description', {
+              defaultValue: '{{areas}} help organize {{bins}} by zone (e.g. Garage, Kitchen, Closet).',
+              areas: term.Areas,
+              bins: term.bins,
+            })}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleCreateArea} className="space-y-5">
@@ -71,7 +83,7 @@ export function CreateAreaDialog({ open, onOpenChange, locationId, areas, defaul
             <Input
               value={newAreaName}
               onChange={(e) => setNewAreaName(e.target.value)}
-              placeholder={`${t.Area} name...`}
+              placeholder={t('create.namePlaceholder', { defaultValue: '{{area}} name...', area: term.Area })}
               maxLength={255}
               autoFocus
               required
@@ -79,13 +91,13 @@ export function CreateAreaDialog({ open, onOpenChange, locationId, areas, defaul
           </div>
           {flatAreas.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-[13px]">{`Parent ${t.Area}`}</Label>
+              <Label className="text-[13px]">{t('create.parentLabel', { defaultValue: 'Parent {{area}}', area: term.Area })}</Label>
               <select
                 value={parentId ?? ''}
                 onChange={(e) => setParentId(e.target.value || null)}
                 className={cn(inputBase, 'h-10 focus-visible:ring-2 focus-visible:ring-[var(--accent)]')}
               >
-                <option value="">No parent (root {t.area})</option>
+                <option value="">{t('create.noParent', { defaultValue: 'No parent (root {{area}})', area: term.area })}</option>
                 {flatAreas.map((a) => (
                   <option key={a.id} value={a.id}>
                     {'\u00A0\u00A0'.repeat(a.depth)}{a.name}
@@ -96,10 +108,10 @@ export function CreateAreaDialog({ open, onOpenChange, locationId, areas, defaul
           )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button type="submit" disabled={!newAreaName.trim() || creatingArea}>
-              {creatingArea ? 'Creating...' : 'Create'}
+              {creatingArea ? t('create.creating', { defaultValue: 'Creating...' }) : t('create.submit', { defaultValue: 'Create' })}
             </Button>
           </DialogFooter>
         </form>
@@ -127,7 +139,8 @@ interface DeleteAreaDialogProps {
 }
 
 export function DeleteAreaDialog({ target, onOpenChange, locationId }: DeleteAreaDialogProps) {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('areas');
   const { showToast } = useToast();
   const [deletingArea, setDeletingArea] = useState(false);
 
@@ -138,7 +151,7 @@ export function DeleteAreaDialog({ target, onOpenChange, locationId }: DeleteAre
       await deleteArea(locationId, target.id);
       onOpenChange(false);
     } catch {
-      showToast({ message: 'Something went wrong', variant: 'error' });
+      showToast({ message: t('genericError', { defaultValue: 'Something went wrong' }), variant: 'error' });
     } finally {
       setDeletingArea(false);
     }
@@ -149,39 +162,62 @@ export function DeleteAreaDialog({ target, onOpenChange, locationId }: DeleteAre
     const hasDescendantAreas = target.descendantAreaCount && target.descendantAreaCount > 0;
     const totalBins = target.descendantBinCount ?? target.binCount;
 
+    const binPhrase = (count: number) =>
+      t('delete.binCount', {
+        count,
+        bin: term.bin,
+        bins: term.bins,
+        defaultValue_one: '{{count}} {{bin}}',
+        defaultValue_other: '{{count}} {{bins}}',
+      });
+
     if (hasDescendantAreas) {
-      const parts: string[] = [];
-      parts.push(`${target.descendantAreaCount} sub-${target.descendantAreaCount !== 1 ? t.areas : t.area}`);
-      if (totalBins > 0) {
-        parts.push(`${totalBins} ${totalBins !== 1 ? t.bins : t.bin}`);
-      }
-      return `This will also delete ${parts.join(' and ')}. ${t.Bins} will become unassigned.`;
+      const subAreas = t('delete.subAreaCount', {
+        count: target.descendantAreaCount,
+        area: term.area,
+        areas: term.areas,
+        defaultValue_one: '{{count}} sub-{{area}}',
+        defaultValue_other: '{{count}} sub-{{areas}}',
+      });
+      const parts =
+        totalBins > 0
+          ? t('delete.and', { defaultValue: '{{first}} and {{second}}', first: subAreas, second: binPhrase(totalBins) })
+          : subAreas;
+      return t('delete.withDescendants', {
+        defaultValue: 'This will also delete {{parts}}. {{bins}} will become unassigned.',
+        parts,
+        bins: term.Bins,
+      });
     }
 
     if (target.binCount > 0) {
-      return `"${target.name}" has ${target.binCount} ${target.binCount !== 1 ? t.bins : t.bin}. They will become unassigned.`;
+      return t('delete.withBins', {
+        defaultValue: '"{{name}}" has {{bins}}. They will become unassigned.',
+        name: target.name,
+        bins: binPhrase(target.binCount),
+      });
     }
 
-    return `Delete "${target.name}"?`;
+    return t('delete.confirmName', { defaultValue: 'Delete "{{name}}"?', name: target.name });
   }
 
   return (
     <Dialog open={!!target} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`Delete ${t.area}?`}</DialogTitle>
+          <DialogTitle>{t('delete.title', { defaultValue: 'Delete {{area}}?', area: term.area })}</DialogTitle>
           <DialogDescription>{getDescription()}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             variant="destructive"
             onClick={handleDeleteArea}
             disabled={deletingArea}
           >
-            {deletingArea ? 'Deleting...' : 'Delete'}
+            {deletingArea ? t('delete.deleting', { defaultValue: 'Deleting...' }) : t('common:actions.delete', { defaultValue: 'Delete' })}
           </Button>
         </DialogFooter>
       </DialogContent>

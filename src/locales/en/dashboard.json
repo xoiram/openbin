@@ -1,0 +1,85 @@
+{
+  "activityFeed": {
+    "empty": "No activity yet",
+    "title": "Recent activity"
+  },
+  "allBins": "All {{bins}}",
+  "checkouts": {
+    "returnItem": "Return item",
+    "returnNamed": "Return {{item}}",
+    "rowLabel": "{{item}} checked out by {{user}} from {{bin}}",
+    "title": "Checked out ({{n}})"
+  },
+  "dialogs": {
+    "binCount_one": "{{count}} {{bin}}",
+    "binCount_other": "{{count}} {{bins}}",
+    "styleApplied_one": "Style applied to {{count}} {{bin}}",
+    "styleApplied_other": "Style applied to {{count}} {{bins}}",
+    "styleCopied": "Style copied"
+  },
+  "emptyDashboard": {
+    "subtitle": "Turn on sections to see your data",
+    "title": "Your dashboard is empty"
+  },
+  "getStarted": {
+    "createBin": "Create {{bin}}",
+    "description": "Create your first {{bin}} and print a QR label — next time, just scan to see what's inside.",
+    "printLabels": "Print labels",
+    "scanQr": "Scan QR",
+    "title": "Get started with {{bins}}"
+  },
+  "header": {
+    "newBin": "New {{bin}}",
+    "scanQr": "Scan QR code"
+  },
+  "needsOrganizing": {
+    "subtitle": "No tags, {{area}}, or items",
+    "title_one": "{{count}} {{bin}} needs organizing",
+    "title_other": "{{count}} {{bins}} need organizing"
+  },
+  "noLocation": {
+    "manage": "Manage {{locations}}",
+    "subtitle": "Create or join a {{location}} to start organizing {{bins}}",
+    "title": "No {{location}} selected"
+  },
+  "recentScans": {
+    "empty": "Empty"
+  },
+  "savedViewDeleteFailed": "Failed to delete saved view",
+  "search": {
+    "label": "Search {{bins}}",
+    "placeholder": "Search {{bins}}..."
+  },
+  "sections": {
+    "activity": "Activity",
+    "checkedOut": "Checked out",
+    "needsOrganizing": "Needs Organizing",
+    "onboardingChecklist": "Onboarding checklist",
+    "overview": "Overview",
+    "pinned": "Pinned",
+    "pinnedBins": "Pinned {{bins}}",
+    "recentScans": "Recent scans",
+    "savedSearches": "Saved searches",
+    "stats": "Stats"
+  },
+  "settings": {
+    "display": "Display",
+    "recentBins": "Recent {{bins}}",
+    "recentBinsCount": "Number of recent {{bins}} to show",
+    "reset": "Reset to defaults",
+    "sections": "Sections",
+    "timestamps": "Timestamps",
+    "title": "Dashboard settings"
+  },
+  "stats": {
+    "checkedOut": "Checked out",
+    "items": "Items",
+    "totalBins": "Total {{bins}}"
+  },
+  "title": "Dashboard",
+  "upgrade": {
+    "description": "AI-powered commands, analysis, and suggestions are available on the Pro plan.",
+    "feature": "AI Features"
+  },
+  "viewAll": "View all"
+}

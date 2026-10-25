@@ -1,10 +1,12 @@
 import { Activity, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getActionColor, getActionIcon, getActionLabel } from '@/features/activity/activityHelpers';
 import { usePaginatedActivityLog } from '@/features/activity/useActivity';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useTerminology } from '@/lib/terminology';
-import { cn, firstName, flatCard, relativeTime } from '@/lib/utils';
+import { cn, firstName, flatCard } from '@/lib/utils';
 import { SectionHeader } from './DashboardWidgets';
 
 const FEED_LIMIT = 6;
@@ -16,7 +18,10 @@ interface DashboardActivityFeedProps {
 /** Parent gates rendering on isAdmin — the "View all" action is always shown. */
 export function DashboardActivityFeed({ showTimestamps = true }: DashboardActivityFeedProps = {}) {
   const navigate = useNavigate();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('dashboard');
+  const { t: tActivity } = useTranslation('activity');
+  const relativeTime = useRelativeTime();
   const { entries, isLoading } = usePaginatedActivityLog(undefined, undefined, undefined, undefined, FEED_LIMIT);
 
   return (
@@ -24,15 +29,15 @@ export function DashboardActivityFeed({ showTimestamps = true }: DashboardActivi
       <SectionHeader
         id="dash-recent-activity"
         icon={Activity}
-        title="Recent activity"
-        action={{ label: 'View all', onClick: () => navigate('/activity') }}
+        title={t('activityFeed.title', { defaultValue: 'Recent activity' })}
+        action={{ label: t('viewAll', { defaultValue: 'View all' }), onClick: () => navigate('/activity') }}
       />
       <div className={cn(flatCard, 'p-2')}>
         {isLoading && entries.length === 0 ? (
           <ActivityFeedSkeleton />
         ) : entries.length === 0 ? (
           <p className="px-3 py-6 text-[13px] text-[var(--text-tertiary)] text-center">
-            No activity yet
+            {t('activityFeed.empty', { defaultValue: 'No activity yet' })}
           </p>
         ) : (
           <ul className="flex flex-col">
@@ -63,7 +68,7 @@ export function DashboardActivityFeed({ showTimestamps = true }: DashboardActivi
                     </div>
                     <p className="flex-1 min-w-0 text-[13px] text-[var(--text-primary)] truncate leading-snug">
                       <span className="font-medium">{firstName(entry.display_name)}</span>{' '}
-                      <span className="text-[var(--text-secondary)]">{getActionLabel(entry, t)}</span>
+                      <span className="text-[var(--text-secondary)]">{getActionLabel(entry, term, tActivity)}</span>
                     </p>
                     {showTimestamps && (
                       <span className="text-[11px] text-[var(--text-tertiary)] tabular-nums shrink-0">

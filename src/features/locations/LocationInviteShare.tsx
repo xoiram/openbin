@@ -1,5 +1,6 @@
 import { Check, Copy, Download, QrCode, RefreshCw, Share2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,6 +26,7 @@ interface LocationInviteShareProps {
 
 export function LocationInviteShare({ location, variant = 'card' }: LocationInviteShareProps) {
   const { showToast } = useToast();
+  const { t } = useTranslation('locations');
   const [linkCopied, setLinkCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
@@ -71,9 +73,9 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
     } catch {
-      showToast({ message: 'Failed to copy', variant: 'error' });
+      showToast({ message: t('invite.copyFailed', { defaultValue: 'Failed to copy' }), variant: 'error' });
     }
-  }, [inviteLink, showToast]);
+  }, [inviteLink, showToast, t]);
 
   const handleCopyCode = useCallback(async () => {
     if (!inviteCode) return;
@@ -82,25 +84,25 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
       setCodeCopied(true);
       setTimeout(() => setCodeCopied(false), 2000);
     } catch {
-      showToast({ message: 'Failed to copy', variant: 'error' });
+      showToast({ message: t('invite.copyFailed', { defaultValue: 'Failed to copy' }), variant: 'error' });
     }
-  }, [inviteCode, showToast]);
+  }, [inviteCode, showToast, t]);
 
   const handleShare = useCallback(async () => {
     if (!inviteLink) return;
     if (navigator.share) {
       try {
-        await navigator.share({ title: `Join ${location.name}`, url: inviteLink });
+        await navigator.share({ title: t('invite.shareTitle', { defaultValue: 'Join {{name}}', name: location.name }), url: inviteLink });
       } catch { /* cancelled by user */ }
     } else {
       try {
         await navigator.clipboard.writeText(inviteLink);
-        showToast({ message: 'Invite link copied', variant: 'success' });
+        showToast({ message: t('invite.linkCopied', { defaultValue: 'Invite link copied' }), variant: 'success' });
       } catch {
-        showToast({ message: 'Failed to copy', variant: 'error' });
+        showToast({ message: t('invite.copyFailed', { defaultValue: 'Failed to copy' }), variant: 'error' });
       }
     }
-  }, [inviteLink, location.name, showToast]);
+  }, [inviteLink, location.name, showToast, t]);
 
   const handleDownloadQr = useCallback(() => {
     if (!qrUrl) return;
@@ -115,25 +117,33 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
     try {
       await regenerateInvite(location.id);
       setConfirmRegenerate(false);
-      showToast({ message: 'Invite link regenerated', variant: 'success' });
+      showToast({ message: t('invite.regenerated', { defaultValue: 'Invite link regenerated' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to regenerate'), variant: 'error' });
+      showToast({
+        message: getErrorMessage(err, t('invite.regenerateFailed', { defaultValue: 'Failed to regenerate' })),
+        variant: 'error',
+      });
     } finally {
       setRegenerating(false);
     }
-  }, [location.id, showToast]);
+  }, [location.id, showToast, t]);
 
   if (!isAdmin || !inviteCode) return null;
 
   const role = location.default_join_role === 'viewer' ? 'viewer' : 'member';
   const isCompact = variant === 'compact';
+  const qrToggleLabel = qrOpen
+    ? t('invite.hideQr', { defaultValue: 'Hide QR code' })
+    : t('invite.showQr', { defaultValue: 'Show QR code' });
 
   return (
     <div className={cn('space-y-2', !isCompact && 'pt-3 border-t border-[var(--border-flat)]')}>
       {/* Role chip */}
       <div className="px-0.5">
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-[var(--radius-full)] bg-[var(--accent)]/10 text-[var(--accent)] text-[11px] font-medium">
-          Joins as {role === 'viewer' ? 'Viewer' : 'Member'}
+          {role === 'viewer'
+            ? t('invite.joinsAsViewer', { defaultValue: 'Joins as Viewer' })
+            : t('invite.joinsAsMember', { defaultValue: 'Joins as Member' })}
         </span>
       </div>
 
@@ -142,40 +152,40 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
         <span className="flex-1 min-w-0 px-1 text-[13px] text-[var(--text-secondary)] truncate" title={inviteLink}>
           {inviteLink}
         </span>
-        <Tooltip content={linkCopied ? 'Copied' : 'Copy link'} side="top">
+        <Tooltip content={linkCopied ? t('invite.copied', { defaultValue: 'Copied' }) : t('invite.copyLink', { defaultValue: 'Copy link' })} side="top">
           <Button
             type="button"
             variant="default"
             size="sm"
             onClick={handleCopyLink}
             className="shrink-0"
-            aria-label="Copy invite link"
+            aria-label={t('invite.copyLinkLabel', { defaultValue: 'Copy invite link' })}
           >
             {linkCopied ? <Check className="h-4 w-4 mr-1.5" /> : <Copy className="h-4 w-4 mr-1.5" />}
-            {linkCopied ? 'Copied' : 'Copy'}
+            {linkCopied ? t('invite.copied', { defaultValue: 'Copied' }) : t('invite.copy', { defaultValue: 'Copy' })}
           </Button>
         </Tooltip>
-        <Tooltip content={qrOpen ? 'Hide QR code' : 'Show QR code'} side="top">
+        <Tooltip content={qrToggleLabel} side="top">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             onClick={() => setQrOpen((o) => !o)}
             className="shrink-0"
-            aria-label={qrOpen ? 'Hide QR code' : 'Show QR code'}
+            aria-label={qrToggleLabel}
             aria-pressed={qrOpen}
           >
             <QrCode className="h-4 w-4" />
           </Button>
         </Tooltip>
-        <Tooltip content="Share" side="top">
+        <Tooltip content={t('invite.share', { defaultValue: 'Share' })} side="top">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             onClick={handleShare}
             className="shrink-0"
-            aria-label="Share invite link"
+            aria-label={t('invite.shareLabel', { defaultValue: 'Share invite link' })}
           >
             <Share2 className="h-4 w-4" />
           </Button>
@@ -184,17 +194,29 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
 
       {/* Helper text */}
       <p className="text-[12px] text-[var(--text-tertiary)] px-0.5">
-        Anyone with this link can join <span className="font-medium text-[var(--text-secondary)]">{location.name}</span>.
+        <Trans
+          t={t}
+          i18nKey="invite.helper"
+          defaults="Anyone with this link can join <name>{{name}}</name>."
+          values={{ name: location.name }}
+          components={{ name: <span className="font-medium text-[var(--text-secondary)]" /> }}
+        />
       </p>
 
       {/* QR code panel */}
       {qrOpen && (
         <div className="flex flex-col items-center gap-3 p-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)]">
           <p className="text-[12px] text-[var(--text-secondary)]">
-            Scan to join <span className="font-semibold">{location.name}</span>
+            <Trans
+              t={t}
+              i18nKey="invite.scanToJoin"
+              defaults="Scan to join <name>{{name}}</name>"
+              values={{ name: location.name }}
+              components={{ name: <span className="font-semibold" /> }}
+            />
           </p>
           {qrUrl ? (
-            <img src={qrUrl} alt="Invite QR code" className="w-44 h-44 rounded-[var(--radius-md)]" />
+            <img src={qrUrl} alt={t('invite.qrAlt', { defaultValue: 'Invite QR code' })} className="w-44 h-44 rounded-[var(--radius-md)]" />
           ) : (
             <Skeleton className="w-44 h-44" />
           )}
@@ -207,30 +229,30 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
             className="text-[12px]"
           >
             <Download className="h-3.5 w-3.5 mr-1" />
-            Download
+            {t('invite.download', { defaultValue: 'Download' })}
           </Button>
         </div>
       )}
 
       {/* Manual code disclosure (Regenerate now lives inside) */}
       <div className="pt-1">
-        <Disclosure label="Show code" labelClassName="text-[12px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] py-1">
+        <Disclosure label={t('invite.showCode', { defaultValue: 'Show code' })} labelClassName="text-[12px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] py-1">
           <div className="space-y-2 pt-1">
             <p className="text-[11px] text-[var(--text-tertiary)]">
-              For typing manually in the Join dialog.
+              {t('invite.codeHint', { defaultValue: 'For typing manually in the Join dialog.' })}
             </p>
             <div className="flex items-center gap-1.5 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)]">
               <code className="flex-1 min-w-0 text-[12px] font-mono text-[var(--text-primary)] tracking-wider break-all">
                 {inviteCode}
               </code>
-              <Tooltip content={codeCopied ? 'Copied' : 'Copy code'} side="top">
+              <Tooltip content={codeCopied ? t('invite.copied', { defaultValue: 'Copied' }) : t('invite.copyCode', { defaultValue: 'Copy code' })} side="top">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
                   onClick={handleCopyCode}
                   className="shrink-0"
-                  aria-label="Copy invite code"
+                  aria-label={t('invite.copyCodeLabel', { defaultValue: 'Copy invite code' })}
                 >
                   {codeCopied
                     ? <Check className="h-4 w-4 text-[var(--color-success)]" />
@@ -243,10 +265,10 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
               onClick={() => setConfirmRegenerate(true)}
               disabled={regenerating}
               className="inline-flex items-center gap-1 text-[12px] text-[var(--text-tertiary)] hover:text-[var(--destructive)] disabled:opacity-50 transition-colors py-1"
-              aria-label="Regenerate invite link"
+              aria-label={t('invite.regenerateLabel', { defaultValue: 'Regenerate invite link' })}
             >
               <RefreshCw className={cn('h-3.5 w-3.5', regenerating && 'animate-spin')} />
-              <span>Regenerate link</span>
+              <span>{t('invite.regenerateLink', { defaultValue: 'Regenerate link' })}</span>
             </button>
           </div>
         </Disclosure>
@@ -256,9 +278,12 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
       <Dialog open={confirmRegenerate} onOpenChange={(v) => { if (!regenerating) setConfirmRegenerate(v); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Regenerate invite link?</DialogTitle>
+            <DialogTitle>{t('invite.regenerateTitle', { defaultValue: 'Regenerate invite link?' })}</DialogTitle>
             <DialogDescription>
-              The current link and QR code will stop working immediately. Anyone you've already shared them with — including printed QR codes — will lose access until you share the new link.
+              {t('invite.regenerateDescription', {
+                defaultValue:
+                  "The current link and QR code will stop working immediately. Anyone you've already shared them with — including printed QR codes — will lose access until you share the new link.",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -268,7 +293,7 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
               onClick={() => setConfirmRegenerate(false)}
               disabled={regenerating}
             >
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button
               type="button"
@@ -276,7 +301,7 @@ export function LocationInviteShare({ location, variant = 'card' }: LocationInvi
               onClick={handleRegenerate}
               disabled={regenerating}
             >
-              {regenerating ? 'Regenerating…' : 'Regenerate'}
+              {regenerating ? t('invite.regenerating', { defaultValue: 'Regenerating…' }) : t('invite.regenerate', { defaultValue: 'Regenerate' })}
             </Button>
           </DialogFooter>
         </DialogContent>
