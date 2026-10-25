@@ -6,12 +6,26 @@ import { vi } from 'vitest';
 // resolves to the English defaultValue (or the raw key if no defaultValue
 // was passed), so existing component tests asserting on literal English
 // text keep working without needing real translation resources loaded.
-// Real interpolation/pluralization isn't emulated here — tests that need to
-// verify actual translated output should use renderWithI18n() instead
-// (src/test/i18nTestUtils.tsx), which loads the real JSON resources.
+// Like i18next's own default-value handling, it picks `defaultValue_one` /
+// `defaultValue_other` by `count` and fills `{{var}}` placeholders from the
+// options. Tests that need to verify actual translated output should use
+// renderWithI18n() instead (src/test/i18nTestUtils.tsx), which loads the real
+// JSON resources.
+function mockT(key: string, opts?: Record<string, unknown>): string {
+  let text = opts?.defaultValue;
+  if (typeof opts?.count === 'number') {
+    const pluralForm = opts.count === 1 ? opts.defaultValue_one : opts.defaultValue_other;
+    if (typeof pluralForm === 'string') text = pluralForm;
+  }
+  if (typeof text !== 'string') return key;
+  return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (placeholder, name: string) =>
+    opts && name in opts ? String(opts[name]) : placeholder,
+  );
+}
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? key,
+    t: mockT,
     i18n: { language: 'en', changeLanguage: vi.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: vi.fn() },
