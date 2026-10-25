@@ -87,6 +87,8 @@
     "confirmLabel": "Apply reorganization",
     "appliedKept": "{{n}} kept",
     "appliedCreated": "{{n}} created",
+    "appliedEmptied_one": "{{count}} emptied but kept (contains other {{bins}})",
+    "appliedEmptied_other": "{{count}} emptied but kept (contain other {{bins}})",
     "applied": "Reorganization applied",
     "appliedWithSummary": "Reorganization applied — {{summary}}",
     "printLabels": "Print labels"
@@ -107,6 +109,8 @@
     "delete_other": "delete {{count}} {{bins}}",
     "create_one": "create {{count}} new {{bin}}",
     "create_other": "create {{count}} new {{bins}}",
+    "keepEmptied_one": "{{count}} {{bin}} that contains other {{bins}} will be kept and emptied, not deleted.",
+    "keepEmptied_other": "{{count}} {{bins}} that contain other {{bins}} will be kept and emptied, not deleted.",
     "none": "This will apply the reorganization.",
     "one": "This will {{a}}.",
     "two": "This will {{a}} and {{b}}.",

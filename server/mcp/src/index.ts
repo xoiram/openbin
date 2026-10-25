@@ -23,7 +23,7 @@ const api = new ApiClient(apiUrl, apiKey);
 
 const server = new McpServer({
   name: "openbin",
-  version: "1.0.0",
+  version: "1.1.0",
 });
 
 registerLocationTools(server, api);

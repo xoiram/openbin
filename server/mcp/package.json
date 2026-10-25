@@ -1,6 +1,6 @@
 {
   "name": "@openbin/mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for OpenBin inventory management",
   "type": "module",
   "main": "dist/index.js",

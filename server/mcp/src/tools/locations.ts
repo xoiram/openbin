@@ -255,4 +255,33 @@ export function registerLocationTools(server: McpServer, api: ApiClient) {
       };
     }),
   );
+
+  server.tool(
+    "get_location_stats",
+    "Get dashboard counts for a location: bins (including nested boxes), items (inside bins and loose), areas, bins that need organizing, and loose items (not inside any bin).",
+    {
+      location_id: z.string().describe("Location UUID"),
+    },
+    withErrorHandling(async ({ location_id }) => {
+      const s = await api.get<{
+        total_bins: number;
+        total_items: number;
+        total_areas: number;
+        needs_organizing: number;
+        loose_item_count: number;
+      }>(`/api/locations/${encodeURIComponent(location_id)}/stats`);
+
+      // COUNT(*) can arrive as a string on PostgreSQL.
+      const n = (v: unknown) => Number(v);
+      const text = [
+        `Bins (incl. nested boxes): ${n(s.total_bins)}`,
+        `Items (inside bins and loose): ${n(s.total_items)}`,
+        `Loose items (not inside any bin): ${n(s.loose_item_count)}`,
+        `Areas: ${n(s.total_areas)}`,
+        `Bins needing organizing (no area, no items, no tags): ${n(s.needs_organizing)}`,
+      ].join("\n");
+
+      return { content: [{ type: "text" as const, text }] };
+    }),
+  );
 }
