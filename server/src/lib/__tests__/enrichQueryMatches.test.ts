@@ -1,7 +1,15 @@
 import type { Express } from 'express';
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createTestBin, createTestLocation, createTestUser } from '../../__tests__/helpers.js';
+import {
+  createTestArea,
+  createTestBin,
+  createTestLocation,
+  createTestUser,
+  expectNoHierarchyViolations,
+  joinTestLocation,
+  setParentBinByDb,
+} from '../../__tests__/helpers.js';
 import { createApp } from '../../index.js';
 import { enrichQueryMatches } from '../inventoryQuery.js';
 
@@ -205,5 +213,63 @@ describe('enrichQueryMatches', () => {
     const result = await enrichQueryMatches(rawMatches, otherLoc.id, userId);
 
     expect(result).toHaveLength(0);
+  });
+
+  it('takes name and area_name from the database, not from the model output', async () => {
+    const { token, userId, locationId, binId, binCode } = await setupBin([{ name: 'Tent', quantity: null }]);
+    const area = await createTestArea(app, token, locationId, 'Garage');
+    await request(app).put(`/api/bins/${binId}`).set('Authorization', `Bearer ${token}`).send({ name: 'Real name', areaId: area.id });
+
+    const result = await enrichQueryMatches(
+      [{ bin_code: binCode, name: 'Invented', area_name: 'Invented area', items: ['Tent'], tags: [], relevance: 'high' }],
+      locationId,
+      userId,
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('Real name');
+    expect(result[0].area_name).toBe('Garage');
+  });
+
+  describe('visibility', () => {
+    async function twoUsers() {
+      const owner = await createTestUser(app);
+      const loc = await createTestLocation(app, owner.token);
+      const other = await createTestUser(app);
+      await joinTestLocation(app, other.token, loc.invite_code);
+      return { owner, other, loc };
+    }
+    const raw = (code: string) => [
+      { bin_code: code, name: 'x', area_name: '', items: ['Secret'], tags: [], relevance: 'high' },
+    ];
+
+    it("drops another member's private bin (no items or counts leak)", async () => {
+      const { owner, other, loc } = await twoUsers();
+      const priv = await createTestBin(app, owner.token, loc.id, { visibility: 'private', items: ['Secret'] });
+      expect(await enrichQueryMatches(raw(priv.short_code), loc.id, other.user.id)).toEqual([]);
+    });
+
+    it('keeps the creator\'s own private bin', async () => {
+      const { owner, loc } = await twoUsers();
+      const priv = await createTestBin(app, owner.token, loc.id, { visibility: 'private', items: ['Secret'] });
+      const result = await enrichQueryMatches(raw(priv.short_code), loc.id, owner.user.id);
+      expect(result).toHaveLength(1);
+      expect(result[0].items.map((i) => i.name)).toEqual(['Secret']);
+    });
+
+    it('keeps location-shared bins for other members', async () => {
+      const { owner, other, loc } = await twoUsers();
+      const shared = await createTestBin(app, owner.token, loc.id, { items: ['Secret'] });
+      expect(await enrichQueryMatches(raw(shared.short_code), loc.id, other.user.id)).toHaveLength(1);
+    });
+
+    it('drops a child of a private parent for other members (children inherit privacy)', async () => {
+      const { owner, other, loc } = await twoUsers();
+      const parent = await createTestBin(app, owner.token, loc.id, { visibility: 'private' });
+      const child = await createTestBin(app, owner.token, loc.id, { items: ['Secret'] });
+      await setParentBinByDb(child.id, parent.id);
+      expect(await enrichQueryMatches(raw(child.short_code), loc.id, other.user.id)).toEqual([]);
+      expect(await enrichQueryMatches(raw(child.short_code), loc.id, owner.user.id)).toHaveLength(1);
+      await expectNoHierarchyViolations(loc.id);
+    });
   });
 });

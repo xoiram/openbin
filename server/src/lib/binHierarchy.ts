@@ -46,6 +46,28 @@ export async function countChildBins(q: Q, binId: string, opts?: { liveOnly?: bo
 }
 
 /**
+ * Throw a ValidationError (422) unless every id is a live, top-level bin of `locationId`.
+ *
+ * Used by routes that take a client-supplied list of bins and may merge, delete or rewrite them
+ * (AI reorganize). Child bins must never take part: deleting a parent trashes its children too.
+ */
+export async function assertTopLevelIds(q: Q, locationId: string, ids: unknown[]): Promise<void> {
+  const unique = [...new Set(ids)];
+  if (unique.some((id) => typeof id !== 'string' || id === '')) {
+    throw new ValidationError('Every bin needs an id');
+  }
+  if (unique.length === 0) return;
+  const placeholders = unique.map((_, i) => `$${i + 2}`).join(', ');
+  const result = await q(
+    `SELECT id FROM bins WHERE location_id = $1 AND deleted_at IS NULL AND parent_bin_id IS NULL AND id IN (${placeholders})`,
+    [locationId, ...unique],
+  );
+  if (result.rows.length !== unique.length) {
+    throw new ValidationError('Only top-level bins in this location can be reorganized');
+  }
+}
+
+/**
  * Validate that a bin may be placed inside `parentId` and return the parent.
  *
  * `binId` is null when the bin is being created. Throws a ValidationError (422) when the parent is
