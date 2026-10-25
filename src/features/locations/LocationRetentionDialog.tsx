@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,11 +18,6 @@ import { getErrorMessage } from '@/lib/utils';
 import type { Location } from '@/types';
 import { updateLocation } from './useLocations';
 
-const joinRoleOptions = [
-  { key: 'member' as const, label: 'Member' },
-  { key: 'viewer' as const, label: 'Viewer' },
-];
-
 interface LocationRetentionDialogProps {
   location: Location | undefined;
   open: boolean;
@@ -30,7 +26,12 @@ interface LocationRetentionDialogProps {
 
 export function LocationRetentionDialog({ location, open, onOpenChange }: LocationRetentionDialogProps) {
   const { showToast } = useToast();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('locations');
+  const joinRoleOptions = [
+    { key: 'member' as const, label: t('roles.member', { defaultValue: 'Member' }) },
+    { key: 'viewer' as const, label: t('roles.viewer', { defaultValue: 'Viewer' }) },
+  ];
   const [activityRetention, setActivityRetention] = useState(90);
   const [trashRetention, setTrashRetention] = useState(30);
   const [defaultJoinRole, setDefaultJoinRole] = useState<'member' | 'viewer'>('member');
@@ -55,9 +56,9 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
         default_join_role: defaultJoinRole,
       });
       onOpenChange(false);
-      showToast({ message: 'Retention settings saved', variant: 'success' });
+      showToast({ message: t('retention.saved', { defaultValue: 'Retention settings saved' }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to save retention settings'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('retention.saveFailed', { defaultValue: 'Failed to save retention settings' })), variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -67,14 +68,17 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t.Location} Settings</DialogTitle>
+          <DialogTitle>{t('retention.title', { defaultValue: '{{location}} Settings', location: term.Location })}</DialogTitle>
           <DialogDescription>
-            Configure data retention and membership defaults for this {t.location}.
+            {t('retention.description', {
+              defaultValue: 'Configure data retention and membership defaults for this {{location}}.',
+              location: term.location,
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="activity-retention">Activity log retention (days)</Label>
+            <Label htmlFor="activity-retention">{t('retention.activityLabel', { defaultValue: 'Activity log retention (days)' })}</Label>
             <Input
               id="activity-retention"
               type="number"
@@ -85,10 +89,12 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
               value={activityRetention}
               onChange={(e) => setActivityRetention(Number(e.target.value))}
             />
-            <p className="text-[11px] text-[var(--text-tertiary)]">7–365 days. Entries older than this are automatically pruned.</p>
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              {t('retention.activityHint', { defaultValue: '7–365 days. Entries older than this are automatically pruned.' })}
+            </p>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="trash-retention">Trash retention (days)</Label>
+            <Label htmlFor="trash-retention">{t('retention.trashLabel', { defaultValue: 'Trash retention (days)' })}</Label>
             <Input
               id="trash-retention"
               type="number"
@@ -99,10 +105,15 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
               value={trashRetention}
               onChange={(e) => setTrashRetention(Number(e.target.value))}
             />
-            <p className="text-[11px] text-[var(--text-tertiary)]">7–365 days. Deleted {t.bins} are permanently purged after this period.</p>
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              {t('retention.trashHint', {
+                defaultValue: '7–365 days. Deleted {{bins}} are permanently purged after this period.',
+                bins: term.bins,
+              })}
+            </p>
           </div>
           <div className="space-y-1.5">
-            <Label>Default role for new members</Label>
+            <Label>{t('retention.defaultRoleLabel', { defaultValue: 'Default role for new members' })}</Label>
             <OptionGroup
               options={joinRoleOptions}
               value={defaultJoinRole}
@@ -110,20 +121,20 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
             />
             <p className="text-[11px] text-[var(--text-tertiary)]">
               {defaultJoinRole === 'viewer'
-                ? 'New members will be read-only until promoted.'
-                : 'New members can create and edit content.'}
+                ? t('retention.viewerHint', { defaultValue: 'New members will be read-only until promoted.' })
+                : t('retention.memberHint', { defaultValue: 'New members can create and edit content.' })}
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             onClick={handleSave}
             disabled={saving || activityRetention < 7 || activityRetention > 365 || trashRetention < 7 || trashRetention > 365}
           >
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving', { defaultValue: 'Saving...' }) : t('common:actions.save', { defaultValue: 'Save' })}
           </Button>
         </DialogFooter>
       </DialogContent>

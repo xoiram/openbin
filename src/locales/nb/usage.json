@@ -1,0 +1,34 @@
+{
+  "empty": "Ingen aktivitet ennå. Velg hvilke handlinger som teller i <link>innstillingene</link>.",
+  "granularity": {
+    "day": "Dag",
+    "month": "Måned",
+    "week": "Uke"
+  },
+  "heatmap": {
+    "dailyLabel_one": "Varmekart over daglig bruk for {{year}}. {{count}} aktiv dag.",
+    "dailyLabel_other": "Varmekart over daglig bruk for {{year}}. {{count}} aktive dager.",
+    "dayTooltip_one": "{{date}} — {{count}} treff",
+    "dayTooltip_other": "{{date}} — {{count}} treff",
+    "dayTooltipToday_one": "{{date}} — {{count}} treff (i dag)",
+    "dayTooltipToday_other": "{{date}} — {{count}} treff (i dag)",
+    "monthlyLabel_one": "Varmekart over månedlig bruk for {{year}}. {{count}} aktiv måned.",
+    "monthlyLabel_other": "Varmekart over månedlig bruk for {{year}}. {{count}} aktive måneder.",
+    "monthTooltip_one": "{{month}} {{year}} — {{count}} aktiv dag",
+    "monthTooltip_other": "{{month}} {{year}} — {{count}} aktive dager",
+    "weeklyLabel_one": "Varmekart over ukentlig bruk for {{year}}. {{count}} aktiv uke.",
+    "weeklyLabel_other": "Varmekart over ukentlig bruk for {{year}}. {{count}} aktive uker.",
+    "weekTooltip_one": "Uke {{week}}, {{year}} — {{count}} aktiv dag",
+    "weekTooltip_other": "Uke {{week}}, {{year}} — {{count}} aktive dager"
+  },
+  "loadFailed": "Kunne ikke laste bruksdata",
+  "retry": "Prøv igjen",
+  "summary_one": "{{count}} aktiv dag i {{year}}",
+  "summary_other": "{{count}} aktive dager i {{year}}",
+  "summaryWithLastUse_one": "{{count}} aktiv dag i {{year}} · sist brukt {{lastUse}}",
+  "summaryWithLastUse_other": "{{count}} aktive dager i {{year}} · sist brukt {{lastUse}}",
+  "yearPager": {
+    "next": "Neste år",
+    "previous": "Forrige år"
+  }
+}

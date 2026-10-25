@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,7 +23,8 @@ interface LocationCreateDialogProps {
 
 export function LocationCreateDialog({ open, onOpenChange }: LocationCreateDialogProps) {
   const { setActiveLocationId } = useAuth();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('locations');
   const { showToast } = useToast();
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -42,9 +44,9 @@ export function LocationCreateDialog({ open, onOpenChange }: LocationCreateDialo
       const location = await createLocation(name.trim());
       setActiveLocationId(location.id);
       onOpenChange(false);
-      showToast({ message: `Created "${location.name}"`, variant: 'success' });
+      showToast({ message: t('create.success', { defaultValue: 'Created "{{name}}"', name: location.name }), variant: 'success' });
     } catch (err) {
-      showToast({ message: err instanceof Error ? err.message : `Failed to create ${t.location}`, variant: 'error' });
+      showToast({ message: err instanceof Error ? err.message : t('create.failed', { defaultValue: 'Failed to create {{location}}', location: term.location }), variant: 'error' });
     } finally {
       setCreating(false);
     }
@@ -54,19 +56,23 @@ export function LocationCreateDialog({ open, onOpenChange }: LocationCreateDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create {t.Location}</DialogTitle>
+          <DialogTitle>{t('create.title', { defaultValue: 'Create {{location}}', location: term.Location })}</DialogTitle>
           <DialogDescription>
-            A {t.location} is a shared space where members can manage {t.bins} together.
+            {t('create.description', {
+              defaultValue: 'A {{location}} is a shared space where members can manage {{bins}} together.',
+              location: term.location,
+              bins: term.bins,
+            })}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="location-name">Name</Label>
+            <Label htmlFor="location-name">{t('nameLabel', { defaultValue: 'Name' })}</Label>
             <Input
               id="location-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., My House, Office"
+              placeholder={t('create.namePlaceholder', { defaultValue: 'e.g., My House, Office' })}
               maxLength={255}
               autoFocus
               required
@@ -74,10 +80,10 @@ export function LocationCreateDialog({ open, onOpenChange }: LocationCreateDialo
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button type="submit" disabled={!name.trim() || creating}>
-              {creating ? 'Creating...' : 'Create'}
+              {creating ? t('create.creating', { defaultValue: 'Creating...' }) : t('create.submit', { defaultValue: 'Create' })}
             </Button>
           </DialogFooter>
         </form>
@@ -93,7 +99,8 @@ interface LocationJoinDialogProps {
 
 export function LocationJoinDialog({ open, onOpenChange }: LocationJoinDialogProps) {
   const { setActiveLocationId } = useAuth();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('locations');
   const { showToast } = useToast();
   const [inviteCode, setInviteCode] = useState('');
   const [joining, setJoining] = useState(false);
@@ -113,9 +120,9 @@ export function LocationJoinDialog({ open, onOpenChange }: LocationJoinDialogPro
       const location = await joinLocation(inviteCode.trim());
       setActiveLocationId(location.id);
       onOpenChange(false);
-      showToast({ message: `Joined "${location.name}"`, variant: 'success' });
+      showToast({ message: t('join.success', { defaultValue: 'Joined "{{name}}"', name: location.name }), variant: 'success' });
     } catch (err) {
-      showToast({ message: err instanceof Error ? err.message : `Failed to join ${t.location}`, variant: 'error' });
+      showToast({ message: err instanceof Error ? err.message : t('join.failed', { defaultValue: 'Failed to join {{location}}', location: term.location }), variant: 'error' });
     } finally {
       setJoining(false);
     }
@@ -125,29 +132,32 @@ export function LocationJoinDialog({ open, onOpenChange }: LocationJoinDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Join {t.Location}</DialogTitle>
+          <DialogTitle>{t('join.title', { defaultValue: 'Join {{location}}', location: term.Location })}</DialogTitle>
           <DialogDescription>
-            Enter the invite code shared by a {t.location} owner to join.
+            {t('join.description', {
+              defaultValue: 'Enter the invite code shared by a {{location}} owner to join.',
+              location: term.location,
+            })}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="invite-code">Invite Code</Label>
+            <Label htmlFor="invite-code">{t('join.codeLabel', { defaultValue: 'Invite Code' })}</Label>
             <Input
               id="invite-code"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="Enter invite code"
+              placeholder={t('join.codePlaceholder', { defaultValue: 'Enter invite code' })}
               autoFocus
               required
             />
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button type="submit" disabled={!inviteCode.trim() || joining}>
-              {joining ? 'Joining...' : 'Join'}
+              {joining ? t('join.joining', { defaultValue: 'Joining...' }) : t('join.submit', { defaultValue: 'Join' })}
             </Button>
           </DialogFooter>
         </form>
@@ -165,7 +175,8 @@ interface LocationRenameDialogProps {
 
 export function LocationRenameDialog({ locationId, currentName, open, onOpenChange }: LocationRenameDialogProps) {
   const { showToast } = useToast();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('locations');
   const [name, setName] = useState(currentName);
   const [renaming, setRenaming] = useState(false);
 
@@ -183,9 +194,9 @@ export function LocationRenameDialog({ locationId, currentName, open, onOpenChan
     try {
       await updateLocation(locationId, { name: name.trim() });
       onOpenChange(false);
-      showToast({ message: `${t.Location} renamed`, variant: 'success' });
+      showToast({ message: t('rename.success', { defaultValue: '{{location}} renamed', location: term.Location }), variant: 'success' });
     } catch (err) {
-      showToast({ message: err instanceof Error ? err.message : `Failed to rename ${t.location}`, variant: 'error' });
+      showToast({ message: err instanceof Error ? err.message : t('rename.failed', { defaultValue: 'Failed to rename {{location}}', location: term.location }), variant: 'error' });
     } finally {
       setRenaming(false);
     }
@@ -195,14 +206,14 @@ export function LocationRenameDialog({ locationId, currentName, open, onOpenChan
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename {t.Location}</DialogTitle>
+          <DialogTitle>{t('rename.title', { defaultValue: 'Rename {{location}}', location: term.Location })}</DialogTitle>
           <DialogDescription>
-            Enter a new name for this {t.location}.
+            {t('rename.description', { defaultValue: 'Enter a new name for this {{location}}.', location: term.location })}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="rename-location">Name</Label>
+            <Label htmlFor="rename-location">{t('nameLabel', { defaultValue: 'Name' })}</Label>
             <Input
               id="rename-location"
               value={name}
@@ -214,10 +225,10 @@ export function LocationRenameDialog({ locationId, currentName, open, onOpenChan
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
             <Button type="submit" disabled={!name.trim() || renaming}>
-              {renaming ? 'Saving...' : 'Save'}
+              {renaming ? t('saving', { defaultValue: 'Saving...' }) : t('common:actions.save', { defaultValue: 'Save' })}
             </Button>
           </DialogFooter>
         </form>
@@ -238,7 +249,8 @@ interface LocationDeleteDialogProps {
 export function LocationDeleteDialog({ locationId, locationName, binCount, areaCount, open, onOpenChange }: LocationDeleteDialogProps) {
   const { activeLocationId, setActiveLocationId } = useAuth();
   const { locations } = useLocationList();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('locations');
   const { showToast } = useToast();
   const [deleting, setDeleting] = useState(false);
 
@@ -252,39 +264,68 @@ export function LocationDeleteDialog({ locationId, locationName, binCount, areaC
         setActiveLocationId(remaining.length > 0 ? remaining[0].id : null);
       }
       onOpenChange(false);
-      showToast({ message: `${t.Location} deleted`, variant: 'success' });
+      showToast({ message: t('delete.success', { defaultValue: '{{location}} deleted', location: term.Location }), variant: 'success' });
     } catch (err) {
-      showToast({ message: err instanceof Error ? err.message : `Failed to delete ${t.location}`, variant: 'error' });
+      showToast({ message: err instanceof Error ? err.message : t('delete.failed', { defaultValue: 'Failed to delete {{location}}', location: term.location }), variant: 'error' });
     } finally {
       setDeleting(false);
     }
   }
 
-  const assetParts: string[] = [];
-  if (binCount != null && binCount > 0) assetParts.push(`${binCount} ${binCount !== 1 ? t.bins : t.bin}`);
-  if (areaCount != null && areaCount > 0) assetParts.push(`${areaCount} ${areaCount !== 1 ? t.areas : t.area}`);
+  const binPart =
+    binCount != null && binCount > 0
+      ? t('delete.binCount', {
+          count: binCount,
+          bin: term.bin,
+          bins: term.bins,
+          defaultValue_one: '{{count}} {{bin}}',
+          defaultValue_other: '{{count}} {{bins}}',
+        })
+      : null;
+  const areaPart =
+    areaCount != null && areaCount > 0
+      ? t('delete.areaCount', {
+          count: areaCount,
+          area: term.area,
+          areas: term.areas,
+          defaultValue_one: '{{count}} {{area}}',
+          defaultValue_other: '{{count}} {{areas}}',
+        })
+      : null;
+  const assets =
+    binPart && areaPart
+      ? t('delete.assetsBoth', { defaultValue: '{{first}} and {{second}}', first: binPart, second: areaPart })
+      : (binPart ?? areaPart);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete {t.Location}?</DialogTitle>
+          <DialogTitle>{t('delete.title', { defaultValue: 'Delete {{location}}?', location: term.Location })}</DialogTitle>
           <DialogDescription>
-            This will permanently delete &quot;{locationName}&quot;
-            {assetParts.length > 0 ? <> including {assetParts.join(' and ')}, along with all photos. </> : ' and all its data. '}
-            This cannot be undone.
+            {assets
+              ? t('delete.descriptionWithAssets', {
+                  defaultValue:
+                    'This will permanently delete "{{name}}" including {{assets}}, along with all photos. This cannot be undone.',
+                  name: locationName,
+                  assets,
+                })
+              : t('delete.description', {
+                  defaultValue: 'This will permanently delete "{{name}}" and all its data. This cannot be undone.',
+                  name: locationName,
+                })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={deleting}
           >
-            {deleting ? 'Deleting...' : 'Delete'}
+            {deleting ? t('delete.deleting', { defaultValue: 'Deleting...' }) : t('common:actions.delete', { defaultValue: 'Delete' })}
           </Button>
         </DialogFooter>
       </DialogContent>

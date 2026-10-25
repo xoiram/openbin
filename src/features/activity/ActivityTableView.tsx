@@ -1,15 +1,24 @@
 import { ChevronRight } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Highlight } from '@/components/ui/highlight';
 import { LoadMoreSentinel } from '@/components/ui/load-more-sentinel';
 import { Table, TableHeader, TableRow } from '@/components/ui/table';
 import { useTerminology } from '@/lib/terminology';
-import { cn, firstName, relativeTime } from '@/lib/utils';
+import { cn, firstName } from '@/lib/utils';
 import type { ActivityLogEntry } from '@/types';
 import { ActivityRowDetail } from './ActivityRowDetail';
-import { getActionBadgeLabel, getActionColor, getActionIcon, getChangedFieldLabels, getEntityDescription } from './activityHelpers';
+import {
+  getActionBadgeLabel,
+  getActionColor,
+  getActionIcon,
+  getChangedFieldLabels,
+  getEntityDescription,
+  getEntityTypeLabel,
+} from './activityHelpers';
+import { useRelativeTime } from './useRelativeTime';
 
 interface ActivityTableViewProps {
   entries: ActivityLogEntry[];
@@ -26,7 +35,9 @@ const CHIP_CLASS =
 
 export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, searchQuery = '', currentEntityId }: ActivityTableViewProps) {
   const navigate = useNavigate();
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('activity');
+  const relativeTime = useRelativeTime();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const toggleExpand = useCallback((id: string) => {
@@ -43,11 +54,11 @@ export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, s
       <Table>
         <TableHeader>
           <span className="w-8 shrink-0" />
-          <span className="hidden lg:block w-[72px] shrink-0 ui-col-header">Action</span>
-          <span className="flex-[2] ui-col-header">Description</span>
-          <span className="hidden lg:block flex-1 ui-col-header">User</span>
-          <span className="hidden lg:block w-[72px] shrink-0 ui-col-header">Type</span>
-          <span className="w-20 shrink-0 ui-col-header text-right">Time</span>
+          <span className="hidden lg:block w-[72px] shrink-0 ui-col-header">{t('table.action', { defaultValue: 'Action' })}</span>
+          <span className="flex-[2] ui-col-header">{t('table.description', { defaultValue: 'Description' })}</span>
+          <span className="hidden lg:block flex-1 ui-col-header">{t('table.user', { defaultValue: 'User' })}</span>
+          <span className="hidden lg:block w-[72px] shrink-0 ui-col-header">{t('table.type', { defaultValue: 'Type' })}</span>
+          <span className="w-20 shrink-0 ui-col-header text-right">{t('table.time', { defaultValue: 'Time' })}</span>
           <span className="w-5 shrink-0" />
         </TableHeader>
 
@@ -60,10 +71,10 @@ export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, s
             entry.action !== 'permanent_delete' &&
             entry.action !== 'delete';
           const detailId = `activity-detail-${entry.id}`;
-          const chipLabels = getChangedFieldLabels(entry, t);
+          const chipLabels = getChangedFieldLabels(entry, term, t);
           const overflow = Math.max(0, chipLabels.length - MAX_CHIPS);
           const chips = overflow > 0
-            ? [...chipLabels.slice(0, MAX_CHIPS), `+${overflow} more`]
+            ? [...chipLabels.slice(0, MAX_CHIPS), t('table.moreChips', { defaultValue: '+{{n}} more', n: overflow })]
             : chipLabels;
 
           return (
@@ -98,7 +109,7 @@ export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, s
                       'bg-[color-mix(in_srgb,currentColor_12%,transparent)]',
                     )}
                   >
-                    {getActionBadgeLabel(entry.action)}
+                    {getActionBadgeLabel(entry.action, t)}
                   </Badge>
                 </div>
 
@@ -108,7 +119,7 @@ export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, s
                       <span className="lg:hidden font-medium truncate max-w-[10rem]" title={entry.display_name}>
                         <Highlight text={firstName(entry.display_name)} query={searchQuery} />
                       </span>{' '}
-                      <Highlight text={getEntityDescription(entry, t)} query={searchQuery} />
+                      <Highlight text={getEntityDescription(entry, term, t)} query={searchQuery} />
                     </p>
                     {chips.map((label, i) => (
                       <span
@@ -128,14 +139,16 @@ export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, s
                   </span>
                   {entry.auth_method === 'api_key' && (
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
-                      API{entry.api_key_name ? `: ${entry.api_key_name}` : ''}
+                      {entry.api_key_name
+                        ? t('apiKeyNamed', { defaultValue: 'API: {{name}}', name: entry.api_key_name })
+                        : t('apiKey', { defaultValue: 'API' })}
                     </Badge>
                   )}
                 </div>
 
                 <div className="hidden lg:block w-[72px] shrink-0">
                   <Badge variant="outline" className="text-[11px] capitalize">
-                    {entry.entity_type}
+                    {getEntityTypeLabel(entry.entity_type, term, t)}
                   </Badge>
                 </div>
 
@@ -167,7 +180,7 @@ export function ActivityTableView({ entries, hasMore, isLoadingMore, loadMore, s
                       entry={entry}
                       onNavigate={
                         isClickable
-                          ? () => navigate(`/bin/${entry.entity_id}`, { state: { backLabel: 'Activity', backPath: '/activity' } })
+                          ? () => navigate(`/bin/${entry.entity_id}`, { state: { backLabel: t('backLabel', { defaultValue: 'Activity' }), backPath: '/activity' } })
                           : undefined
                       }
                     />

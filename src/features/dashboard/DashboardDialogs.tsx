@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/toast';
 import { buildBinBulkActions } from '@/features/bins/buildBinBulkActions';
@@ -53,7 +54,7 @@ interface DashboardDialogsProps {
   pinLabel: string;
   isBusy?: boolean;
   bins: Bin[];
-  t: Terminology;
+  term: Terminology;
 }
 
 export function DashboardDialogs({
@@ -62,8 +63,9 @@ export function DashboardDialogs({
   bulk, selectedIds, clearSelection,
   allTags, selectable, isAdmin, canWrite,
   bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy,
-  bins, t,
+  bins, term,
 }: DashboardDialogsProps) {
+  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
@@ -86,16 +88,25 @@ export function DashboardDialogs({
     if (!bin) return;
     setCopiedStyle({ icon: bin.icon, color: bin.color, card_style: bin.card_style });
     clearSelection();
-    showToast({ message: 'Style copied', variant: 'success' });
-  }, [selectedIds, bins, clearSelection, showToast]);
+    showToast({ message: t('dialogs.styleCopied', { defaultValue: 'Style copied' }), variant: 'success' });
+  }, [selectedIds, bins, clearSelection, showToast, t]);
 
   const handlePasteStyle = useCallback(async () => {
     if (!copiedStyle) return;
     const ids = [...selectedIds];
     await Promise.all(ids.map((id) => updateBin(id, { icon: copiedStyle.icon, color: copiedStyle.color, cardStyle: copiedStyle.card_style })));
     clearSelection();
-    showToast({ message: `Style applied to ${ids.length} ${ids.length === 1 ? t.bin : t.bins}`, variant: 'success' });
-  }, [copiedStyle, selectedIds, clearSelection, showToast, t]);
+    showToast({
+      message: t('dialogs.styleApplied', {
+        count: ids.length,
+        bin: term.bin,
+        bins: term.bins,
+        defaultValue_one: 'Style applied to {{count}} {{bin}}',
+        defaultValue_other: 'Style applied to {{count}} {{bins}}',
+      }),
+      variant: 'success',
+    });
+  }, [copiedStyle, selectedIds, clearSelection, showToast, t, term]);
 
   return (
     <>
@@ -172,7 +183,13 @@ export function DashboardDialogs({
           )}
           {deleteMounted && (
             <Suspense fallback={null}>
-              <DeleteBinDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen} binName={`${selectedIds.size} ${selectedIds.size === 1 ? t.bin : t.bins}`} onConfirm={bulkDelete} />
+              <DeleteBinDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen} binName={t('dialogs.binCount', {
+                count: selectedIds.size,
+                bin: term.bin,
+                bins: term.bins,
+                defaultValue_one: '{{count}} {{bin}}',
+                defaultValue_other: '{{count}} {{bins}}',
+              })} onConfirm={bulkDelete} />
             </Suspense>
           )}
         </>

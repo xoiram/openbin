@@ -1,0 +1,34 @@
+{
+  "empty": "No activity yet. Choose which actions count in <link>preferences</link>.",
+  "granularity": {
+    "day": "Day",
+    "month": "Month",
+    "week": "Week"
+  },
+  "heatmap": {
+    "dailyLabel_one": "Daily usage heatmap for {{year}}. {{count}} active day.",
+    "dailyLabel_other": "Daily usage heatmap for {{year}}. {{count}} active days.",
+    "dayTooltip_one": "{{date}} — {{count}} hit",
+    "dayTooltip_other": "{{date}} — {{count}} hits",
+    "dayTooltipToday_one": "{{date}} — {{count}} hit (today)",
+    "dayTooltipToday_other": "{{date}} — {{count}} hits (today)",
+    "monthlyLabel_one": "Monthly usage heatmap for {{year}}. {{count}} active month.",
+    "monthlyLabel_other": "Monthly usage heatmap for {{year}}. {{count}} active months.",
+    "monthTooltip_one": "{{month}} {{year}} — {{count}} active day",
+    "monthTooltip_other": "{{month}} {{year}} — {{count}} active days",
+    "weeklyLabel_one": "Weekly usage heatmap for {{year}}. {{count}} active week.",
+    "weeklyLabel_other": "Weekly usage heatmap for {{year}}. {{count}} active weeks.",
+    "weekTooltip_one": "Week {{week}}, {{year}} — {{count}} active day",
+    "weekTooltip_other": "Week {{week}}, {{year}} — {{count}} active days"
+  },
+  "loadFailed": "Couldn't load usage data",
+  "retry": "Try again",
+  "summary_one": "{{count}} active day in {{year}}",
+  "summary_other": "{{count}} active days in {{year}}",
+  "summaryWithLastUse_one": "{{count}} active day in {{year}} · last used {{lastUse}}",
+  "summaryWithLastUse_other": "{{count}} active days in {{year}} · last used {{lastUse}}",
+  "yearPager": {
+    "next": "Next year",
+    "previous": "Previous year"
+  }
+}

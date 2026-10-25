@@ -1,5 +1,6 @@
 import { Check, MoreHorizontal, X } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -19,7 +20,8 @@ interface AreaRowProps {
 }
 
 export function AreaRow({ id, name, binCount, isAdmin, onNavigate, onRename, onDelete }: AreaRowProps) {
-  const t = useTerminology();
+  const term = useTerminology();
+  const { t } = useTranslation('areas');
   const { visible, animating, close, toggle } = usePopover();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -44,25 +46,25 @@ export function AreaRow({ id, name, binCount, isAdmin, onNavigate, onRename, onD
           autoFocus
           className="h-8 text-[14px] flex-1"
         />
-        <Tooltip content="Save">
+        <Tooltip content={t('common:actions.save', { defaultValue: 'Save' })}>
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={handleSave}
             disabled={!editValue.trim() || saving}
             className="shrink-0"
-            aria-label="Save"
+            aria-label={t('common:actions.save', { defaultValue: 'Save' })}
           >
             <Check className="h-4 w-4 text-[var(--accent)]" />
           </Button>
         </Tooltip>
-        <Tooltip content="Cancel">
+        <Tooltip content={t('common:actions.cancel', { defaultValue: 'Cancel' })}>
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={cancelEdit}
             className="shrink-0"
-            aria-label="Cancel"
+            aria-label={t('common:actions.cancel', { defaultValue: 'Cancel' })}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -83,16 +85,22 @@ export function AreaRow({ id, name, binCount, isAdmin, onNavigate, onRename, onD
         </span>
       </button>
       <span className="text-[13px] text-[var(--text-tertiary)] shrink-0 tabular-nums">
-        {binCount} {binCount !== 1 ? t.bins : t.bin}
+        {t('binCount', {
+          count: binCount,
+          bin: term.bin,
+          bins: term.bins,
+          defaultValue_one: '{{count}} {{bin}}',
+          defaultValue_other: '{{count}} {{bins}}',
+        })}
       </span>
       {isAdmin && (
         <div className="relative" ref={menuRef}>
-          <Tooltip content="More actions" side="bottom">
+          <Tooltip content={t('menu.moreActions', { defaultValue: 'More actions' })} side="bottom">
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={(e) => { e.stopPropagation(); toggle(); }}
-              aria-label="More actions"
+              aria-label={t('menu.moreActions', { defaultValue: 'More actions' })}
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </Button>

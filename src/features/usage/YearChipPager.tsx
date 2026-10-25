@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn, focusRing } from '@/lib/utils';
 
 interface YearChipPagerProps {
@@ -15,6 +16,7 @@ const navButton = cn(
 );
 
 export function YearChipPager({ years, selected, onSelect }: YearChipPagerProps) {
+  const { t } = useTranslation('usage');
   if (years.length === 0) return null;
 
   const sorted = [...years].sort((a, b) => a - b);
@@ -28,7 +30,7 @@ export function YearChipPager({ years, selected, onSelect }: YearChipPagerProps)
     <div className="flex items-center gap-0.5">
       <button
         type="button"
-        aria-label="Previous year"
+        aria-label={t('yearPager.previous', { defaultValue: 'Previous year' })}
         onClick={() => canPrev && onSelect(sorted[safeIdx - 1])}
         disabled={!canPrev}
         className={navButton}
@@ -46,7 +48,7 @@ export function YearChipPager({ years, selected, onSelect }: YearChipPagerProps)
 
       <button
         type="button"
-        aria-label="Next year"
+        aria-label={t('yearPager.next', { defaultValue: 'Next year' })}
         onClick={() => canNext && onSelect(sorted[safeIdx + 1])}
         disabled={!canNext}
         className={navButton}

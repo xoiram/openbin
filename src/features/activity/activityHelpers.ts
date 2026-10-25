@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import {
   ArrowRightLeft,
   Image,
@@ -19,12 +20,13 @@ import type { ActivityLogEntry } from '@/types';
 
 export type EntityTypeFilter = '' | 'bin' | 'area' | 'member' | 'location';
 
-export const ENTITY_TYPE_FILTERS: { value: EntityTypeFilter; label: string; tKey?: keyof Terminology }[] = [
-  { value: '', label: 'All' },
-  { value: 'bin', label: 'Bins', tKey: 'Bins' },
-  { value: 'area', label: 'Areas', tKey: 'Areas' },
-  { value: 'member', label: 'Members' },
-  { value: 'location', label: 'Location', tKey: 'Location' },
+/** Filter chips; `label` is resolved at render by the caller (terminology or translation). */
+export const ENTITY_TYPE_FILTERS: { value: EntityTypeFilter; tKey?: keyof Terminology }[] = [
+  { value: '' },
+  { value: 'bin', tKey: 'Bins' },
+  { value: 'area', tKey: 'Areas' },
+  { value: 'member' },
+  { value: 'location', tKey: 'Location' },
 ];
 
 export function getActionIcon(entry: ActivityLogEntry): ReactNode {
@@ -56,87 +58,120 @@ export function getActionColor(action: string): string {
   return 'text-[var(--text-tertiary)]';
 }
 
-const ACTION_BADGE_LABELS: Record<string, string> = {
-  create: 'Created',
-  update: 'Updated',
-  delete: 'Deleted',
-  permanent_delete: 'Deleted',
-  restore: 'Restored',
-  add_photo: 'Photo',
-  delete_photo: 'Photo',
-  move_in: 'Moved',
-  move_out: 'Moved',
-  join: 'Joined',
-  leave: 'Left',
-  remove_member: 'Removed',
-  change_role: 'Role',
-  regenerate_invite: 'Invite',
-};
-
-export function getActionBadgeLabel(action: string): string {
-  if (ACTION_BADGE_LABELS[action]) return ACTION_BADGE_LABELS[action];
-  return action.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+export function getActionBadgeLabel(action: string, t: TFunction<'activity'>): string {
+  switch (action) {
+    case 'create': return t('activity:badge.created', { defaultValue: 'Created' });
+    case 'update': return t('activity:badge.updated', { defaultValue: 'Updated' });
+    case 'delete':
+    case 'permanent_delete': return t('activity:badge.deleted', { defaultValue: 'Deleted' });
+    case 'restore': return t('activity:badge.restored', { defaultValue: 'Restored' });
+    case 'add_photo':
+    case 'delete_photo': return t('activity:badge.photo', { defaultValue: 'Photo' });
+    case 'move_in':
+    case 'move_out': return t('activity:badge.moved', { defaultValue: 'Moved' });
+    case 'join': return t('activity:badge.joined', { defaultValue: 'Joined' });
+    case 'leave': return t('activity:badge.left', { defaultValue: 'Left' });
+    case 'remove_member': return t('activity:badge.removed', { defaultValue: 'Removed' });
+    case 'change_role': return t('activity:badge.role', { defaultValue: 'Role' });
+    case 'regenerate_invite': return t('activity:badge.invite', { defaultValue: 'Invite' });
+    // Unknown server action ids: show the raw id, humanized.
+    default: return action.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+  }
 }
 
-export function getActionLabel(entry: ActivityLogEntry, t: Terminology): string {
-  const name = entry.entity_name ? `"${entry.entity_name}"` : '';
+/** Display label for an activity entity type (terminology for bin/area/location). */
+export function getEntityTypeLabel(entityType: string, term: Terminology, t: TFunction<'activity'>): string {
+  if (entityType === 'bin') return term.bin;
+  if (entityType === 'area') return term.area;
+  if (entityType === 'location') return term.location;
+  if (entityType === 'member') return t('activity:entityTypes.member', { defaultValue: 'member' });
+  return entityType;
+}
+
+function quotedName(entry: ActivityLogEntry): string {
+  return entry.entity_name ? `"${entry.entity_name}"` : '';
+}
+
+export function getActionLabel(entry: ActivityLogEntry, term: Terminology, t: TFunction<'activity'>): string {
+  const name = quotedName(entry);
   const { action, entity_type } = entry;
 
   if (entity_type === 'bin') {
-    if (action === 'create') return `created ${t.bin} ${name}`;
-    if (action === 'update') return `updated ${t.bin} ${name}`;
-    if (action === 'delete') return `deleted ${t.bin} ${name}`;
-    if (action === 'restore') return `restored ${t.bin} ${name}`;
-    if (action === 'permanent_delete') return `permanently deleted ${t.bin} ${name}`;
+    const bin = term.bin;
+    if (action === 'create') return t('activity:label.binCreated', { defaultValue: 'created {{bin}} {{name}}', bin, name });
+    if (action === 'update') return t('activity:label.binUpdated', { defaultValue: 'updated {{bin}} {{name}}', bin, name });
+    if (action === 'delete') return t('activity:label.binDeleted', { defaultValue: 'deleted {{bin}} {{name}}', bin, name });
+    if (action === 'restore') return t('activity:label.binRestored', { defaultValue: 'restored {{bin}} {{name}}', bin, name });
+    if (action === 'permanent_delete')
+      return t('activity:label.binPermanentlyDeleted', { defaultValue: 'permanently deleted {{bin}} {{name}}', bin, name });
     if (action === 'move_in' || action === 'move_out') {
-      const from = entry.changes?.location?.old;
-      const to = entry.changes?.location?.new;
-      return `moved ${t.bin} ${name} from ${from ?? '?'} to ${to ?? '?'}`;
+      const from = String(entry.changes?.location?.old ?? '?');
+      const to = String(entry.changes?.location?.new ?? '?');
+      return t('activity:label.binMoved', { defaultValue: 'moved {{bin}} {{name}} from {{from}} to {{to}}', bin, name, from, to });
     }
-    if (action === 'add_photo') return `added photo to ${t.bin} ${name}`;
-    if (action === 'delete_photo') return `removed photo from ${t.bin} ${name}`;
+    if (action === 'add_photo') return t('activity:label.photoAdded', { defaultValue: 'added photo to {{bin}} {{name}}', bin, name });
+    if (action === 'delete_photo')
+      return t('activity:label.photoRemoved', { defaultValue: 'removed photo from {{bin}} {{name}}', bin, name });
   }
   if (entity_type === 'area') {
-    if (action === 'create') return `created ${t.area} ${name}`;
-    if (action === 'update') return `renamed ${t.area} to ${name}`;
-    if (action === 'delete') return `deleted ${t.area} ${name}`;
+    const area = term.area;
+    if (action === 'create') return t('activity:label.areaCreated', { defaultValue: 'created {{area}} {{name}}', area, name });
+    if (action === 'update') return t('activity:label.areaRenamed', { defaultValue: 'renamed {{area}} to {{name}}', area, name });
+    if (action === 'delete') return t('activity:label.areaDeleted', { defaultValue: 'deleted {{area}} {{name}}', area, name });
   }
   if (entity_type === 'member') {
-    if (action === 'join') return `joined the ${t.location}`;
-    if (action === 'leave') return `left the ${t.location}`;
-    if (action === 'remove_member') return `removed ${name}`;
-    if (action === 'change_role') return `changed role for ${name}`;
+    const location = term.location;
+    if (action === 'join') return t('activity:label.memberJoined', { defaultValue: 'joined the {{location}}', location });
+    if (action === 'leave') return t('activity:label.memberLeft', { defaultValue: 'left the {{location}}', location });
+    if (action === 'remove_member') return t('activity:label.memberRemoved', { defaultValue: 'removed {{name}}', name });
+    if (action === 'change_role') return t('activity:label.roleChanged', { defaultValue: 'changed role for {{name}}', name });
   }
   if (entity_type === 'location') {
-    if (action === 'create') return `created ${t.location} ${name}`;
-    if (action === 'update') return `updated ${t.location} ${name}`;
-    if (action === 'regenerate_invite') return `regenerated invite code`;
+    const location = term.location;
+    if (action === 'create') return t('activity:label.locationCreated', { defaultValue: 'created {{location}} {{name}}', location, name });
+    if (action === 'update') return t('activity:label.locationUpdated', { defaultValue: 'updated {{location}} {{name}}', location, name });
+    if (action === 'regenerate_invite') return t('activity:label.inviteRegenerated', { defaultValue: 'regenerated invite code' });
   }
 
+  // Unknown action/entity ids from the server: show them raw.
   return `${action} ${entity_type} ${name}`;
 }
-
 const ITEM_FIELDS = new Set(['items_added', 'items_removed', 'items_renamed', 'items']);
 const SKIP_FIELDS = new Set(['location', 'area_id', 'items_quantity']);
 
-export function renderChangeDiff(entry: ActivityLogEntry): { field: string; old: string; new: string }[] | null {
+function fieldLabel(field: string, t: TFunction<'activity'>, term: Terminology): string {
+  switch (field) {
+    case 'area': return t('activity:fields.area', { defaultValue: '{{area}}', area: term.area });
+    case 'name': return t('activity:fields.name', { defaultValue: 'name' });
+    case 'notes': return t('activity:fields.notes', { defaultValue: 'notes' });
+    case 'tags': return t('activity:fields.tags', { defaultValue: 'tags' });
+    case 'icon': return t('activity:fields.icon', { defaultValue: 'icon' });
+    case 'color': return t('activity:fields.color', { defaultValue: 'color' });
+    case 'visibility': return t('activity:fields.visibility', { defaultValue: 'visibility' });
+    case 'card_style': return t('activity:fields.style', { defaultValue: 'style' });
+    // Unknown field ids from the server: show them raw.
+    default: return field;
+  }
+}
+
+export function renderChangeDiff(entry: ActivityLogEntry, t: TFunction<'activity'>, term: Terminology): { field: string; old: string; new: string }[] | null {
   if (!entry.changes) return null;
 
   const fieldDiffs = Object.entries(entry.changes)
     .filter(([f]) => !ITEM_FIELDS.has(f) && !SKIP_FIELDS.has(f))
     .map(([field, diff]) => {
-      const label =
-        field === 'area' ? 'area' : field === 'name' ? 'name' : field === 'card_style' ? 'style' : field;
+      const label = fieldLabel(field, t, term);
       const formatVal = (val: unknown) => {
         if (field === 'card_style') {
+          const fallback = t('activity:values.defaultStyle', { defaultValue: 'default' });
           try {
             const parsed = typeof val === 'string' ? JSON.parse(val) : val;
-            return (parsed?.variant as string) || 'default';
+            return (parsed?.variant as string) || fallback;
           } catch {
-            return String(val || 'default');
+            return val ? String(val) : fallback;
           }
         }
-        return String(val ?? 'none');
+        return val == null ? t('activity:values.none', { defaultValue: 'none' }) : String(val);
       };
       return { field: label, old: formatVal(diff.old), new: formatVal(diff.new) };
     });
@@ -147,24 +182,25 @@ export function renderChangeDiff(entry: ActivityLogEntry): { field: string; old:
   if (c.items_added) {
     const added = c.items_added.new as string[] | null;
     if (added && added.length > 0) {
-      itemDiffs.push({ field: '+ items', old: '', new: added.join(', ') });
+      itemDiffs.push({ field: t('activity:diff.itemsAdded', { defaultValue: '+ items' }), old: '', new: added.join(', ') });
     }
   }
   if (c.items_removed) {
     const removed = c.items_removed.old as string[] | null;
     if (removed && removed.length > 0) {
-      itemDiffs.push({ field: '− items', old: removed.join(', '), new: '' });
+      itemDiffs.push({ field: t('activity:diff.itemsRemoved', { defaultValue: '− items' }), old: removed.join(', '), new: '' });
     }
   }
   if (c.items_renamed) {
     const renamed = c.items_renamed;
+    const renamedLabel = t('activity:diff.renamed', { defaultValue: 'renamed' });
     if (Array.isArray(renamed.new)) {
       for (const pair of renamed.new as Array<{ old: string; new: string }>) {
-        itemDiffs.push({ field: 'renamed', old: String(pair.old), new: String(pair.new) });
+        itemDiffs.push({ field: renamedLabel, old: String(pair.old), new: String(pair.new) });
       }
     } else {
       itemDiffs.push({
-        field: 'renamed',
+        field: renamedLabel,
         old: String(renamed.old ?? ''),
         new: String(renamed.new ?? ''),
       });
@@ -175,49 +211,39 @@ export function renderChangeDiff(entry: ActivityLogEntry): { field: string; old:
   return allDiffs.length > 0 ? allDiffs : null;
 }
 
-export function getEntityDescription(entry: ActivityLogEntry, t: Terminology): string {
-  const name = entry.entity_name ? `"${entry.entity_name}"` : '';
+export function getEntityDescription(entry: ActivityLogEntry, term: Terminology, t: TFunction<'activity'>): string {
+  const name = quotedName(entry);
   const { action, entity_type } = entry;
 
   if (entity_type === 'bin') {
+    const bin = term.bin;
     if (action === 'move_in' || action === 'move_out') {
-      const from = entry.changes?.location?.old;
-      const to = entry.changes?.location?.new;
-      return `${t.bin} ${name} from ${from ?? '?'} to ${to ?? '?'}`;
+      const from = String(entry.changes?.location?.old ?? '?');
+      const to = String(entry.changes?.location?.new ?? '?');
+      return t('activity:description.binMoved', { defaultValue: '{{bin}} {{name}} from {{from}} to {{to}}', bin, name, from, to });
     }
     if (action === 'add_photo' || action === 'delete_photo') {
-      return `photo on ${t.bin} ${name}`;
+      return t('activity:description.photo', { defaultValue: 'photo on {{bin}} {{name}}', bin, name });
     }
-    return `${t.bin} ${name}`;
+    return t('activity:description.bin', { defaultValue: '{{bin}} {{name}}', bin, name });
   }
-  if (entity_type === 'area') return `${t.area} ${name}`;
+  if (entity_type === 'area') return t('activity:description.area', { defaultValue: '{{area}} {{name}}', area: term.area, name });
   if (entity_type === 'member') {
-    if (action === 'join') return `the ${t.location}`;
-    if (action === 'leave') return `the ${t.location}`;
-    if (action === 'remove_member') return name;
-    if (action === 'change_role') return `role for ${name}`;
+    if (action === 'join' || action === 'leave')
+      return t('activity:description.theLocation', { defaultValue: 'the {{location}}', location: term.location });
+    if (action === 'change_role') return t('activity:description.roleFor', { defaultValue: 'role for {{name}}', name });
     return name;
   }
   if (entity_type === 'location') {
-    if (action === 'regenerate_invite') return 'invite code';
-    return `${t.location} ${name}`;
+    if (action === 'regenerate_invite') return t('activity:description.inviteCode', { defaultValue: 'invite code' });
+    return t('activity:description.location', { defaultValue: '{{location}} {{name}}', location: term.location, name });
   }
   return `${entity_type} ${name}`;
 }
 
-type ScalarField = 'name' | 'notes' | 'tags' | 'icon' | 'color' | 'visibility' | 'card_style';
+const SCALAR_FIELDS = new Set(['name', 'notes', 'tags', 'icon', 'color', 'visibility', 'card_style']);
 
-const SCALAR_LABEL_MAP: Record<ScalarField, string> = {
-  name: 'name',
-  notes: 'notes',
-  tags: 'tags',
-  icon: 'icon',
-  color: 'color',
-  visibility: 'visibility',
-  card_style: 'style',
-};
-
-export function getChangedFieldLabels(entry: ActivityLogEntry, t: Terminology): string[] {
+export function getChangedFieldLabels(entry: ActivityLogEntry, term: Terminology, t: TFunction<'activity'>): string[] {
   if (entry.action !== 'update' || entry.entity_type !== 'bin' || !entry.changes) {
     return [];
   }
@@ -228,41 +254,50 @@ export function getChangedFieldLabels(entry: ActivityLogEntry, t: Terminology): 
     if (field === 'location' || field === 'area_id') continue;
 
     if (field === 'area') {
-      labels.push(t.area);
+      labels.push(term.area);
       continue;
     }
 
     if (field === 'items_added') {
       const n = Array.isArray(diff.new) ? diff.new.length : 0;
-      if (n > 0) labels.push(`+${n} item${n === 1 ? '' : 's'}`);
+      if (n > 0)
+        labels.push(
+          t('chips.itemsAdded', { ns: 'activity', count: n, defaultValue_one: '+{{count}} item', defaultValue_other: '+{{count}} items' }),
+        );
       continue;
     }
 
     if (field === 'items_removed') {
       const n = Array.isArray(diff.old) ? (diff.old as unknown[]).length : 0;
-      if (n > 0) labels.push(`\u2212${n} item${n === 1 ? '' : 's'}`);
+      if (n > 0)
+        labels.push(
+          t('chips.itemsRemoved', {
+            ns: 'activity',
+            count: n,
+            defaultValue_one: '−{{count}} item',
+            defaultValue_other: '−{{count}} items',
+          }),
+        );
       continue;
     }
 
     if (field === 'items_renamed') {
-      if (Array.isArray(diff.new)) {
-        const n = diff.new.length;
-        if (n > 0) labels.push(n === 1 ? 'renamed item' : `renamed ${n} items`);
-      } else {
-        labels.push('renamed item');
-      }
+      const n = Array.isArray(diff.new) ? diff.new.length : 1;
+      if (n > 0)
+        labels.push(
+          t('chips.itemsRenamed', { ns: 'activity', count: n, defaultValue_one: 'renamed item', defaultValue_other: 'renamed {{count}} items' }),
+        );
       continue;
     }
 
     if (field === 'items_quantity') {
-      labels.push('quantity');
+      labels.push(t('activity:chips.quantity', { defaultValue: 'quantity' }));
       continue;
     }
 
     if (field === 'items') continue; // legacy reorder — no chip
 
-    const scalar = SCALAR_LABEL_MAP[field as ScalarField];
-    if (scalar) labels.push(scalar);
+    if (SCALAR_FIELDS.has(field)) labels.push(fieldLabel(field, t, term));
   }
 
   return labels;
