@@ -18,7 +18,7 @@
   "bulkMove": {
     "title_one": "Flytt {{count}} gjenstand",
     "title_other": "Flytt {{count}} gjenstander",
-    "description": "Velg en {{bin}} gjenstandene skal flyttes til.",
+    "description": "Velg hvor gjenstandene skal flyttes ({{bin}}).",
     "submit": "Flytt",
     "submitting": "Flytter…"
   },

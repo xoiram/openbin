@@ -55,7 +55,7 @@
   "join": {
     "codeLabel": "Invitasjonskode",
     "codePlaceholder": "Skriv inn invitasjonskode",
-    "description": "Skriv inn invitasjonskoden du har fått fra en eier av et {{location}} for å bli med.",
+    "description": "Skriv inn invitasjonskoden du har fått fra en eier av {{location}} for å bli med.",
     "failed": "Kunne ikke bli med i {{location}}",
     "joining": "Blir med...",
     "submit": "Bli med",
@@ -66,7 +66,7 @@
     "copyResetLink": "Kopier tilbakestillingslenke",
     "description": "Administrer medlemmer og del invitasjonskoden.",
     "leave": "Forlat",
-    "leaveConfirm": "Du mister tilgang til alt innhold i dette {{location}}. Fortsette?",
+    "leaveConfirm": "Du mister tilgang til alt innhold i {{location}}. Fortsette?",
     "leaveFailed": "Kunne ikke forlate",
     "leaveLocation": "Forlat {{location}}",
     "leaving": "Forlater...",
@@ -92,7 +92,7 @@
   },
   "nameLabel": "Navn",
   "rename": {
-    "description": "Skriv inn et nytt navn for dette {{location}}.",
+    "description": "Skriv inn et nytt navn for {{location}}.",
     "failed": "Kunne ikke gi nytt navn til {{location}}",
     "success": "{{location}} fikk nytt navn",
     "title": "Gi nytt navn til {{location}}"
@@ -101,7 +101,7 @@
     "activityHint": "7–365 dager. Oppføringer eldre enn dette slettes automatisk.",
     "activityLabel": "Lagringstid for aktivitetslogg (dager)",
     "defaultRoleLabel": "Standardrolle for nye medlemmer",
-    "description": "Konfigurer lagringstid for data og standardvalg for medlemskap i dette {{location}}.",
+    "description": "Konfigurer lagringstid for data og standardvalg for medlemskap for {{location}}.",
     "memberHint": "Nye medlemmer kan opprette og redigere innhold.",
     "saved": "Innstillinger for lagringstid lagret",
     "saveFailed": "Kunne ikke lagre innstillinger for lagringstid",

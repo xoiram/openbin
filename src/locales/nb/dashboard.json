@@ -29,7 +29,7 @@
     "title": "Kom i gang med {{bins}}"
   },
   "header": {
-    "newBin": "Ny {{bin}}",
+    "newBin": "Opprett {{bin}}",
     "scanQr": "Skann QR-kode"
   },
   "needsOrganizing": {
@@ -39,7 +39,7 @@
   },
   "noLocation": {
     "manage": "Administrer {{locations}}",
-    "subtitle": "Opprett eller bli med i et {{location}} for å begynne å organisere {{bins}}",
+    "subtitle": "Opprett eller bli med i {{location}} for å begynne å organisere {{bins}}",
     "title": "Ingen {{location}} valgt"
   },
   "recentScans": {

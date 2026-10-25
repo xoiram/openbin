@@ -57,7 +57,7 @@
     "noAreasAdminHint": "Opprett {{areas}} for å organisere {{bins}} etter sone",
     "noAreasHint": "Dette {{location}} har ingen {{areas}} ennå",
     "noLocations": "Ingen {{locations}} ennå",
-    "noLocationsHint": "Opprett et {{location}} eller bli med i et med en invitasjonskode",
+    "noLocationsHint": "Opprett {{location}} eller bli med via en invitasjonskode",
     "viewerCount_one": "{{count}} leser",
     "viewerCount_other": "{{count}} lesere",
     "viewMembers": "Vis {{members}}",
@@ -65,7 +65,7 @@
     "yourRole": "Din rolle: {{role}}"
   },
   "picker": {
-    "createNew": "Opprett nytt {{area}}...",
+    "createNew": "Opprett {{area}}...",
     "noArea": "Ingen {{area}}",
     "search": "Søk i {{areas}}..."
   }

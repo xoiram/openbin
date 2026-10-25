@@ -89,7 +89,7 @@
       "bodyReadonly": "Flere omvisninger er tilgjengelige fra «?»-knappen på hver side, eller fra Innstillinger.",
       "bodyWrite": "Opprett din neste {{bin}} for å komme i gang. Flere omvisninger er tilgjengelige fra «?»-knappen på hver side, eller fra Innstillinger.",
       "bodyWriteAi": "Prøv «opprett en {{bin}} for kjøkkenredskaper» for å komme i gang. Flere omvisninger er tilgjengelige fra «?»-knappen på hver side, eller fra Innstillinger.",
-      "buttonNewBin": "Ny {{bin}}",
+      "buttonNewBin": "Opprett {{bin}}",
       "buttonTryIt": "Prøv det",
       "title": "Det var høydepunktene"
     },
