@@ -49,7 +49,7 @@ describe('color and background name translation', () => {
 
   it('has a key in every locale for each dynamically-built color/background label', () => {
     const labels = [...HUE_RANGES.map((h) => h.label), BLACK_PRESET.label, WHITE_PRESET.label];
-    for (const bins of [enBins, nbBins] as Array<Record<string, Record<string, string>>>) {
+    for (const bins of [enBins, nbBins] as unknown as Array<Record<string, Record<string, string>>>) {
       for (const label of labels) expect(bins.colors[label.toLowerCase()], label).toBeTruthy();
       for (const bg of PREMADE_BACKGROUNDS) expect(bins.backgrounds[bg.id], bg.id).toBeTruthy();
       for (const k of ['border', 'gradient', 'stripe']) {
