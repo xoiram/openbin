@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Photo } from './useBulkGroupAdd';
 
 interface GroupReviewPhotoProps {
@@ -9,13 +10,21 @@ interface GroupReviewPhotoProps {
 
 /** Photo preview pane for the review step: shows the first photo, a "+N" badge for additional photos, and a free overlay slot. */
 export function GroupReviewPhoto({ photos, overlay }: GroupReviewPhotoProps) {
+  const { t } = useTranslation('bulkAdd');
   return (
     // Image stays mounted across analyze/review so it doesn't reflow when the lock beat ends — only the chrome swaps.
     // overflow-hidden + matching radius clips scan-line/bracket glow to the photo's rounded shape.
     <div className="relative overflow-hidden rounded-[var(--radius-lg)]">
       <img
         src={photos[0].previewUrl}
-        alt={photos.length === 1 ? 'Preview' : `${photos.length} photos, showing first`}
+        alt={
+          photos.length === 1
+            ? t('review.previewAlt', { defaultValue: 'Preview' })
+            : t('review.previewAltMany', {
+                defaultValue: '{{photoCount}} photos, showing first',
+                photoCount: photos.length,
+              })
+        }
         className="block w-full aspect-[16/9] object-cover bg-black/5 dark:bg-white/5"
       />
       {photos.length > 1 && (

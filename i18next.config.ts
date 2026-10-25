@@ -74,6 +74,9 @@ export default defineConfig({
       'ai:aiErrors.*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
+      // HelpSheet.tsx renders CAMERA_TIPS via `tips.items.${tip.id}` (tips.ts keeps
+      // the English headline as defaultValue).
+      'capture:tips.items.*',
     ],
   },
 });

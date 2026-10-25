@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,6 +30,7 @@ export function ReorganizeConfirmDialog({
   onConfirm,
   isApplying,
 }: Props) {
+  const { t } = useTranslation('common');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -38,7 +40,7 @@ export function ReorganizeConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isApplying}>
-            Cancel
+            {t('actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button variant={confirmVariant} onClick={onConfirm} disabled={isApplying}>
             {confirmLabel}

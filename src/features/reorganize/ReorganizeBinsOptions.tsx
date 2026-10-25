@@ -1,5 +1,6 @@
 import { SlidersHorizontal } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Disclosure } from '@/components/ui/disclosure';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,63 +24,76 @@ interface OptionField {
 }
 
 export function ReorganizeBinsOptions({ form, itemCount }: Props) {
-  const t = useTerminology();
+  const { t } = useTranslation('reorganize');
+  const term = useTerminology();
 
   const optionFields: OptionField[] = useMemo(
     () => [
       {
-        legend: 'Change level',
+        legend: t('binsOptions.changeLevel.legend', { defaultValue: 'Change level' }),
         options: [
-          { key: 'conservative', label: 'Light' },
-          { key: 'moderate', label: 'Moderate' },
-          { key: 'aggressive', label: 'Thorough' },
+          { key: 'conservative', label: t('binsOptions.changeLevel.conservative', { defaultValue: 'Light' }) },
+          { key: 'moderate', label: t('binsOptions.changeLevel.moderate', { defaultValue: 'Moderate' }) },
+          { key: 'aggressive', label: t('binsOptions.changeLevel.aggressive', { defaultValue: 'Thorough' }) },
         ],
         value: form.strictness,
         onChange: (v) => form.setStrictness(v as ReorganizeBinsForm['strictness']),
-        hint: `How much the AI can restructure your ${t.bins}`,
+        hint: t('binsOptions.changeLevel.hint', {
+          defaultValue: 'How much the AI can restructure your {{bins}}',
+          bins: term.bins,
+        }),
       },
       {
-        legend: 'Grouping',
+        legend: t('binsOptions.grouping.legend', { defaultValue: 'Grouping' }),
         options: [
-          { key: 'broad', label: 'Broad' },
-          { key: 'medium', label: 'Medium' },
-          { key: 'specific', label: 'Specific' },
+          { key: 'broad', label: t('binsOptions.grouping.broad', { defaultValue: 'Broad' }) },
+          { key: 'medium', label: t('binsOptions.grouping.medium', { defaultValue: 'Medium' }) },
+          { key: 'specific', label: t('binsOptions.grouping.specific', { defaultValue: 'Specific' }) },
         ],
         value: form.granularity,
         onChange: (v) => form.setGranularity(v as ReorganizeBinsForm['granularity']),
-        hint: 'How narrowly items are categorized',
+        hint: t('binsOptions.grouping.hint', { defaultValue: 'How narrowly items are categorized' }),
       },
       {
-        legend: 'Unmatched items',
+        legend: t('binsOptions.unmatched.legend', { defaultValue: 'Unmatched items' }),
         options: [
-          { key: 'best-fit', label: 'Best match' },
-          { key: 'multi-bin', label: 'Place in multiple' },
-          { key: 'misc-bin', label: `Misc ${t.bin}` },
+          { key: 'best-fit', label: t('binsOptions.unmatched.bestFit', { defaultValue: 'Best match' }) },
+          { key: 'multi-bin', label: t('binsOptions.unmatched.multiBin', { defaultValue: 'Place in multiple' }) },
+          {
+            key: 'misc-bin',
+            label: t('binsOptions.unmatched.miscBin', { defaultValue: 'Misc {{bin}}', bin: term.bin }),
+          },
         ],
         value: form.ambiguousPolicy,
         onChange: (v) => form.setAmbiguousPolicy(v as ReorganizeBinsForm['ambiguousPolicy']),
-        hint: "What happens to items that don't fit neatly",
+        hint: t('binsOptions.unmatched.hint', { defaultValue: "What happens to items that don't fit neatly" }),
       },
       {
-        legend: 'Duplicate items',
+        legend: t('binsOptions.duplicates.legend', { defaultValue: 'Duplicate items' }),
         options: [
-          { key: 'force-single', label: `One ${t.bin} only` },
-          { key: 'allow', label: 'Allow copies' },
+          {
+            key: 'force-single',
+            label: t('binsOptions.duplicates.forceSingle', { defaultValue: 'One {{bin}} only', bin: term.bin }),
+          },
+          { key: 'allow', label: t('binsOptions.duplicates.allow', { defaultValue: 'Allow copies' }) },
         ],
         value: form.duplicates,
         onChange: (v) => form.setDuplicates(v as ReorganizeBinsForm['duplicates']),
       },
       {
-        legend: 'Outlier items',
+        legend: t('binsOptions.outliers.legend', { defaultValue: 'Outlier items' }),
         options: [
-          { key: 'force-closest', label: 'Nearest match' },
-          { key: 'dedicated', label: `Separate ${t.bin}` },
+          { key: 'force-closest', label: t('binsOptions.outliers.forceClosest', { defaultValue: 'Nearest match' }) },
+          {
+            key: 'dedicated',
+            label: t('binsOptions.outliers.dedicated', { defaultValue: 'Separate {{bin}}', bin: term.bin }),
+          },
         ],
         value: form.outliers,
         onChange: (v) => form.setOutliers(v as ReorganizeBinsForm['outliers']),
       },
     ],
-    [form, t.bin, t.bins],
+    [form, term.bin, term.bins, t],
   );
 
   return (
@@ -88,7 +102,7 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
         <span className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-[var(--text-tertiary)]" />
           <Label className="text-[15px] font-semibold text-[var(--text-primary)] pointer-events-none">
-            Options
+            {t('options', { defaultValue: 'Options' })}
           </Label>
         </span>
       }
@@ -99,7 +113,7 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
             htmlFor="reorg-max-bins"
             className="text-[12px] text-[var(--text-secondary)] font-medium block mb-2"
           >
-            Number of {t.bins}
+            {t('binsOptions.maxBins', { defaultValue: 'Number of {{bins}}', bins: term.bins })}
           </Label>
           <Input
             id="reorg-max-bins"
@@ -107,7 +121,7 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
             min={1}
             value={form.maxBins}
             onChange={(e) => form.setMaxBins(e.target.value)}
-            placeholder="Auto"
+            placeholder={t('auto', { defaultValue: 'Auto' })}
             aria-describedby={form.maxBinsError ? 'reorg-max-bins-error' : undefined}
             aria-invalid={!!form.maxBinsError}
           />
@@ -127,7 +141,7 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
             htmlFor="reorg-min-items"
             className="text-[12px] text-[var(--text-secondary)] font-medium block mb-2"
           >
-            Items per {t.bin}
+            {t('binsOptions.itemsPerBin', { defaultValue: 'Items per {{bin}}', bin: term.bin })}
           </Label>
           <div className="flex gap-2">
             <Input
@@ -136,7 +150,7 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
               min={1}
               value={form.minItemsPerBin}
               onChange={(e) => form.setMinItemsPerBin(e.target.value)}
-              placeholder="Min"
+              placeholder={t('binsOptions.min', { defaultValue: 'Min' })}
               aria-invalid={!!form.rangeError}
             />
             <Input
@@ -145,8 +159,8 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
               min={1}
               value={form.maxItemsPerBin}
               onChange={(e) => form.setMaxItemsPerBin(e.target.value)}
-              placeholder="Max"
-              aria-label={`Max items per ${t.bin}`}
+              placeholder={t('binsOptions.max', { defaultValue: 'Max' })}
+              aria-label={t('binsOptions.maxItemsPerBin', { defaultValue: 'Max items per {{bin}}', bin: term.bin })}
               aria-invalid={!!form.rangeError}
             />
           </div>
@@ -162,13 +176,15 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
             htmlFor="reorg-notes"
             className="text-[12px] text-[var(--text-secondary)] font-medium block mb-2"
           >
-            Additional instructions
+            {t('additionalInstructions', { defaultValue: 'Additional instructions' })}
           </Label>
           <Textarea
             id="reorg-notes"
             value={form.userNotes}
             onChange={(e) => form.setUserNotes(e.target.value)}
-            placeholder="e.g. Keep kitchen items separate from garage tools"
+            placeholder={t('binsOptions.notesPlaceholder', {
+              defaultValue: 'e.g. Keep kitchen items separate from garage tools',
+            })}
             rows={2}
           />
         </div>
@@ -196,7 +212,12 @@ export function ReorganizeBinsOptions({ form, itemCount }: Props) {
         ))}
 
         <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] text-[12px] text-[var(--text-tertiary)]">
-          {itemCount} item{itemCount !== 1 ? 's' : ''} across selected {t.bins}
+          {t('binsOptions.itemsAcrossSelected', {
+            count: itemCount,
+            bins: term.bins,
+            defaultValue_one: '{{count}} item across selected {{bins}}',
+            defaultValue_other: '{{count}} items across selected {{bins}}',
+          })}
         </div>
       </div>
     </Disclosure>

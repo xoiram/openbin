@@ -1,5 +1,6 @@
 import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { AiAnalyzeProgress } from '@/features/ai/AiAnalyzeProgress';
 import { AiSettingsSection } from '@/features/ai/AiSettingsSection';
@@ -33,7 +34,8 @@ interface GroupReviewStepProps {
 }
 
 export function GroupReviewStep({ groups, currentIndex, editingFromSummary, aiSettings, dispatch, onCreateNow, isCreating }: GroupReviewStepProps) {
-  const t = useTerminology();
+  const { t } = useTranslation(['bulkAdd', 'common']);
+  const term = useTerminology();
   const { activeLocationId } = useAuth();
   const { aiEnabled, setAiEnabled } = useAiEnabled();
   const allTags = useAllTags();
@@ -168,12 +170,12 @@ export function GroupReviewStep({ groups, currentIndex, editingFromSummary, aiSe
     ai.aiReady && group.status === 'pending' && !ai.isAnyActive && !retryBandDismissed;
 
   const nextLabel = !isLast
-    ? 'Next'
+    ? t('review.next', { defaultValue: 'Next' })
     : isSingleBin
       ? isCreating
-        ? 'Creating...'
-        : `Create ${t.Bin}`
-      : 'Review all';
+        ? t('review.creating', { defaultValue: 'Creating...' })
+        : t('review.createBin', { defaultValue: 'Create {{bin}}', bin: term.Bin })
+      : t('review.reviewAll', { defaultValue: 'Review all' });
 
   const photoOverlay = showProgressBar ? (
     <PhotoScanFrame phase={ai.confirmPhase === 'locking' ? 'locking' : 'scanning'} />
@@ -181,7 +183,7 @@ export function GroupReviewStep({ groups, currentIndex, editingFromSummary, aiSe
     <button
       type="button"
       onClick={() => setCorrectionOpen(!correctionOpen)}
-      title="Adjust AI suggestions"
+      title={t('review.adjustAi', { defaultValue: 'Adjust AI suggestions' })}
       className={cn(
         'absolute top-2 right-2 p-1.5 rounded-full transition-colors animate-fade-in',
         correctionOpen
@@ -219,7 +221,7 @@ export function GroupReviewStep({ groups, currentIndex, editingFromSummary, aiSe
           onClick={() => setAiSetupExpanded(!aiSetupExpanded)}
           className="self-start text-[12px] text-[var(--accent)] font-medium flex items-center gap-0.5"
         >
-          Set up AI
+          {t('review.setUpAi', { defaultValue: 'Set up AI' })}
           {aiSetupExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
       )}
@@ -274,12 +276,14 @@ export function GroupReviewStep({ groups, currentIndex, editingFromSummary, aiSe
       <div className={cn('row-spread', stickyDialogFooter)}>
         <Button variant="ghost" onClick={handleBack}>
           <ChevronLeft className="h-4 w-4 mr-1" />
-          {editingFromSummary ? 'Back to summary' : 'Back'}
+          {editingFromSummary
+            ? t('review.backToSummary', { defaultValue: 'Back to summary' })
+            : t('review.back', { defaultValue: 'Back' })}
         </Button>
         {editingFromSummary ? (
           <Button onClick={() => dispatch({ type: 'GO_TO_SUMMARY' })}>
             <CheckCircle2 className="h-4 w-4 mr-1" />
-            Done
+            {t('review.done', { defaultValue: 'Done' })}
           </Button>
         ) : (
           <Button

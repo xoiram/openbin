@@ -1,9 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirstRunCoachmark, HelpButton } from '../CameraGuidance';
 import { CAMERA_TIPS, PHOTO_TIPS_SEEN_KEY } from '../tips';
 
-const FIRST_TIP = CAMERA_TIPS[0].headline;
+vi.mock('@/lib/terminology', async () => {
+  const { DEFAULT_TERMINOLOGY } = await vi.importActual<typeof import('@/lib/terminology')>('@/lib/terminology');
+  return { useTerminology: () => DEFAULT_TERMINOLOGY };
+});
+
+const FIRST_TIP = CAMERA_TIPS[0].headline.replace('{{bin}}', 'bin');
 
 beforeEach(() => {
 	localStorage.clear();

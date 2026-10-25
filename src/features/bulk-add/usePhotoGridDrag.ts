@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
+import { useTerminology } from '@/lib/terminology';
 import type { ActiveDrag, DragPayload, DropTarget, KeyboardMoveState, PointerPayload } from './photoGridTypes';
 import type { BulkAddAction, BulkAddState } from './useBulkGroupAdd';
 import { MAX_PHOTOS_PER_GROUP } from './useBulkGroupAdd';
@@ -64,6 +66,8 @@ export interface UsePhotoGridDragResult {
  *   - undo toast + auto-clear for JOIN/SPLIT/MOVE actions surfaced via state.lastToggle
  */
 export function usePhotoGridDrag({ state, dispatch }: UsePhotoGridDragArgs): UsePhotoGridDragResult {
+  const { t } = useTranslation('bulkAdd');
+  const term = useTerminology();
   const { showToast } = useToast();
   const lastToggleRef = useRef<typeof state.lastToggle>(null);
   const [drag, setDrag] = useState<DragState>({ phase: 'idle' });
@@ -93,15 +97,21 @@ export function usePhotoGridDrag({ state, dispatch }: UsePhotoGridDragArgs): Use
     if (state.lastToggle && state.lastToggle !== lastToggleRef.current) {
       lastToggleRef.current = state.lastToggle;
       showToast({
-        message: state.lastToggle.verb,
+        message:
+          state.lastToggle.verb === 'Joined'
+            ? t('grid.joined', { defaultValue: 'Joined' })
+            : t('grid.split', { defaultValue: 'Split' }),
         duration: 4000,
-        action: { label: 'Undo', onClick: () => dispatch({ type: 'UNDO_LAST_TOGGLE' }) },
+        action: {
+          label: t('grid.undo', { defaultValue: 'Undo' }),
+          onClick: () => dispatch({ type: 'UNDO_LAST_TOGGLE' }),
+        },
       });
       const timer = setTimeout(() => dispatch({ type: 'CLEAR_LAST_TOGGLE' }), 4000);
       return () => clearTimeout(timer);
     }
     if (!state.lastToggle) lastToggleRef.current = null;
-  }, [state.lastToggle, showToast, dispatch]);
+  }, [state.lastToggle, showToast, dispatch, t]);
 
   // Window listeners for pointermove / pointerup during drag.
   useEffect(() => {
@@ -171,12 +181,12 @@ export function usePhotoGridDrag({ state, dispatch }: UsePhotoGridDragArgs): Use
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setKeyboardMove(null);
-        setAnnouncement('Move canceled.');
+        setAnnouncement(t('grid.announce.canceled', { defaultValue: 'Move canceled.' }));
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [keyboardMove]);
+  }, [keyboardMove, t]);
 
   const onPhotoPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>, payload: PointerPayload) => {
@@ -205,17 +215,28 @@ export function usePhotoGridDrag({ state, dispatch }: UsePhotoGridDragArgs): Use
       if (!keyboardMove) {
         setKeyboardMove(payload);
         setAnnouncement(
-          `Moving photo ${payload.indexLabel}. Press another photo to move it, or press Escape to cancel.`,
+          t('grid.announce.moving', {
+            defaultValue: 'Moving photo {{index}}. Press another photo to move it, or press Escape to cancel.',
+            index: payload.indexLabel,
+          }),
         );
       } else if (keyboardMove.photoId === payload.photoId) {
         setKeyboardMove(null);
-        setAnnouncement('Move canceled.');
+        setAnnouncement(t('grid.announce.canceled', { defaultValue: 'Move canceled.' }));
       } else if (keyboardMove.sourceGroupId === payload.sourceGroupId) {
-        setAnnouncement('That photo is in the same bin. Pick a different bin.');
+        setAnnouncement(
+          t('grid.announce.sameBin', { defaultValue: 'That photo is in the same {{bin}}. Pick a different {{bin}}.', bin: term.bin }),
+        );
       } else {
         const targetBinCount = state.groups.find((g) => g.id === payload.sourceGroupId)?.photos.length ?? 0;
         if (targetBinCount + 1 > MAX_PHOTOS_PER_GROUP) {
-          setAnnouncement(`Target bin is full (max ${MAX_PHOTOS_PER_GROUP} photos).`);
+          setAnnouncement(
+            t('grid.announce.targetFull', {
+              defaultValue: 'Target {{bin}} is full (max {{max}} photos).',
+              bin: term.bin,
+              max: MAX_PHOTOS_PER_GROUP,
+            }),
+          );
           return;
         }
         dispatch({
@@ -224,19 +245,25 @@ export function usePhotoGridDrag({ state, dispatch }: UsePhotoGridDragArgs): Use
           targetGroupId: payload.sourceGroupId,
         });
         flashReceive(payload.sourceGroupId);
-        setAnnouncement(`Moved photo ${keyboardMove.indexLabel}.`);
+        setAnnouncement(t('grid.announce.moved', { defaultValue: 'Moved photo {{index}}.', index: keyboardMove.indexLabel }));
         setKeyboardMove(null);
       }
     },
-    [keyboardMove, state.groups, dispatch, flashReceive],
+    [keyboardMove, state.groups, dispatch, flashReceive, t],
   );
 
   const onKeyboardSplit = useCallback(() => {
     if (!keyboardMove) return;
     dispatch({ type: 'MOVE_PHOTO_TO_NEW_GROUP', photoId: keyboardMove.photoId });
-    setAnnouncement(`Photo ${keyboardMove.indexLabel} moved to a new bin.`);
+    setAnnouncement(
+      t('grid.announce.movedToNew', {
+        defaultValue: 'Photo {{index}} moved to a new {{bin}}.',
+        bin: term.bin,
+        index: keyboardMove.indexLabel,
+      }),
+    );
     setKeyboardMove(null);
-  }, [keyboardMove, dispatch]);
+  }, [keyboardMove, dispatch, t]);
 
   const activeDrag = drag.phase === 'active' ? drag.drag : null;
   const showSplitZone = activeDrag !== null && activeDrag.sourceGroupSize > 1;

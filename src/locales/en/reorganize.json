@@ -1,0 +1,189 @@
+{
+  "options": "Options",
+  "auto": "Auto",
+  "additionalInstructions": "Additional instructions",
+  "regenerate": "Regenerate",
+  "apply": "Apply",
+  "applying": "Applying…",
+  "retrying": "Retrying (attempt {{attempt}} of 3)",
+  "willBeKept": "will be kept",
+  "willBeEmptied": "will be emptied",
+  "itemCount_one": "{{count}} item",
+  "itemCount_other": "{{count}} items",
+  "itemsAcross_one": "{{count}} item across {{binCount}} {{bins}}",
+  "itemsAcross_other": "{{count}} items across {{binCount}} {{bins}}",
+  "page": {
+    "title": "Reorganize",
+    "upgradeDescription": "AI-powered {{bin}} reorganization is available on the Pro plan.",
+    "tagsMode": "Tags"
+  },
+  "binsOptions": {
+    "maxBins": "Number of {{bins}}",
+    "itemsPerBin": "Items per {{bin}}",
+    "min": "Min",
+    "max": "Max",
+    "maxItemsPerBin": "Max items per {{bin}}",
+    "notesPlaceholder": "e.g. Keep kitchen items separate from garage tools",
+    "itemsAcrossSelected_one": "{{count}} item across selected {{bins}}",
+    "itemsAcrossSelected_other": "{{count}} items across selected {{bins}}",
+    "rangeError": "Min must be less than max",
+    "maxBinsError": "Must be at least 1",
+    "changeLevel": {
+      "legend": "Change level",
+      "conservative": "Light",
+      "moderate": "Moderate",
+      "aggressive": "Thorough",
+      "hint": "How much the AI can restructure your {{bins}}"
+    },
+    "grouping": {
+      "legend": "Grouping",
+      "broad": "Broad",
+      "medium": "Medium",
+      "specific": "Specific",
+      "hint": "How narrowly items are categorized"
+    },
+    "unmatched": {
+      "legend": "Unmatched items",
+      "bestFit": "Best match",
+      "multiBin": "Place in multiple",
+      "miscBin": "Misc {{bin}}",
+      "hint": "What happens to items that don't fit neatly"
+    },
+    "duplicates": {
+      "legend": "Duplicate items",
+      "forceSingle": "One {{bin}} only",
+      "allow": "Allow copies"
+    },
+    "outliers": {
+      "legend": "Outlier items",
+      "forceClosest": "Nearest match",
+      "dedicated": "Separate {{bin}}"
+    }
+  },
+  "tagsOptions": {
+    "changeLevel": "Change level",
+    "granularity": "Tag granularity",
+    "maxTagsPerBin": "Max tags per {{bin}}",
+    "notesPlaceholder": "e.g. emphasize kitchen categories",
+    "levels": {
+      "additive": "Additive",
+      "moderate": "Moderate",
+      "full": "Full"
+    },
+    "hints": {
+      "additive": "Add or remove tags on {{bins}} — don't touch the vocabulary",
+      "moderate": "Also rename and merge duplicates, propose parents",
+      "full": "Aggressive restructuring — merge broadly and trim mis-tags"
+    }
+  },
+  "binsPanel": {
+    "submit_one": "Reorganize {{count}} {{bin}}",
+    "submit_other": "Reorganize {{count}} {{bins}}",
+    "progress": "Reorganizing {{bins}}",
+    "complete": "Complete",
+    "emptyState": "Select at least 2 {{bins}} and click Reorganize to let AI suggest a better organization.",
+    "confirmTitle": "Apply reorganization?",
+    "confirmDescription": "{{summary}} This cannot be undone.",
+    "confirmLabel": "Apply reorganization",
+    "appliedKept": "{{n}} kept",
+    "appliedCreated": "{{n}} created",
+    "applied": "Reorganization applied",
+    "appliedWithSummary": "Reorganization applied — {{summary}}",
+    "printLabels": "Print labels"
+  },
+  "tagsPanel": {
+    "submit_one": "Suggest tags for {{count}} {{bin}}",
+    "submit_other": "Suggest tags for {{count}} {{bins}}",
+    "progress": "Analyzing tags",
+    "emptyState": "Select {{bins}} and click Suggest tags to let AI propose a better taxonomy.",
+    "confirmTitle": "Apply tag suggestions?",
+    "confirmDescription": "This will update the selected {{bins}} and create/rename tags. This can't be undone automatically.",
+    "applied": "Tag suggestions applied"
+  },
+  "applyDescription": {
+    "update_one": "update {{count}} existing {{bin}} in place",
+    "update_other": "update {{count}} existing {{bins}} in place",
+    "delete_one": "delete {{count}} {{bin}}",
+    "delete_other": "delete {{count}} {{bins}}",
+    "create_one": "create {{count}} new {{bin}}",
+    "create_other": "create {{count}} new {{bins}}",
+    "none": "This will apply the reorganization.",
+    "one": "This will {{a}}.",
+    "two": "This will {{a}} and {{b}}.",
+    "three": "This will {{a}}, {{b}}, and {{c}}."
+  },
+  "status": {
+    "dismissError": "Dismiss error",
+    "tryAgain": "Try again",
+    "noProposal": "No proposal yet",
+    "planCap_one": "{{plan}} allows up to {{count}} {{bin}} per reorganize run. Deselect {{overBy}} to continue.",
+    "planCap_other": "{{plan}} allows up to {{count}} {{bins}} per reorganize run. Deselect {{overBy}} to continue.",
+    "planCapUpgrade_one": "{{plan}} allows up to {{count}} {{bin}} per reorganize run. Deselect {{overBy}} to continue, or upgrade to Pro for a higher cap.",
+    "planCapUpgrade_other": "{{plan}} allows up to {{count}} {{bins}} per reorganize run. Deselect {{overBy}} to continue, or upgrade to Pro for a higher cap.",
+    "upgradeToPro": "Upgrade to Pro"
+  },
+  "preview": {
+    "proposal": "Proposal",
+    "itemWord_one": "item",
+    "itemWord_other": "items",
+    "moveWord_one": "move",
+    "moveWord_other": "moves",
+    "keptWord": "kept",
+    "sourceListLabel": "Source {{bins}} with outgoing moves",
+    "printMoveList": "Print move list",
+    "startOver": "Start over",
+    "sourceCardLabel_one": "{{name}}: {{count}} item, {{status}}",
+    "sourceCardLabel_other": "{{name}}: {{count}} items, {{status}}",
+    "destinations": " → {{n}} destinations",
+    "existingBin": "Existing {{bin}}",
+    "newBin": "New {{bin}}",
+    "itemsMovingTo": "Items moving to {{name}}",
+    "showLess": "Show less",
+    "showMore": "Show {{n}} more",
+    "multiDestination": "(×{{n}} destinations)",
+    "accept": {
+      "move_one": "Move {{count}} item",
+      "move_other": "Move {{count}} items",
+      "keep_one": "keep {{count}} {{bin}}",
+      "keep_other": "keep {{count}} {{bins}}",
+      "create_one": "create {{count}} {{bin}}",
+      "create_other": "create {{count}} {{bins}}",
+      "label": "Accept — {{parts}}"
+    },
+    "binWord_one": "{{bin}}",
+    "binWord_other": "{{bins}}"
+  },
+  "moveList": {
+    "empty": "No source {{bins}} selected",
+    "title": "Move List",
+    "counts": "{{sources}} → {{bins}} · {{items}} · {{moves}}",
+    "moveCount_one": "{{count}} move",
+    "moveCount_other": "{{count}} moves",
+    "kept": "kept",
+    "new": "new",
+    "binCount_one": "{{count}} {{bin}}",
+    "binCount_other": "{{count}} {{bins}}"
+  },
+  "tagsPreview": {
+    "noChanges": "No tag changes suggested. Try a different change level or granularity.",
+    "newTags": "New tags",
+    "newTagAria": "New tag {{tag}}",
+    "renames": "Renames",
+    "renameAria": "Rename {{from}} to {{to}}",
+    "merges": "Merges",
+    "mergeAria": "Merge into {{to}}",
+    "parentMoves": "Parent moves",
+    "topLevel": "(top level)",
+    "parentAria": "Set parent of {{tag}} to {{parent}}",
+    "parentMove": "{{tag}} → under {{parent}}",
+    "checkedCount": "{{checked}} of {{total}} {{bins}} checked",
+    "selectAll": "Select all",
+    "selectNone": "Select none"
+  },
+  "errors": {
+    "generateFailed": "Failed to generate reorganization",
+    "applyFailed": "Failed to apply reorganization",
+    "tagsGenerateFailed": "Failed to generate tag suggestions",
+    "tagsApplyFailed": "Failed to apply tag suggestions"
+  }
+}
