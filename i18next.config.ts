@@ -56,7 +56,10 @@ export default defineConfig({
     // a literal — so `ai:analyzeError.title*` preserves those four variants.
     // aiErrors.ts's mapAiError() has the same aliased-`translate` issue for its
     // four internal messages (`ai:aiErrors.*`).
+    // utils.ts's getErrorMessage() builds `errors:codes.${err.code}` from the
+    // API error code at runtime.
     preservePatterns: [
+      'errors:codes.*',
       'tour:picker.*.title',
       'tour:picker.*.summary',
       'settings:categories.*.label',
