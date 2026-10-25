@@ -10,9 +10,13 @@ import { asyncHandler } from '../../lib/asyncHandler.js';
 import { isLocationAdmin, requireMemberOrAbove } from '../../lib/binAccess.js';
 import { config } from '../../lib/config.js';
 import {
+  assertSupportedExportVersion,
+  buildAreaExportEntries,
   buildAreaPathMap,
   buildExportBinEntry,
   buildFieldIdToNameMap,
+  buildParentShortCodeMap,
+  EXPORT_FORMAT_VERSION,
   type ExportArea,
   type ExportBin,
   type ExportLocationSettings,
@@ -27,6 +31,7 @@ import {
   fetchLocationSavedViews,
   fetchLocationSettings,
   fetchLocationTagColors,
+  fetchLooseItems,
   fetchTrashedBins,
   loadBinPhotoMeta,
   MAX_EXPORT_BINS,
@@ -56,7 +61,7 @@ router.get('/locations/:id/export/zip', requireLocationMember(), requireExportAc
 
   const locationName = locationResult.rows[0].name;
   const userId = req.user!.id;
-  const [dbBins, trashedBinsRaw, tagColors, fieldDefs, fieldIdToName, areaPathMap, locationSettings, pinnedBins, savedViews, members] = await Promise.all([
+  const [dbBins, trashedBinsRaw, tagColors, fieldDefs, fieldIdToName, areaPathMap, locationSettings, pinnedBins, savedViews, members, looseItems] = await Promise.all([
     fetchLocationBins(locationId, userId),
     fetchTrashedBins(locationId, userId),
     fetchLocationTagColors(locationId),
@@ -67,7 +72,9 @@ router.get('/locations/:id/export/zip', requireLocationMember(), requireExportAc
     fetchLocationPinnedBins(locationId, userId),
     fetchLocationSavedViews(locationId, userId),
     fetchLocationMembers(locationId),
+    fetchLooseItems(locationId, userId),
   ]);
+  const parentShortCodes = buildParentShortCodeMap(dbBins, trashedBinsRaw);
 
   if (dbBins.length + trashedBinsRaw.length > MAX_EXPORT_BINS) {
     throw new ValidationError(`Export limited to ${MAX_EXPORT_BINS} bins. Use filters or export in batches.`);
@@ -107,22 +114,22 @@ router.get('/locations/:id/export/zip', requireLocationMember(), requireExportAc
   }
 
   for (const bin of dbBins) {
-    const entry: ZipBinEntry = { ...buildExportBinEntry(bin, fieldIdToName, areaPathMap), photos: [] };
+    const entry: ZipBinEntry = { ...buildExportBinEntry(bin, fieldIdToName, areaPathMap, { parentShortCodes }), photos: [] };
     await collectPhotos(bin.id, entry);
     bins.push(entry);
   }
 
   const trashedBinEntries: ZipBinEntry[] = [];
   for (const bin of trashedBinsRaw) {
-    const entry: ZipBinEntry = { ...buildExportBinEntry(bin, fieldIdToName, areaPathMap, { includeTrashed: true }), photos: [] };
+    const entry: ZipBinEntry = { ...buildExportBinEntry(bin, fieldIdToName, areaPathMap, { includeTrashed: true, parentShortCodes }), photos: [] };
     await collectPhotos(bin.id, entry);
     trashedBinEntries.push(entry);
   }
 
-  const allAreaPaths = Array.from(areaPathMap.values()).map(a => ({ path: a.path, createdBy: a.createdBy || undefined }));
+  const allAreaPaths = buildAreaExportEntries(areaPathMap, looseItems);
 
   const manifest = {
-    version: 3,
+    version: EXPORT_FORMAT_VERSION,
     format: 'openbin-zip',
     exportedAt: new Date().toISOString(),
     locationName,
@@ -131,6 +138,7 @@ router.get('/locations/:id/export/zip', requireLocationMember(), requireExportAc
     trashedBinCount: trashedBinEntries.length,
     photoCount: photosToInclude.length,
     areas: allAreaPaths.length > 0 ? allAreaPaths : undefined,
+    unassignedItems: looseItems.unassigned.length > 0 ? looseItems.unassigned : undefined,
     tagColors: tagColors.length > 0 ? tagColors : undefined,
     customFieldDefinitions: fieldDefs.length > 0 ? fieldDefs : undefined,
     pinnedBins: pinnedBins.length > 0 ? pinnedBins : undefined,
@@ -201,8 +209,10 @@ router.post('/locations/:id/import/zip', importLimiter, zipUpload, requireLocati
   }
   let manifest: {
     format?: string;
+    version?: unknown;
     locationSettings?: ExportLocationSettings;
     areas?: ExportArea[];
+    unassignedItems?: unknown;
     tagColors?: Array<{ tag: string; color: string }>;
     customFieldDefinitions?: Array<{ name: string; position: number }>;
     pinnedBins?: ExportPinnedBin[];
@@ -218,6 +228,7 @@ router.post('/locations/:id/import/zip', importLimiter, zipUpload, requireLocati
   if (manifest.format !== 'openbin-zip') {
     throw new ValidationError('Invalid ZIP format: manifest.format must be "openbin-zip"');
   }
+  assertSupportedExportVersion(manifest.version);
 
   // Read bins + trashed bins
   const binsData = files['bins.json'];
@@ -239,7 +250,9 @@ router.post('/locations/:id/import/zip', importLimiter, zipUpload, requireLocati
     visibility?: 'location' | 'private';
     customFields?: Record<string, string>;
     shortCode?: string;
+    parentShortCode?: string;
     createdBy?: string;
+    deletedAt?: string | null;
     createdAt?: string;
     updatedAt?: string;
     photos?: Array<{ id: string; filename: string; mimeType: string; zipPath: string; createdBy?: string; createdAt?: string }>;
@@ -274,14 +287,27 @@ router.post('/locations/:id/import/zip', importLimiter, zipUpload, requireLocati
   const dryRun = req.body?.dryRun === 'true' || req.body?.dryRun === true;
 
   if (dryRun) {
-    const dryRunBins: DryRunBin[] = zipBins.map(b => ({
+    const toDryRunBin = (b: ZipBinEntry): DryRunBin => ({
       id: b.id,
       shortCode: b.shortCode,
+      parentShortCode: b.parentShortCode,
       name: b.name,
       items: b.items,
       tags: b.tags,
+      notes: b.notes,
+      icon: b.icon,
+      color: b.color,
+      cardStyle: b.cardStyle,
+      visibility: b.visibility,
+      customFields: b.customFields,
+      deletedAt: b.deletedAt,
+    });
+    res.json(await buildDryRunPreview(zipBins.map(toDryRunBin), importMode, locationId, {
+      trashedBins: zipTrashedBins.map(toDryRunBin),
+      areas: manifest.areas,
+      unassignedItems: manifest.unassignedItems,
+      userId,
     }));
-    res.json(await buildDryRunPreview(dryRunBins, importMode, locationId));
     return;
   }
 
@@ -311,8 +337,9 @@ router.post('/locations/:id/import/zip', importLimiter, zipUpload, requireLocati
         visibility: bin.visibility,
         customFields: bin.customFields,
         shortCode: bin.shortCode,
+        parentShortCode: bin.parentShortCode,
         createdBy: bin.createdBy,
-        deletedAt: opts?.trashed ? ((bin as Record<string, unknown>).deletedAt as string) : undefined,
+        deletedAt: opts?.trashed ? bin.deletedAt : undefined,
         createdAt: bin.createdAt || new Date().toISOString(),
         updatedAt: bin.updatedAt || new Date().toISOString(),
         photos,
@@ -334,6 +361,7 @@ router.post('/locations/:id/import/zip', importLimiter, zipUpload, requireLocati
     customFieldDefinitions: manifest.customFieldDefinitions,
     locationSettings: manifest.locationSettings,
     areas: manifest.areas,
+    unassignedItems: manifest.unassignedItems,
     pinnedBins: manifest.pinnedBins,
     savedViews: manifest.savedViews,
     members: manifest.members,

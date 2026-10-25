@@ -3,8 +3,11 @@ import { generateUuid, getDb, query, querySync } from '../../db.js';
 import type { ExportBin } from '../exportHelpers.js';
 import {
   buildDryRunPreview,
+  collectLooseGroups,
   executeFullImportTransaction,
   lookupArea,
+  planBinImport,
+  planLooseItems,
 } from '../importTransaction.js';
 
 // ---------------------------------------------------------------------------
@@ -466,5 +469,215 @@ describe('executeFullImportTransaction', () => {
     // The original bin should still exist because replace cleanup was rolled back
     const rows = querySync("SELECT id FROM bins WHERE id = 'keep11'", []);
     expect(rows.rows).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Nested boxes and loose items
+// ---------------------------------------------------------------------------
+
+function insertBinRow(id: string, shortCode: string, name: string, extra: { parent?: string; visibility?: string; createdBy?: string; deletedAt?: string; areaId?: string } = {}) {
+  getDb().prepare(
+    'INSERT INTO bins (id, short_code, location_id, name, area_id, notes, icon, color, created_by, parent_bin_id, visibility, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  ).run(id, shortCode, LOCATION_ID, name, extra.areaId ?? null, '', '', '', extra.createdBy ?? USER_ID, extra.parent ?? null, extra.visibility ?? 'location', extra.deletedAt ?? null);
+}
+
+describe('planBinImport', () => {
+  const top = (shortCode: string, name = shortCode, extra: Partial<ExportBin> = {}) => makeBin({ id: shortCode, name, shortCode, ...extra });
+
+  it('orders top-level bins before children and resolves a payload parent', async () => {
+    const plan = await planBinImport(query, {
+      locationId: LOCATION_ID, userId: USER_ID, mode: 'merge',
+      bins: [top('KID111', 'Kid', { parentShortCode: 'PAR111' }), top('PAR111', 'Parent')],
+    });
+    expect(plan.map((e) => [e.bin.name, e.status, e.isChild])).toEqual([['Parent', 'create', false], ['Kid', 'create', true]]);
+    expect(plan[1].parent).toEqual({ kind: 'payload', shortCode: 'PAR111' });
+  });
+
+  it('flags unresolved parents: missing, self, grandchild, and a child of a child', async () => {
+    const plan = await planBinImport(query, {
+      locationId: LOCATION_ID, userId: USER_ID, mode: 'merge',
+      bins: [
+        top('PAR111', 'Parent'),
+        top('KID111', 'Kid', { parentShortCode: 'PAR111' }),
+        top('GRK111', 'Grandkid', { parentShortCode: 'KID111' }),
+        top('ORP111', 'Orphan', { parentShortCode: 'NOPE11' }),
+        top('SLF111', 'Self', { parentShortCode: 'SLF111' }),
+      ],
+    });
+    expect(plan.filter((e) => e.status === 'unresolved_parent').map((e) => e.bin.name).sort()).toEqual(['Grandkid', 'Orphan', 'Self']);
+    expect(plan.find((e) => e.bin.name === 'Grandkid')?.reason).toMatch(/can't contain bins/);
+  });
+
+  it('resolves against an existing bin when the payload parent is skipped in merge mode', async () => {
+    insertBinRow('exist1', 'PAR111', 'Existing parent');
+    const plan = await planBinImport(query, {
+      locationId: LOCATION_ID, userId: USER_ID, mode: 'merge',
+      bins: [top('PAR111', 'Parent'), top('KID111', 'Kid', { parentShortCode: 'PAR111' })],
+    });
+    expect(plan[0].status).toBe('exists');
+    expect(plan[1].status).toBe('create');
+    expect(plan[1].parent).toEqual({ kind: 'db', node: { id: 'exist1', area_id: null, visibility: 'location' } });
+  });
+
+  it('in replace mode existing bins are ignored (they are about to be deleted)', async () => {
+    insertBinRow('exist1', 'PAR111', 'Existing parent');
+    const plan = await planBinImport(query, {
+      locationId: LOCATION_ID, userId: USER_ID, mode: 'replace',
+      bins: [top('KID111', 'Kid', { parentShortCode: 'PAR111' })],
+    });
+    expect(plan[0].status).toBe('unresolved_parent');
+  });
+
+  it('an existing parent that is itself a child, or private to someone else, is unresolvable', async () => {
+    await createUser('user-2', 'other');
+    insertBinRow('top1', 'TOP111', 'Top');
+    insertBinRow('kid1', 'KID111', 'Kid', { parent: 'top1' });
+    insertBinRow('priv1', 'PRV111', 'Private', { visibility: 'private', createdBy: 'user-2' });
+    insertBinRow('mine1', 'MIN111', 'Mine', { visibility: 'private' });
+    const plan = await planBinImport(query, {
+      locationId: LOCATION_ID, userId: USER_ID, mode: 'merge',
+      bins: [
+        top('A11111', 'Under child', { parentShortCode: 'KID111' }),
+        top('B11111', 'Under foreign private', { parentShortCode: 'PRV111' }),
+        top('C11111', 'Under my private', { parentShortCode: 'MIN111' }),
+      ],
+    });
+    expect(plan.map((e) => [e.bin.name, e.status])).toEqual([
+      ['Under child', 'unresolved_parent'],
+      ['Under foreign private', 'unresolved_parent'],
+      ['Under my private', 'create'],
+    ]);
+  });
+
+  it('a live child under a trashed parent (payload or existing) is planned as trashed with the parent deletedAt', async () => {
+    insertBinRow('tp1', 'TPA111', 'Trashed existing', { deletedAt: '2025-05-05 05:05:05' });
+    const plan = await planBinImport(query, {
+      locationId: LOCATION_ID, userId: USER_ID, mode: 'merge',
+      bins: [top('L11111', 'Under existing', { parentShortCode: 'TPA111' }), top('L22222', 'Under payload', { parentShortCode: 'TPB111' })],
+      trashedBins: [top('TPB111', 'Trashed payload', { deletedAt: '2025-06-06T06:06:06.000Z' })],
+    });
+    const byName = Object.fromEntries(plan.map((e) => [e.bin.name, e]));
+    expect(byName['Under existing'].deletedAt).toBe('2025-05-05 05:05:05');
+    expect(byName['Under payload'].deletedAt).toBe('2025-06-06T06:06:06.000Z');
+  });
+
+  it('a trashed bin without deletedAt is still imported trashed', async () => {
+    const plan = await planBinImport(query, { locationId: LOCATION_ID, mode: 'merge', bins: [], trashedBins: [top('T11111')] });
+    expect(plan[0].deletedAt).not.toBeNull();
+  });
+
+  it('merge treats a repeated short code in the payload as already existing, like the real insert does', async () => {
+    const plan = await planBinImport(query, { locationId: LOCATION_ID, mode: 'merge', bins: [top('DUP111', 'One'), top('DUP111', 'Two')] });
+    expect(plan.map((e) => e.status)).toEqual(['create', 'exists']);
+  });
+
+  it('validates every bin', async () => {
+    await expect(planBinImport(query, { locationId: LOCATION_ID, mode: 'merge', bins: [makeBin({ id: 'x', name: '' })] })).rejects.toThrow(/name is required/i);
+  });
+});
+
+describe('dry run equals import', () => {
+  it('has the same skip counts as the real import, including children and loose items', async () => {
+    insertBinRow('exist1', 'EXI111', 'Existing');
+    const bins = [
+      makeBin({ id: 'a', name: 'Existing', shortCode: 'EXI111' }),
+      makeBin({ id: 'b', name: 'Under existing', shortCode: 'UND111', parentShortCode: 'EXI111' }),
+      makeBin({ id: 'c', name: 'Orphan', shortCode: 'ORP111', parentShortCode: 'NOPE11' }),
+      makeBin({ id: 'd', name: 'Fresh', shortCode: 'FRE111' }),
+    ];
+    const trashedBins = [makeBin({ id: 'e', name: 'Trashed kid', shortCode: 'TKD111', parentShortCode: 'FRE111', deletedAt: '2025-01-01T00:00:00.000Z' })];
+    const areas = [{ path: 'Garage', items: ['Tape', 'Saw'] }];
+    const unassignedItems = ['Rope'];
+
+    const dry = await buildDryRunPreview(bins, 'merge', LOCATION_ID, { trashedBins, areas, unassignedItems, userId: USER_ID });
+    const real = await executeFullImportTransaction({ locationId: LOCATION_ID, userId: USER_ID, isAdmin: true, importMode: 'merge', bins, trashedBins, areas, unassignedItems });
+
+    expect(dry.binsSkippedUnresolvedParent).toBe(real.binsSkippedUnresolvedParent);
+    expect(dry.binsSkippedUnresolvedParent).toBe(1);
+    expect(dry.toCreate).toHaveLength(real.binsImported + real.trashedBinsImported);
+    expect(dry.toSkip).toHaveLength(real.binsSkipped + real.trashedBinsSkipped + real.binsSkippedUnresolvedParent);
+    expect(dry.looseItemsToCreate).toBe(real.looseItemsImported);
+    expect(dry.looseItemsToSkip).toBe(real.looseItemsSkipped);
+    expect(dry.toCreate.filter((c) => c.trashed)).toHaveLength(real.trashedBinsImported);
+  });
+});
+
+describe('loose items', () => {
+  async function insertLoose(name: string, areaId: string | null) {
+    await query('INSERT INTO bin_items (id, bin_id, area_id, location_id, name, position) VALUES ($1, NULL, $2, $3, $4, 0)', [generateUuid(), areaId, LOCATION_ID, name]);
+  }
+
+  it('collectLooseGroups merges entries of the same area, normalises paths and drops junk', () => {
+    const groups = collectLooseGroups(
+      [{ path: ' Garage/ Shelf ', items: ['A', { name: 'B', quantity: 2.9 }] }, { path: 'Garage / Shelf', items: ['C', ' ', { name: 'D', quantity: 0 }] }, { path: 'NoItems' }],
+      ['U1'],
+    );
+    expect(groups).toEqual([
+      { path: 'Garage / Shelf', items: [
+        { name: 'A', quantity: null, position: 0 },
+        { name: 'B', quantity: 2, position: 1 },
+        { name: 'C', quantity: null, position: 2 },
+        { name: 'D', quantity: 1, position: 3 },
+      ] },
+      { path: '', items: [{ name: 'U1', quantity: null, position: 0 }] },
+    ]);
+    expect(() => collectLooseGroups(undefined, 'nope')).toThrow(/array/);
+  });
+
+  it('merge: an area that does not exist yet has nothing to match; unassigned matches unassigned only', async () => {
+    const garage = generateUuid();
+    await query('INSERT INTO areas (id, location_id, name, parent_id, created_by) VALUES ($1, $2, $3, NULL, $4)', [garage, LOCATION_ID, 'Garage', USER_ID]);
+    await insertLoose('Tape', garage);
+    await insertLoose('Rope', null);
+    const plan = await planLooseItems(query, {
+      locationId: LOCATION_ID, mode: 'merge',
+      groups: collectLooseGroups([{ path: 'Garage', items: ['Rope', 'Tape'] }, { path: 'Attic', items: ['Tape'] }], ['Tape', 'Rope']),
+    });
+    expect(plan.groups.map((g) => [g.path, g.create.map((i) => i.name), g.skipped])).toEqual([
+      ['Garage', ['Rope'], 1],
+      ['Attic', ['Tape'], 0],
+      ['', ['Tape'], 1],
+    ]);
+  });
+
+  it('replace never skips and import deletes the old loose items first', async () => {
+    await insertLoose('Old', null);
+    const result = await executeFullImportTransaction({
+      locationId: LOCATION_ID, userId: USER_ID, isAdmin: true, importMode: 'replace', bins: [], unassignedItems: ['Old', 'New'],
+    });
+    expect(result.looseItemsImported).toBe(2);
+    expect(result.looseItemsSkipped).toBe(0);
+    const rows = querySync('SELECT name, bin_id, area_id, location_id FROM bin_items WHERE location_id = $1 ORDER BY position', [LOCATION_ID]);
+    expect(rows.rows).toEqual([
+      { name: 'Old', bin_id: null, area_id: null, location_id: LOCATION_ID },
+      { name: 'New', bin_id: null, area_id: null, location_id: LOCATION_ID },
+    ]);
+  });
+
+  it('replace is admin only and leaves nothing behind when refused', async () => {
+    await insertLoose('Keep', null);
+    await expect(executeFullImportTransaction({
+      locationId: LOCATION_ID, userId: USER_ID, isAdmin: false, importMode: 'replace', bins: [], unassignedItems: ['X'],
+    })).rejects.toThrow(/admin/i);
+    expect(querySync('SELECT name FROM bin_items WHERE location_id = $1', [LOCATION_ID]).rows).toEqual([{ name: 'Keep' }]);
+  });
+
+  it('an area that only holds loose items is created', async () => {
+    await executeFullImportTransaction({
+      locationId: LOCATION_ID, userId: USER_ID, isAdmin: false, importMode: 'merge', bins: [], areas: [{ path: 'Only / Loose', items: ['Thing'] }],
+    });
+    expect(await lookupArea(LOCATION_ID, 'Only / Loose')).not.toBeNull();
+    const row = querySync('SELECT area_id FROM bin_items WHERE location_id = $1', [LOCATION_ID]).rows[0] as { area_id: string };
+    expect(row.area_id).toBe(await lookupArea(LOCATION_ID, 'Only / Loose'));
+  });
+
+  it('clamps bin item quantities to positive integers', async () => {
+    await executeFullImportTransaction({
+      locationId: LOCATION_ID, userId: USER_ID, isAdmin: false, importMode: 'merge',
+      bins: [makeBin({ id: 'q1', name: 'Q', items: [{ name: 'neg', quantity: -3 }, { name: 'frac', quantity: 2.8 }, { name: 'ok', quantity: 4 }, 'none'] })],
+    });
+    const rows = querySync('SELECT name, quantity FROM bin_items WHERE location_id = $1 ORDER BY position', [LOCATION_ID]);
+    expect(rows.rows).toEqual([{ name: 'neg', quantity: 1 }, { name: 'frac', quantity: 2 }, { name: 'ok', quantity: 4 }, { name: 'none', quantity: null }]);
   });
 });
