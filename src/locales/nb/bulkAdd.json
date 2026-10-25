@@ -1,0 +1,86 @@
+{
+  "grid": {
+    "title": "Én {{bin}} per stabel",
+    "hintSingle": "Legg til flere bilder for å opprette flere {{bins}} samtidig.",
+    "hintMany": "Dra bilder oppå hverandre for å legge dem i samme {{bin}}.",
+    "movingHint": "Flytter bilde {{index}}. Trykk på et annet bilde, eller {{key}} for å avbryte.",
+    "escKey": "Esc",
+    "moveToNew": "Flytt bilde {{index}} til en ny {{bin}}",
+    "optional": "· valgfritt",
+    "back": "Tilbake",
+    "continue": "Fortsett",
+    "add": "Legg til",
+    "addMorePhotos": "Legg til flere bilder",
+    "splitZone": "Slipp her for å legge bildet i sin egen {{bin}}",
+    "stackLabel_one": "{{bin}} {{number}}, {{count}} bilde",
+    "stackLabel_other": "{{bin}} {{number}}, {{count}} bilder",
+    "photoTile": "Bilde {{index}} — dra for å gruppere med et annet bilde",
+    "photoAlt": "Bilde {{index}}",
+    "removePhoto": "Fjern bilde {{index}}",
+    "joined": "Slått sammen",
+    "split": "Delt opp",
+    "undo": "Angre",
+    "announce": {
+      "canceled": "Flytting avbrutt.",
+      "moving": "Flytter bilde {{index}}. Trykk på et annet bilde for å flytte det, eller trykk Escape for å avbryte.",
+      "sameBin": "Det bildet er i samme {{bin}}. Velg en annen {{bin}}.",
+      "targetFull": "Valgt {{bin}} er full (maks {{max}} bilder).",
+      "moved": "Flyttet bilde {{index}}.",
+      "movedToNew": "Bilde {{index}} flyttet til en ny {{bin}}."
+    }
+  },
+  "correction": {
+    "limitReached": "Du kan fortsatt redigere alle feltene nedenfor.",
+    "placeholder": "Beskriv eventuelt hva som skal rettes...",
+    "submit": "Send korrigering",
+    "reanalyze": "Analyser på nytt"
+  },
+  "retryBand": {
+    "scan": "Skann med AI",
+    "continueManually": "Fortsett manuelt"
+  },
+  "form": {
+    "name": "Navn",
+    "namePlaceholder": "f.eks. Julepynt",
+    "moreOptions": "Flere valg",
+    "notes": "Notater",
+    "notesPlaceholder": "Notater om denne {{bin}}...",
+    "tags": "Stikkord",
+    "icon": "Ikon",
+    "color": "Farge"
+  },
+  "review": {
+    "previewAlt": "Forhåndsvisning",
+    "previewAltMany": "{{photoCount}} bilder, viser det første",
+    "next": "Neste",
+    "creating": "Oppretter...",
+    "createBin": "Opprett {{bin}}",
+    "reviewAll": "Gå gjennom alle",
+    "adjustAi": "Juster AI-forslag",
+    "setUpAi": "Sett opp AI",
+    "backToSummary": "Tilbake til oppsummering",
+    "back": "Tilbake",
+    "done": "Ferdig"
+  },
+  "summary": {
+    "creatingProgress": "Oppretter {{done}}/{{total}}...",
+    "allCreated": "Alle {{bins}} er opprettet!",
+    "createTitle_one": "Opprett {{count}} {{bin}}",
+    "createTitle_other": "Opprett {{count}} {{bins}}",
+    "tapToEdit": "Trykk på en {{bin}} for å redigere før du oppretter.",
+    "unnamedSkipped_one": "{{count}} {{bin}} uten navn blir ikke opprettet.",
+    "unnamedSkipped_other": "{{count}} {{bins}} uten navn blir ikke opprettet.",
+    "untitled": "Navnløs {{bin}}",
+    "editNamed": "Rediger {{name}}",
+    "editUntitled": "Rediger {{bin}} uten navn {{number}}",
+    "itemCount_one": "{{count}} gjenstand",
+    "itemCount_other": "{{count}} gjenstander",
+    "photoCount": "· {{photoCount}} bilder",
+    "needsName": "· trenger et navn",
+    "failedTitle_one": "Kunne ikke opprette {{count}} {{bin}}",
+    "failedTitle_other": "Kunne ikke opprette {{count}} {{bins}}",
+    "createAll_one": "Opprett alle ({{count}} {{bin}})",
+    "createAll_other": "Opprett alle ({{count}} {{bins}})",
+    "retryFailed": "Prøv {{failedCount}} mislykkede på nytt"
+  }
+}

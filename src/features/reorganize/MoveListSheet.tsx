@@ -1,4 +1,5 @@
 import '@/features/print/print.css';
+import { useTranslation } from 'react-i18next';
 import { getAreaPath } from '@/features/areas/useAreas';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
@@ -23,11 +24,14 @@ export function MoveListSheet({
   totalDestinationBins,
   summary,
 }: MoveListSheetProps) {
-  const t = useTerminology();
+  const { t, i18n } = useTranslation('reorganize');
+  const term = useTerminology();
 
   if (sourceCards.length === 0) {
     return (
-      <div className="item-sheet-empty">No source {t.bins} selected</div>
+      <div className="item-sheet-empty">
+        {t('moveList.empty', { defaultValue: 'No source {{bins}} selected', bins: term.bins })}
+      </div>
     );
   }
 
@@ -35,11 +39,31 @@ export function MoveListSheet({
     <div className="item-sheet">
       <div className="move-list-header">
         <div className="move-list-title-row">
-          <span className="move-list-title">Move List</span>
-          <span className="move-list-date">{new Date().toLocaleDateString()}</span>
+          <span className="move-list-title">{t('moveList.title', { defaultValue: 'Move List' })}</span>
+          <span className="move-list-date">{new Date().toLocaleDateString(i18n.language)}</span>
         </div>
         <div className="move-list-counts">
-          {sourceCards.length} → {totalDestinationBins} {totalDestinationBins === 1 ? t.bin : t.bins} · {totalItems} item{totalItems !== 1 ? 's' : ''} · {totalMoves} move{totalMoves !== 1 ? 's' : ''}
+          {t('moveList.counts', {
+            defaultValue: '{{sources}} → {{bins}} · {{items}} · {{moves}}',
+            sources: sourceCards.length,
+            bins: t('moveList.binCount', {
+              count: totalDestinationBins,
+              defaultValue_one: '{{count}} {{bin}}',
+              defaultValue_other: '{{count}} {{bins}}',
+              bin: term.bin,
+              bins: term.bins,
+            }),
+            items: t('itemCount', {
+              count: totalItems,
+              defaultValue_one: '{{count}} item',
+              defaultValue_other: '{{count}} items',
+            }),
+            moves: t('moveList.moveCount', {
+              count: totalMoves,
+              defaultValue_one: '{{count}} move',
+              defaultValue_other: '{{count}} moves',
+            }),
+          })}
         </div>
         {summary && <p className="move-list-summary">{summary}</p>}
       </div>
@@ -57,6 +81,7 @@ interface MoveListSectionProps {
 }
 
 function MoveListSection({ card, areas }: MoveListSectionProps) {
+  const { t } = useTranslation('reorganize');
   const bin = card.sourceBin;
   const Icon = bin.icon ? resolveIcon(bin.icon) : null;
   const colorPreset = bin.color ? resolveColor(bin.color) : undefined;
@@ -89,11 +114,13 @@ function MoveListSection({ card, areas }: MoveListSectionProps) {
             </>
           )}
           <span className="item-sheet-item-count">
-            {card.preserved ? 'will be kept' : 'will be emptied'}
+            {card.preserved
+              ? t('willBeKept', { defaultValue: 'will be kept' })
+              : t('willBeEmptied', { defaultValue: 'will be emptied' })}
           </span>
           <span className="move-list-meta-sep" aria-hidden="true">·</span>
           <span className="move-list-meta-count">
-            {itemTotal} item{itemTotal !== 1 ? 's' : ''}
+            {t('itemCount', { count: itemTotal, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })}
           </span>
         </div>
       </div>
@@ -121,6 +148,7 @@ function MoveListCluster({
   binId: string;
   index: number;
 }) {
+  const { t } = useTranslation('reorganize');
   const itemCount = cluster.items.length;
   return (
     <div className="move-list-cluster" data-testid={`move-list-cluster-${binId}-${index}`}>
@@ -128,10 +156,12 @@ function MoveListCluster({
         <span className="move-list-arrow" aria-hidden="true">→</span>
         <span className="move-list-dest-pill">{cluster.destinationName}</span>
         <span className={cluster.destinationKept ? 'move-list-status-tag move-list-status-kept' : 'move-list-status-tag move-list-status-new'}>
-          {cluster.destinationKept ? 'kept' : 'new'}
+          {cluster.destinationKept
+            ? t('moveList.kept', { defaultValue: 'kept' })
+            : t('moveList.new', { defaultValue: 'new' })}
         </span>
         <span className="move-list-cluster-count">
-          {itemCount} item{itemCount !== 1 ? 's' : ''}
+          {t('itemCount', { count: itemCount, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })}
         </span>
         {cluster.destinationTags.length > 0 && (
           <span className="move-list-cluster-tags">

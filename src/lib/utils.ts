@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import i18n from './i18n';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,24 +38,8 @@ export function haptic(pattern: number | number[] = 10) {
   }
 }
 
-/**
- * Extract a human-readable message from an unknown catch value.
- *
- * For an ApiError whose code has a translation in `errors:codes.*`, and when
- * the UI language is not English, returns that generic translated message.
- * English keeps the server's (more specific) message. VALIDATION_ERROR and
- * unknown codes always fall through to the server text.
- */
+/** Extract a human-readable message from an unknown catch value. */
 export function getErrorMessage(err: unknown, fallback = 'Something went wrong'): string {
-  // Duck-typed on `code` instead of `instanceof ApiError`: importing api.ts here
-  // would create a cycle and breaks tests that partially mock '@/lib/api'.
-  const code = err instanceof Error ? (err as { code?: unknown }).code : undefined;
-  if (typeof code === 'string' && code && !i18n.language?.startsWith('en')) {
-    const key = `errors:codes.${code}`;
-    // Dynamic key (the code comes from the server), so bypass the typed-key overloads.
-    const translate = i18n.t.bind(i18n) as (k: string) => string;
-    if (i18n.exists(key)) return translate(key);
-  }
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
   return fallback;

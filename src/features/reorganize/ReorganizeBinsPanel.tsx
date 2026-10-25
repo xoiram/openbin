@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -34,8 +35,9 @@ interface Props {
 }
 
 export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }: Props) {
+  const { t } = useTranslation('reorganize');
   const navigate = useNavigate();
-  const t = useTerminology();
+  const term = useTerminology();
   const { showToast } = useToast();
   const { isPlus, planInfo } = usePlan();
 
@@ -128,23 +130,32 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
     apply(selection.selectedBins, selectedAreaId ?? undefined).then((outcome) => {
       if (!outcome.success) return;
       const parts: string[] = [];
-      if (planCounts.kept > 0) parts.push(`${planCounts.kept} kept`);
-      if (planCounts.created > 0) parts.push(`${planCounts.created} created`);
-      const summary = parts.length > 0 ? ` — ${parts.join(', ')}` : '';
+      if (planCounts.kept > 0) {
+        parts.push(t('binsPanel.appliedKept', { defaultValue: '{{n}} kept', n: planCounts.kept }));
+      }
+      if (planCounts.created > 0) {
+        parts.push(t('binsPanel.appliedCreated', { defaultValue: '{{n}} created', n: planCounts.created }));
+      }
       showToast({
-        message: `Reorganization applied${summary}`,
+        message:
+          parts.length > 0
+            ? t('binsPanel.appliedWithSummary', {
+                defaultValue: 'Reorganization applied — {{summary}}',
+                summary: parts.join(', '),
+              })
+            : t('binsPanel.applied', { defaultValue: 'Reorganization applied' }),
         variant: 'success',
         action:
           outcome.newBinIds.length > 0
             ? {
-                label: 'Print labels',
+                label: t('binsPanel.printLabels', { defaultValue: 'Print labels' }),
                 onClick: () => navigate(`/print?ids=${outcome.newBinIds.join(',')}`),
               }
             : undefined,
       });
       navigate('/bins');
     });
-  }, [apply, selection.selectedBins, selectedAreaId, navigate, showToast, planCounts]);
+  }, [apply, selection.selectedBins, selectedAreaId, navigate, showToast, planCounts, t]);
 
   const handleCancel = useCallback(() => {
     if (isStreaming) cancel();
@@ -168,15 +179,25 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
         fullWidth
       >
         <Sparkles className="h-5 w-5 mr-2.5" />
-        Reorganize {selection.selectedIds.size}{' '}
-        {selection.selectedIds.size === 1 ? t.bin : t.bins}
+        {t('binsPanel.submit', {
+          count: selection.selectedIds.size,
+          bin: term.bin,
+          bins: term.bins,
+          defaultValue_one: 'Reorganize {{count}} {{bin}}',
+          defaultValue_other: 'Reorganize {{count}} {{bins}}',
+        })}
       </Button>
 
       {selection.selectedIds.size >= 2 && !overCap && (
         <div className="text-[12px] text-[var(--text-tertiary)] text-center -mt-2 flex flex-col items-center gap-0.5">
           <span>
-            {itemCount} item{itemCount !== 1 ? 's' : ''} across {selection.selectedIds.size}{' '}
-            {t.bins}
+            {t('itemsAcross', {
+              count: itemCount,
+              binCount: selection.selectedIds.size,
+              bins: term.bins,
+              defaultValue_one: '{{count}} item across {{binCount}} {{bins}}',
+              defaultValue_other: '{{count}} items across {{binCount}} {{bins}}',
+            })}
           </span>
           {__EE__ ? (
             <Suspense fallback={<CreditCost cost={reorganizeWeight(selection.selectedIds.size)} />}>
@@ -213,9 +234,9 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
           label={
             isStreaming
               ? retryCount > 0
-                ? `Retrying (attempt ${retryCount + 1} of 3)`
-                : `Reorganizing ${t.bins}`
-              : 'Complete'
+                ? t('retrying', { defaultValue: 'Retrying (attempt {{attempt}} of 3)', attempt: retryCount + 1 })
+                : t('binsPanel.progress', { defaultValue: 'Reorganizing {{bins}}', bins: term.bins })
+              : t('binsPanel.complete', { defaultValue: 'Complete' })
           }
           onCancel={isStreaming ? handleCancel : undefined}
         />
@@ -240,16 +261,22 @@ export function ReorganizeBinsActionPanel({ selection, areas, form, reorganize }
         </Card>
       ) : !showProgress && !error && !applyError ? (
         <ReorganizeEmptyState
-          message={`Select at least 2 ${t.bins} and click Reorganize to let AI suggest a better organization.`}
+          message={t('binsPanel.emptyState', {
+            defaultValue: 'Select at least 2 {{bins}} and click Reorganize to let AI suggest a better organization.',
+            bins: term.bins,
+          })}
         />
       ) : null}
 
       <ReorganizeConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Apply reorganization?"
-        description={`${formatApplyDescription(planCounts, t.bin, t.bins)} This cannot be undone.`}
-        confirmLabel="Apply reorganization"
+        title={t('binsPanel.confirmTitle', { defaultValue: 'Apply reorganization?' })}
+        description={t('binsPanel.confirmDescription', {
+          defaultValue: '{{summary}} This cannot be undone.',
+          summary: formatApplyDescription(planCounts, term.bin, term.bins, t),
+        })}
+        confirmLabel={t('binsPanel.confirmLabel', { defaultValue: 'Apply reorganization' })}
         confirmVariant="destructive"
         isApplying={isApplying}
         onConfirm={() => {

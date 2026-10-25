@@ -1,8 +1,11 @@
+import type { TFunction } from 'i18next';
 import { Check, Images, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { TourLauncher } from '@/features/tour/TourLauncher';
-import { cn, focusRing, pluralize } from '@/lib/utils';
+import { useTerminology } from '@/lib/terminology';
+import { cn, focusRing } from '@/lib/utils';
 import { CameraStartScreen } from './CameraStartScreen';
 import { setCapturedPhotos, setCapturedReturnTarget } from './capturedPhotos';
 import { FirstRunCoachmark, HelpButton } from './guidance/CameraGuidance';
@@ -11,14 +14,16 @@ import { ThumbnailItem } from './ThumbnailItem';
 import { useCaptureGrouping } from './useCaptureGrouping';
 import { Viewfinder } from './Viewfinder';
 
-function viewfinderHint(currentGroup: number, photosInCurrentGroup: number): string {
-  if (currentGroup === 0 && photosInCurrentGroup === 0) return 'tap shutter to capture';
-  if (currentGroup === 0 && photosInCurrentGroup > 0) return 'keep shooting — same bin';
-  if (currentGroup > 0 && photosInCurrentGroup === 0) return 'new bin — aim & shoot';
-  return 'Done when finished';
+function viewfinderHint(t: TFunction<'capture'>, bin: string, currentGroup: number, photosInCurrentGroup: number): string {
+  if (currentGroup === 0 && photosInCurrentGroup === 0) return t('hints.tapShutter', { defaultValue: 'tap shutter to capture' });
+  if (currentGroup === 0 && photosInCurrentGroup > 0) return t('hints.keepShooting', { defaultValue: 'keep shooting — same {{bin}}', bin });
+  if (currentGroup > 0 && photosInCurrentGroup === 0) return t('hints.newBin', { defaultValue: 'new {{bin}} — aim & shoot', bin });
+  return t('hints.doneWhenFinished', { defaultValue: 'Done when finished' });
 }
 
 export function CapturePageBulkGroup() {
+  const { t } = useTranslation('capture');
+  const term = useTerminology();
   const navigate = useNavigate();
   const {
     videoRef,
@@ -41,7 +46,13 @@ export function CapturePageBulkGroup() {
 
   function handleClose() {
     if (photos.length > 0) {
-      const ok = window.confirm(`Discard ${pluralize(photos.length, 'photo')}?`);
+      const ok = window.confirm(
+        t('discardConfirm', {
+          count: photos.length,
+          defaultValue_one: 'Discard {{count}} photo?',
+          defaultValue_other: 'Discard {{count}} photos?',
+        }),
+      );
       if (!ok) return;
     }
     navigate(-1);
@@ -106,7 +117,7 @@ export function CapturePageBulkGroup() {
                 focusRing,
                 'h-8 w-8 flex items-center justify-center text-white/90 hover:text-white focus-visible:ring-offset-2 focus-visible:ring-offset-black',
               )}
-              aria-label="Close"
+              aria-label={t('close', { defaultValue: 'Close' })}
             >
               <X className="h-5 w-5" />
             </button>
@@ -115,7 +126,13 @@ export function CapturePageBulkGroup() {
               aria-live="polite"
               className="text-[11px] font-medium text-white/90 tracking-wide"
             >
-              Bin #{currentGroup + 1} · {pluralize(photosInCurrentGroup, 'photo')}
+              {t('bulk.groupStatus', {
+                count: photosInCurrentGroup,
+                index: currentGroup + 1,
+                defaultValue_one: '{{Bin}} #{{index}} · {{count}} photo',
+                defaultValue_other: '{{Bin}} #{{index}} · {{count}} photos',
+                Bin: term.Bin,
+              })}
             </div>
 
             <div className="flex items-center gap-2">
@@ -128,7 +145,7 @@ export function CapturePageBulkGroup() {
                   focusRing,
                   'h-8 w-8 flex items-center justify-center text-white/90 hover:text-white focus-visible:ring-offset-2 focus-visible:ring-offset-black',
                 )}
-                aria-label="Open photo library"
+                aria-label={t('bulk.openLibrary', { defaultValue: 'Open photo library' })}
               >
                 <Images className="h-5 w-5" />
               </button>
@@ -144,7 +161,7 @@ export function CapturePageBulkGroup() {
             />
           </div>
 
-          <Viewfinder hint={viewfinderHint(currentGroup, photosInCurrentGroup)} />
+          <Viewfinder hint={viewfinderHint(t, term.bin, currentGroup, photosInCurrentGroup)} />
 
           {/* Photo strip */}
           <div
@@ -153,7 +170,7 @@ export function CapturePageBulkGroup() {
           >
             {photos.length === 0 ? (
               <div className="px-3 py-3 text-[12px] text-white/40 italic">
-                No photos yet
+                {t('noPhotosYet', { defaultValue: 'No photos yet' })}
               </div>
             ) : (
               /* Outer wrapper is <div> not <ul>: groups are visual clusters; only photo <li>s are listitems */
@@ -193,7 +210,7 @@ export function CapturePageBulkGroup() {
               type="button"
               disabled={photos.length === 0}
               onClick={handleDone}
-              aria-label="Done"
+              aria-label={t('done', { defaultValue: 'Done' })}
               className={cn(
                 focusRing,
                 'w-[54px] text-[13px] focus-visible:ring-offset-2 focus-visible:ring-offset-black',
@@ -202,7 +219,7 @@ export function CapturePageBulkGroup() {
                   : 'font-semibold text-white hover:text-white/90',
               )}
             >
-              Done
+              {t('done', { defaultValue: 'Done' })}
             </button>
 
             <ShutterButton
@@ -215,7 +232,7 @@ export function CapturePageBulkGroup() {
               disabled={photosInCurrentGroup === 0}
               onClick={nextGroup}
               data-tour="capture-grouping"
-              aria-label="Next bin"
+              aria-label={t('bulk.nextBin', { defaultValue: 'Next {{bin}}', bin: term.bin })}
               className={cn(
                 focusRing,
                 'w-[54px] text-[9px] leading-[1.1] flex flex-col items-center gap-[1px] focus-visible:ring-offset-2 focus-visible:ring-offset-black',
@@ -225,8 +242,8 @@ export function CapturePageBulkGroup() {
               )}
             >
               <Check className="h-3 w-3" aria-hidden="true" />
-              <span>Next</span>
-              <span>bin</span>
+              <span>{t('bulk.nextBinLine1', { defaultValue: 'Next' })}</span>
+              <span>{t('bulk.nextBinLine2', { defaultValue: '{{bin}}', bin: term.bin })}</span>
             </button>
           </div>
         </>

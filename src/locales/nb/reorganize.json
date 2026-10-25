@@ -1,0 +1,189 @@
+{
+  "options": "Valg",
+  "auto": "Auto",
+  "additionalInstructions": "Tilleggsinstruksjoner",
+  "regenerate": "Generer på nytt",
+  "apply": "Bruk",
+  "applying": "Tar i bruk…",
+  "retrying": "Prøver igjen (forsøk {{attempt}} av 3)",
+  "willBeKept": "beholdes",
+  "willBeEmptied": "tømmes",
+  "itemCount_one": "{{count}} gjenstand",
+  "itemCount_other": "{{count}} gjenstander",
+  "itemsAcross_one": "{{count}} gjenstand fordelt på {{binCount}} {{bins}}",
+  "itemsAcross_other": "{{count}} gjenstander fordelt på {{binCount}} {{bins}}",
+  "page": {
+    "title": "Reorganiser",
+    "upgradeDescription": "AI-drevet reorganisering av {{bin}} er tilgjengelig i Pro-abonnementet.",
+    "tagsMode": "Stikkord"
+  },
+  "binsOptions": {
+    "maxBins": "Antall {{bins}}",
+    "itemsPerBin": "Gjenstander per {{bin}}",
+    "min": "Min",
+    "max": "Maks",
+    "maxItemsPerBin": "Maks gjenstander per {{bin}}",
+    "notesPlaceholder": "f.eks. Hold kjøkkenutstyr adskilt fra garasjeverktøy",
+    "itemsAcrossSelected_one": "{{count}} gjenstand i valgte {{bins}}",
+    "itemsAcrossSelected_other": "{{count}} gjenstander i valgte {{bins}}",
+    "rangeError": "Min må være mindre enn maks",
+    "maxBinsError": "Må være minst 1",
+    "changeLevel": {
+      "legend": "Endringsnivå",
+      "conservative": "Lett",
+      "moderate": "Moderat",
+      "aggressive": "Grundig",
+      "hint": "Hvor mye AI-en kan omstrukturere {{bins}}"
+    },
+    "grouping": {
+      "legend": "Gruppering",
+      "broad": "Bred",
+      "medium": "Middels",
+      "specific": "Spesifikk",
+      "hint": "Hvor snevert gjenstandene kategoriseres"
+    },
+    "unmatched": {
+      "legend": "Gjenstander uten treff",
+      "bestFit": "Beste treff",
+      "multiBin": "Plasser i flere",
+      "miscBin": "Diverse-{{bin}}",
+      "hint": "Hva som skjer med gjenstander som ikke passer naturlig inn"
+    },
+    "duplicates": {
+      "legend": "Duplikater",
+      "forceSingle": "Kun én {{bin}}",
+      "allow": "Tillat kopier"
+    },
+    "outliers": {
+      "legend": "Avvikende gjenstander",
+      "forceClosest": "Nærmeste treff",
+      "dedicated": "Egen {{bin}}"
+    }
+  },
+  "tagsOptions": {
+    "changeLevel": "Endringsnivå",
+    "granularity": "Stikkordsdetaljnivå",
+    "maxTagsPerBin": "Maks stikkord per {{bin}}",
+    "notesPlaceholder": "f.eks. vektlegg kjøkkenkategorier",
+    "levels": {
+      "additive": "Tillegg",
+      "moderate": "Moderat",
+      "full": "Full"
+    },
+    "hints": {
+      "additive": "Legg til eller fjern stikkord på {{bins}} — ikke rør ordforrådet",
+      "moderate": "Gi også nye navn, slå sammen duplikater og foreslå overordnede",
+      "full": "Kraftig omstrukturering — slå sammen bredt og fjern feilaktige stikkord"
+    }
+  },
+  "binsPanel": {
+    "submit_one": "Reorganiser {{count}} {{bin}}",
+    "submit_other": "Reorganiser {{count}} {{bins}}",
+    "progress": "Reorganiserer {{bins}}",
+    "complete": "Fullført",
+    "emptyState": "Velg minst 2 {{bins}} og klikk Reorganiser for å la AI foreslå en bedre organisering.",
+    "confirmTitle": "Ta i bruk reorganiseringen?",
+    "confirmDescription": "{{summary}} Dette kan ikke angres.",
+    "confirmLabel": "Ta i bruk reorganisering",
+    "appliedKept": "{{n}} beholdt",
+    "appliedCreated": "{{n}} opprettet",
+    "applied": "Reorganisering tatt i bruk",
+    "appliedWithSummary": "Reorganisering tatt i bruk — {{summary}}",
+    "printLabels": "Skriv ut etiketter"
+  },
+  "tagsPanel": {
+    "submit_one": "Foreslå stikkord for {{count}} {{bin}}",
+    "submit_other": "Foreslå stikkord for {{count}} {{bins}}",
+    "progress": "Analyserer stikkord",
+    "emptyState": "Velg {{bins}} og klikk Foreslå stikkord for å la AI foreslå en bedre inndeling.",
+    "confirmTitle": "Ta i bruk stikkordforslagene?",
+    "confirmDescription": "Dette oppdaterer valgte {{bins}} og oppretter/endrer navn på stikkord. Dette kan ikke angres automatisk.",
+    "applied": "Stikkordforslag tatt i bruk"
+  },
+  "applyDescription": {
+    "update_one": "oppdatere {{count}} eksisterende {{bin}} på stedet",
+    "update_other": "oppdatere {{count}} eksisterende {{bins}} på stedet",
+    "delete_one": "slette {{count}} {{bin}}",
+    "delete_other": "slette {{count}} {{bins}}",
+    "create_one": "opprette {{count}} ny {{bin}}",
+    "create_other": "opprette {{count}} nye {{bins}}",
+    "none": "Dette tar i bruk reorganiseringen.",
+    "one": "Dette vil {{a}}.",
+    "two": "Dette vil {{a}} og {{b}}.",
+    "three": "Dette vil {{a}}, {{b}} og {{c}}."
+  },
+  "status": {
+    "dismissError": "Lukk feilmelding",
+    "tryAgain": "Prøv igjen",
+    "noProposal": "Ingen forslag ennå",
+    "planCap_one": "{{plan}} tillater opptil {{count}} {{bin}} per reorganisering. Fjern {{overBy}} fra utvalget for å fortsette.",
+    "planCap_other": "{{plan}} tillater opptil {{count}} {{bins}} per reorganisering. Fjern {{overBy}} fra utvalget for å fortsette.",
+    "planCapUpgrade_one": "{{plan}} tillater opptil {{count}} {{bin}} per reorganisering. Fjern {{overBy}} fra utvalget for å fortsette, eller oppgrader til Pro for en høyere grense.",
+    "planCapUpgrade_other": "{{plan}} tillater opptil {{count}} {{bins}} per reorganisering. Fjern {{overBy}} fra utvalget for å fortsette, eller oppgrader til Pro for en høyere grense.",
+    "upgradeToPro": "Oppgrader til Pro"
+  },
+  "preview": {
+    "proposal": "Forslag",
+    "itemWord_one": "gjenstand",
+    "itemWord_other": "gjenstander",
+    "moveWord_one": "flytting",
+    "moveWord_other": "flyttinger",
+    "keptWord": "beholdt",
+    "sourceListLabel": "Kilde-{{bins}} med utgående flyttinger",
+    "printMoveList": "Skriv ut flytteliste",
+    "startOver": "Start på nytt",
+    "sourceCardLabel_one": "{{name}}: {{count}} gjenstand, {{status}}",
+    "sourceCardLabel_other": "{{name}}: {{count}} gjenstander, {{status}}",
+    "destinations": " → {{n}} mål",
+    "existingBin": "Eksisterende {{bin}}",
+    "newBin": "Ny {{bin}}",
+    "itemsMovingTo": "Gjenstander som flyttes til {{name}}",
+    "showLess": "Vis mindre",
+    "showMore": "Vis {{n}} til",
+    "multiDestination": "(×{{n}} mål)",
+    "accept": {
+      "move_one": "Flytt {{count}} gjenstand",
+      "move_other": "Flytt {{count}} gjenstander",
+      "keep_one": "behold {{count}} {{bin}}",
+      "keep_other": "behold {{count}} {{bins}}",
+      "create_one": "opprett {{count}} {{bin}}",
+      "create_other": "opprett {{count}} {{bins}}",
+      "label": "Godta — {{parts}}"
+    },
+    "binWord_one": "{{bin}}",
+    "binWord_other": "{{bins}}"
+  },
+  "moveList": {
+    "empty": "Ingen kilde-{{bins}} valgt",
+    "title": "Flytteliste",
+    "counts": "{{sources}} → {{bins}} · {{items}} · {{moves}}",
+    "moveCount_one": "{{count}} flytting",
+    "moveCount_other": "{{count}} flyttinger",
+    "kept": "beholdt",
+    "new": "ny",
+    "binCount_one": "{{count}} {{bin}}",
+    "binCount_other": "{{count}} {{bins}}"
+  },
+  "tagsPreview": {
+    "noChanges": "Ingen stikkordendringer foreslått. Prøv et annet endrings- eller detaljnivå.",
+    "newTags": "Nye stikkord",
+    "newTagAria": "Nytt stikkord {{tag}}",
+    "renames": "Nye navn",
+    "renameAria": "Gi {{from}} nytt navn: {{to}}",
+    "merges": "Sammenslåinger",
+    "mergeAria": "Slå sammen til {{to}}",
+    "parentMoves": "Endret overordnet",
+    "topLevel": "(øverste nivå)",
+    "parentAria": "Sett overordnet for {{tag}} til {{parent}}",
+    "parentMove": "{{tag}} → under {{parent}}",
+    "checkedCount": "{{checked}} av {{total}} {{bins}} valgt",
+    "selectAll": "Velg alle",
+    "selectNone": "Velg ingen"
+  },
+  "errors": {
+    "generateFailed": "Kunne ikke generere reorganisering",
+    "applyFailed": "Kunne ikke ta i bruk reorganiseringen",
+    "tagsGenerateFailed": "Kunne ikke generere stikkordforslag",
+    "tagsApplyFailed": "Kunne ikke ta i bruk stikkordforslagene"
+  }
+}

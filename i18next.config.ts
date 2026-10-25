@@ -56,10 +56,7 @@ export default defineConfig({
     // a literal — so `ai:analyzeError.title*` preserves those four variants.
     // aiErrors.ts's mapAiError() has the same aliased-`translate` issue for its
     // four internal messages (`ai:aiErrors.*`).
-    // utils.ts's getErrorMessage() builds `errors:codes.${err.code}` from the
-    // API error code at runtime.
     preservePatterns: [
-      'errors:codes.*',
       'tour:picker.*.title',
       'tour:picker.*.summary',
       'settings:categories.*.label',
@@ -74,6 +71,9 @@ export default defineConfig({
       'ai:aiErrors.*',
       'settings:ai.promptTabs.*.label',
       'settings:ai.promptTabs.*.shortLabel',
+      // HelpSheet.tsx renders CAMERA_TIPS via `tips.items.${tip.id}` (tips.ts keeps
+      // the English headline as defaultValue).
+      'capture:tips.items.*',
     ],
   },
 });

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAiStream } from '@/features/ai/useAiStream';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -43,6 +44,7 @@ interface BulkApplyResponse {
 }
 
 export function useReorganizeTags() {
+  const { t } = useTranslation('reorganize');
   const { activeLocationId } = useAuth();
   const {
     result,
@@ -55,7 +57,7 @@ export function useReorganizeTags() {
     clear: clearStream,
   } = useAiStream<TagProposalResult>(
     '/api/ai/reorganize-tags/stream',
-    'Failed to generate tag suggestions',
+    t('errors.tagsGenerateFailed', { defaultValue: 'Failed to generate tag suggestions' }),
   );
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
@@ -105,13 +107,15 @@ export function useReorganizeTags() {
         notify(Events.TAG_COLORS);
         return true;
       } catch (err) {
-        setApplyError(getErrorMessage(err, 'Failed to apply tag suggestions'));
+        setApplyError(
+          getErrorMessage(err, t('errors.tagsApplyFailed', { defaultValue: 'Failed to apply tag suggestions' })),
+        );
         return false;
       } finally {
         setIsApplying(false);
       }
     },
-    [result, activeLocationId],
+    [result, activeLocationId, t],
   );
 
   const clear = useCallback(() => {
