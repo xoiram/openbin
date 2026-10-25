@@ -1,0 +1,28 @@
+{
+  "display": {
+    "alt": "QR Code"
+  },
+  "scan": {
+    "codePlaceholder": "Enter {{bin}} code",
+    "createBin": "Create {{bin}}",
+    "deletedDescription": "It may be restorable from the trash.",
+    "deletedTitle": "This {{bin}} was deleted",
+    "forbiddenDescription": "You need to join the {{location}} that owns this {{bin}} to view it.",
+    "forbiddenTitle": "This {{bin}} belongs to another {{location}}",
+    "lookUp": "Look Up",
+    "manualLookup": "Manual Lookup",
+    "noBinWithCode": "No {{bin}} found with that code",
+    "notABinQr": "Not a {{bin}} QR Code",
+    "notFoundDescription": "This QR code points to a {{bin}} that doesn't exist yet.",
+    "notFoundTitle": "{{bin}} Not Found",
+    "pointCamera": "Point your camera at a {{bin}} QR code",
+    "redirecting": "Redirecting...",
+    "scanAgain": "Scan Again",
+    "title": "Scan QR Code",
+    "viewTrash": "View Trash"
+  },
+  "scanner": {
+    "cameraFailed": "Failed to start camera",
+    "startFailed": "Failed to start scanner"
+  }
+}

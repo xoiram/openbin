@@ -1,5 +1,6 @@
 import { Folder, GitMerge, PackageOpen, Palette, Plus, Sparkles, Tags as TagsIcon, Trash2 } from 'lucide-react';
 import { lazy, Suspense, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crossfade } from '@/components/ui/crossfade';
@@ -51,7 +52,8 @@ export function TagsPage() {
   const { search, sortColumn, sortDirection, setSearch, setSort } = useTableSearchParams<TagSortColumn>('alpha');
   const debouncedSearch = useDebounce(search, 300);
   const { activeLocationId } = useAuth();
-  const t = useTerminology();
+  const { t } = useTranslation(['tags', 'common']);
+  const term = useTerminology();
   const { canWrite } = usePermissions();
   const { showToast } = useToast();
   const { bins: allBins } = useBinList(undefined, 'name');
@@ -62,7 +64,7 @@ export function TagsPage() {
 
   const { selectedIds, selectable, toggleSelect, clearSelection } = useBulkSelection<TagEntry>({
     items: tags,
-    getId: (t) => t.tag,
+    getId: (entry) => entry.tag,
     resetDeps: [debouncedSearch, sortColumn, sortDirection],
   });
   const { bulkDelete, bulkSetParent, bulkSetColor, bulkMerge, isBusy } = useTagBulkActions(
@@ -81,10 +83,10 @@ export function TagsPage() {
   const binsAffected = sumBinCounts(tags, selectedTagNames);
 
   const bulkActions: BulkAction[] = [
-    { id: 'delete', icon: Trash2, label: 'Delete', onClick: () => setOpenBulk('delete'), group: 'primary', danger: true },
-    { id: 'merge', icon: GitMerge, label: 'Merge', onClick: () => setOpenBulk('merge'), group: 'primary' },
-    { id: 'parent', icon: Folder, label: 'Set Parent', onClick: () => setOpenBulk('parent'), group: 'more' },
-    { id: 'color', icon: Palette, label: 'Set Color', onClick: () => setOpenBulk('color'), group: 'more' },
+    { id: 'delete', icon: Trash2, label: t('common:actions.delete', { defaultValue: 'Delete' }), onClick: () => setOpenBulk('delete'), group: 'primary', danger: true },
+    { id: 'merge', icon: GitMerge, label: t('page.bulkMerge', { defaultValue: 'Merge' }), onClick: () => setOpenBulk('merge'), group: 'primary' },
+    { id: 'parent', icon: Folder, label: t('page.bulkSetParent', { defaultValue: 'Set Parent' }), onClick: () => setOpenBulk('parent'), group: 'more' },
+    { id: 'color', icon: Palette, label: t('page.bulkSetColor', { defaultValue: 'Set Color' }), onClick: () => setOpenBulk('color'), group: 'more' },
   ];
 
   const tagSuggestionGated = !isSelfHosted && isGated('reorganize');
@@ -93,7 +95,7 @@ export function TagsPage() {
   const suggestButton = (
     <Button variant="outline" size="sm" onClick={() => navigate('/reorganize?mode=tags')}>
       <Sparkles className="h-4 w-4 mr-1.5" />
-      Suggest with AI
+      {t('page.suggestWithAi', { defaultValue: 'Suggest with AI' })}
     </Button>
   );
 
@@ -142,10 +144,20 @@ export function TagsPage() {
     setRenameLoading(true);
     try {
       const { binsUpdated } = await renameTag(activeLocationId, renameTarget, trimmed);
-      showToast({ message: `Renamed "${renameTarget}" → "${trimmed}" in ${binsUpdated} ${binsUpdated === 1 ? t.bin : t.bins}` });
+      showToast({
+        message: t('page.renamedToast', {
+          count: binsUpdated,
+          defaultValue_one: 'Renamed "{{from}}" → "{{to}}" in {{count}} {{bin}}',
+          defaultValue_other: 'Renamed "{{from}}" → "{{to}}" in {{count}} {{bins}}',
+          from: renameTarget,
+          to: trimmed,
+          bin: term.bin,
+          bins: term.bins,
+        }),
+      });
       setRenameTarget(null);
     } catch {
-      showToast({ message: 'Failed to rename tag', variant: 'error' });
+      showToast({ message: t('page.renameFailed', { defaultValue: 'Failed to rename tag' }), variant: 'error' });
     } finally {
       setRenameLoading(false);
     }
@@ -156,13 +168,27 @@ export function TagsPage() {
     setDeleteLoading(true);
     try {
       const result = await deleteTag(activeLocationId, deleteTarget);
-      const orphanMsg = result.orphanedChildren
-        ? ` \u2014 ${result.orphanedChildren} child tag${result.orphanedChildren === 1 ? '' : 's'} moved to top level`
-        : '';
-      showToast({ message: `Removed "${deleteTarget}" from ${result.binsUpdated} ${result.binsUpdated === 1 ? t.bin : t.bins}${orphanMsg}` });
+      const removedMsg = t('page.removedToast', {
+        count: result.binsUpdated,
+        defaultValue_one: 'Removed "{{tag}}" from {{count}} {{bin}}',
+        defaultValue_other: 'Removed "{{tag}}" from {{count}} {{bins}}',
+        tag: deleteTarget,
+        bin: term.bin,
+        bins: term.bins,
+      });
+      showToast({
+        message: result.orphanedChildren
+          ? t('page.removedWithOrphansToast', {
+              count: result.orphanedChildren,
+              defaultValue_one: '{{removed}} — {{count}} child tag moved to top level',
+              defaultValue_other: '{{removed}} — {{count}} child tags moved to top level',
+              removed: removedMsg,
+            })
+          : removedMsg,
+      });
       setDeleteTarget(null);
     } catch {
-      showToast({ message: 'Failed to delete tag', variant: 'error' });
+      showToast({ message: t('page.deleteFailed', { defaultValue: 'Failed to delete tag' }), variant: 'error' });
     } finally {
       setDeleteLoading(false);
     }
@@ -179,10 +205,14 @@ export function TagsPage() {
     try {
       const currentColor = tagColors.get(parentTarget) || '';
       await setTagParent(activeLocationId, parentTarget, parentValue || null, currentColor);
-      showToast({ message: parentValue ? `Set parent of "${parentTarget}" to "${parentValue}"` : `Removed parent from "${parentTarget}"` });
+      showToast({
+        message: parentValue
+          ? t('page.parentSetToast', { defaultValue: 'Set parent of "{{tag}}" to "{{parent}}"', tag: parentTarget, parent: parentValue })
+          : t('page.parentRemovedToast', { defaultValue: 'Removed parent from "{{tag}}"', tag: parentTarget }),
+      });
       setParentTarget(null);
     } catch (err: unknown) {
-      showToast({ message: getErrorMessage(err, 'Failed to set parent'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('page.setParentFailed', { defaultValue: 'Failed to set parent' })), variant: 'error' });
     } finally {
       setParentLoading(false);
     }
@@ -191,14 +221,14 @@ export function TagsPage() {
   return (
     <div className="page-content-wide">
       <PageHeader
-        title="Tags"
+        title={t('page.title', { defaultValue: 'Tags' })}
         actions={(
           <div className="flex items-center gap-2">
             {canWrite && showSuggestButton && suggestButton}
             {canWrite && (
               <Button size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus className="h-4 w-4 mr-1.5" />
-                Create Tag
+                {t('page.createTag', { defaultValue: 'Create Tag' })}
               </Button>
             )}
           </div>
@@ -210,7 +240,7 @@ export function TagsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={search ? () => setSearch('') : undefined}
-          placeholder="Search tags..."
+          placeholder={t('page.searchPlaceholder', { defaultValue: 'Search tags...' })}
         />
       )}
 
@@ -243,8 +273,12 @@ export function TagsPage() {
         {tags.length === 0 ? (
           <EmptyState
             icon={search ? TagsIcon : PackageOpen}
-            title={search ? 'No tags match your search' : 'No tags yet'}
-            subtitle={search ? 'Try a different search term' : `Tags added to ${t.bins} will appear here`}
+            title={search ? t('page.emptySearchTitle', { defaultValue: 'No tags match your search' }) : t('page.emptyTitle', { defaultValue: 'No tags yet' })}
+            subtitle={
+              search
+                ? t('page.emptySearchSubtitle', { defaultValue: 'Try a different search term' })
+                : t('page.emptySubtitle', { defaultValue: 'Tags added to {{bins}} will appear here', bins: term.bins })
+            }
             variant={search ? 'search' : undefined}
           >
             {!search && (
@@ -252,12 +286,12 @@ export function TagsPage() {
                 {canWrite && (
                   <Button size="sm" onClick={() => setCreateOpen(true)}>
                     <Plus className="h-4 w-4 mr-1.5" />
-                    Create Tag
+                    {t('page.createTag', { defaultValue: 'Create Tag' })}
                   </Button>
                 )}
                 {showSuggestButton && suggestButton}
                 <Link to="/bins">
-                  <Button variant="secondary" size="sm">Browse {t.bins}</Button>
+                  <Button variant="secondary" size="sm">{t('page.browseBins', { defaultValue: 'Browse {{bins}}', bins: term.bins })}</Button>
                 </Link>
               </div>
             )}
@@ -294,7 +328,11 @@ export function TagsPage() {
           onClear={clearSelection}
           isBusy={isBusy}
           actions={bulkActions}
-          selectionLabel={`${selectedIds.size} tag${selectedIds.size === 1 ? '' : 's'} selected`}
+          selectionLabel={t('page.selectionLabel', {
+            count: selectedIds.size,
+            defaultValue_one: '{{count}} tag selected',
+            defaultValue_other: '{{count}} tags selected',
+          })}
         />
       )}
 
@@ -348,13 +386,18 @@ export function TagsPage() {
       <Dialog open={renameTarget !== null} onOpenChange={(open) => { if (!open) setRenameTarget(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename tag</DialogTitle>
+            <DialogTitle>{t('page.renameTitle', { defaultValue: 'Rename tag' })}</DialogTitle>
             <DialogDescription>
-              This will rename &ldquo;{renameTarget}&rdquo; across all {t.bins} in this {t.location}.
+              {t('page.renameDescription', {
+                defaultValue: 'This will rename “{{tag}}” across all {{bins}} in this {{location}}.',
+                tag: renameTarget,
+                bins: term.bins,
+                location: term.location,
+              })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="rename-tag-input">New name</Label>
+            <Label htmlFor="rename-tag-input">{t('page.newName', { defaultValue: 'New name' })}</Label>
             <Input
               ref={renameInputRef}
               id="rename-tag-input"
@@ -366,9 +409,9 @@ export function TagsPage() {
             />
           </div>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setRenameTarget(null)} disabled={renameLoading}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setRenameTarget(null)} disabled={renameLoading}>{t('common:actions.cancel', { defaultValue: 'Cancel' })}</Button>
             <Button onClick={handleRenameSubmit} disabled={renameLoading || !renameValue.trim()}>
-              {renameLoading ? 'Renaming…' : 'Rename'}
+              {renameLoading ? t('page.renaming', { defaultValue: 'Renaming…' }) : t('page.rename', { defaultValue: 'Rename' })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -378,15 +421,20 @@ export function TagsPage() {
       <Dialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete tag</DialogTitle>
+            <DialogTitle>{t('page.deleteTitle', { defaultValue: 'Delete tag' })}</DialogTitle>
             <DialogDescription>
-              This will remove &ldquo;{deleteTarget}&rdquo; from all {t.bins} in this {t.location}. This cannot be undone.
+              {t('page.deleteDescription', {
+                defaultValue: 'This will remove “{{tag}}” from all {{bins}} in this {{location}}. This cannot be undone.',
+                tag: deleteTarget,
+                bins: term.bins,
+                location: term.location,
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>{t('common:actions.cancel', { defaultValue: 'Cancel' })}</Button>
             <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteLoading}>
-              {deleteLoading ? 'Deleting…' : 'Delete'}
+              {deleteLoading ? t('page.deleting', { defaultValue: 'Deleting…' }) : t('common:actions.delete', { defaultValue: 'Delete' })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -396,29 +444,29 @@ export function TagsPage() {
       <Dialog open={parentTarget !== null} onOpenChange={(open) => { if (!open) setParentTarget(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Set parent</DialogTitle>
+            <DialogTitle>{t('page.setParentTitle', { defaultValue: 'Set parent' })}</DialogTitle>
             <DialogDescription>
-              Choose a parent tag for &ldquo;{parentTarget}&rdquo;.
+              {t('page.setParentDescription', { defaultValue: 'Choose a parent tag for “{{tag}}”.', tag: parentTarget })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="set-parent-select">Parent</Label>
+            <Label htmlFor="set-parent-select">{t('page.parent', { defaultValue: 'Parent' })}</Label>
             <select
               id="set-parent-select"
               value={parentValue}
               onChange={(e) => setParentValue(e.target.value)}
               className={cn(inputBase, 'h-10 focus-visible:ring-2 focus-visible:ring-[var(--accent)]')}
             >
-              <option value="">None</option>
+              <option value="">{t('page.parentNone', { defaultValue: 'None' })}</option>
               {parentEligible.map((tag) => (
                 <option key={tag} value={tag}>{tag}</option>
               ))}
             </select>
           </div>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setParentTarget(null)} disabled={parentLoading}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setParentTarget(null)} disabled={parentLoading}>{t('common:actions.cancel', { defaultValue: 'Cancel' })}</Button>
             <Button onClick={handleSetParentSubmit} disabled={parentLoading}>
-              {parentLoading ? 'Saving\u2026' : 'Save'}
+              {parentLoading ? t('page.saving', { defaultValue: 'Saving…' }) : t('common:actions.save', { defaultValue: 'Save' })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -431,10 +479,10 @@ export function TagsPage() {
         onConfirm={(createdTag) => {
           setCreateOpen(false);
           if (createdTag) {
-            showToast({ message: `Created tag "${createdTag}"` });
+            showToast({ message: t('page.createdToast', { defaultValue: 'Created tag "{{tag}}"', tag: createdTag }) });
           }
         }}
-        suggestions={tags.map((t) => t.tag)}
+        suggestions={tags.map((entry) => entry.tag)}
         tagParents={tagParents}
       />
     </div>

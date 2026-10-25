@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BulkUpdateDialog } from '@/lib/bulk/BulkUpdateDialog';
+import { useTerminology } from '@/lib/terminology';
 import { cn, inputBase } from '@/lib/utils';
 import type { TagEntry } from './useTags';
 
@@ -22,12 +24,14 @@ export function BulkMergeDialog({
   binsAffected,
   onApply,
 }: BulkMergeDialogProps) {
+  const { t } = useTranslation('tags');
+  const term = useTerminology();
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
   const [existingTarget, setExistingTarget] = useState('');
   const [newTarget, setNewTarget] = useState('');
 
   const candidates = useMemo(
-    () => allTags.map((t) => t.tag),
+    () => allTags.map((entry) => entry.tag),
     [allTags],
   );
 
@@ -35,7 +39,7 @@ export function BulkMergeDialog({
   const targetValid =
     target.length > 0 &&
     /^[a-z0-9][a-z0-9-]{0,99}$/.test(target) &&
-    selectedTagNames.some((t) => t !== target);
+    selectedTagNames.some((tag) => tag !== target);
 
   return (
     <BulkUpdateDialog
@@ -48,13 +52,23 @@ export function BulkMergeDialog({
         }
         onOpenChange(v);
       }}
-      title={`Merge ${selectedTagNames.length} tag${selectedTagNames.length === 1 ? '' : 's'}`}
-      description={`Merge into a single canonical tag across ~${binsAffected} bin${binsAffected === 1 ? '' : 's'}. The originals will be deleted.`}
+      title={t('bulkMerge.title', {
+        count: selectedTagNames.length,
+        defaultValue_one: 'Merge {{count}} tag',
+        defaultValue_other: 'Merge {{count}} tags',
+      })}
+      description={t('bulkMerge.description', {
+        count: binsAffected,
+        defaultValue_one: 'Merge into a single canonical tag across ~{{count}} {{bin}}. The originals will be deleted.',
+        defaultValue_other: 'Merge into a single canonical tag across ~{{count}} {{bins}}. The originals will be deleted.',
+        bin: term.bin,
+        bins: term.bins,
+      })}
       selectedIds={selectedTagNames}
       onApply={(tags) => onApply(tags, target)}
       applyDisabled={!targetValid}
-      applyLabel="Merge"
-      loadingLabel="Merging…"
+      applyLabel={t('bulkMerge.apply', { defaultValue: 'Merge' })}
+      loadingLabel={t('bulkMerge.applying', { defaultValue: 'Merging…' })}
     >
       <div className="flex flex-col gap-3">
         <div className="flex gap-1">
@@ -68,7 +82,7 @@ export function BulkMergeDialog({
             )}
             onClick={() => setMode('existing')}
           >
-            Use existing
+            {t('bulkMerge.useExisting', { defaultValue: 'Use existing' })}
           </button>
           <button
             type="button"
@@ -80,19 +94,19 @@ export function BulkMergeDialog({
             )}
             onClick={() => setMode('new')}
           >
-            Create new
+            {t('bulkMerge.createNew', { defaultValue: 'Create new' })}
           </button>
         </div>
         {mode === 'existing' ? (
           <div className="space-y-1">
-            <Label htmlFor="bulk-merge-existing">Merge into</Label>
+            <Label htmlFor="bulk-merge-existing">{t('bulkMerge.mergeInto', { defaultValue: 'Merge into' })}</Label>
             <select
               id="bulk-merge-existing"
               value={existingTarget}
               onChange={(e) => setExistingTarget(e.target.value)}
               className={cn(inputBase, 'h-10')}
             >
-              <option value="">Select a tag…</option>
+              <option value="">{t('bulkMerge.selectTag', { defaultValue: 'Select a tag…' })}</option>
               {candidates.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -102,12 +116,12 @@ export function BulkMergeDialog({
           </div>
         ) : (
           <div className="space-y-1">
-            <Label htmlFor="bulk-merge-new">New tag name</Label>
+            <Label htmlFor="bulk-merge-new">{t('bulkMerge.newTagName', { defaultValue: 'New tag name' })}</Label>
             <Input
               id="bulk-merge-new"
               value={newTarget}
               onChange={(e) => setNewTarget(e.target.value)}
-              placeholder="electronics"
+              placeholder={t('bulkMerge.newTagPlaceholder', { defaultValue: 'electronics' })}
               maxLength={100}
             />
           </div>

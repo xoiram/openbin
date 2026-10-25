@@ -1,12 +1,24 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '@/lib/api';
 import { Events, notify } from '@/lib/eventBus';
-import { pluralize } from '@/lib/utils';
+import { useTerminology } from '@/lib/terminology';
+
 
 type ToastFn = (toast: { message: string; variant?: 'error' | 'success' }) => void;
 
 export function useTagBulkActions(locationId: string | null, clearSelection: () => void, showToast: ToastFn) {
+  const { t } = useTranslation('tags');
+  const term = useTerminology();
   const [isBusy, setIsBusy] = useState(false);
+  const tagCount = useCallback(
+    (count: number) => t('bulk.tagCount', { count, defaultValue_one: '{{count}} tag', defaultValue_other: '{{count}} tags' }),
+    [t],
+  );
+  const binCount = useCallback(
+    (count: number) => t('bulk.binCount', { count, defaultValue_one: '{{count}} {{bin}}', defaultValue_other: '{{count}} {{bins}}', bin: term.bin, bins: term.bins }),
+    [t, term],
+  );
 
   function notifyTagsChanged() {
     notify(Events.BINS);
@@ -24,12 +36,18 @@ export function useTagBulkActions(locationId: string | null, clearSelection: () 
         );
         notifyTagsChanged();
         clearSelection();
-        showToast({ message: `Deleted ${pluralize(tagsDeleted, 'tag')} from ${pluralize(binsUpdated, 'bin')}` });
+        showToast({
+          message: t('bulk.deleted', {
+            defaultValue: 'Deleted {{tags}} from {{bins}}',
+            tags: tagCount(tagsDeleted),
+            bins: binCount(binsUpdated),
+          }),
+        });
       } finally {
         setIsBusy(false);
       }
     },
-    [locationId, clearSelection, showToast],
+    [locationId, clearSelection, showToast, t, tagCount, binCount],
   );
 
   const bulkSetParent = useCallback(
@@ -43,13 +61,16 @@ export function useTagBulkActions(locationId: string | null, clearSelection: () 
         );
         notifyTagsChanged();
         clearSelection();
-        const verb = parentTag ? 'Set parent' : 'Cleared parent';
-        showToast({ message: `${verb} for ${pluralize(tagsUpdated, 'tag')}` });
+        showToast({
+          message: parentTag
+            ? t('bulk.parentSet', { defaultValue: 'Set parent for {{tags}}', tags: tagCount(tagsUpdated) })
+            : t('bulk.parentCleared', { defaultValue: 'Cleared parent for {{tags}}', tags: tagCount(tagsUpdated) }),
+        });
       } finally {
         setIsBusy(false);
       }
     },
-    [locationId, clearSelection, showToast],
+    [locationId, clearSelection, showToast, t, tagCount],
   );
 
   const bulkSetColor = useCallback(
@@ -63,12 +84,12 @@ export function useTagBulkActions(locationId: string | null, clearSelection: () 
         );
         notifyTagsChanged();
         clearSelection();
-        showToast({ message: `Set color for ${pluralize(tagsUpdated, 'tag')}` });
+        showToast({ message: t('bulk.colorSet', { defaultValue: 'Set color for {{tags}}', tags: tagCount(tagsUpdated) }) });
       } finally {
         setIsBusy(false);
       }
     },
-    [locationId, clearSelection, showToast],
+    [locationId, clearSelection, showToast, t, tagCount],
   );
 
   const bulkMerge = useCallback(
@@ -82,12 +103,19 @@ export function useTagBulkActions(locationId: string | null, clearSelection: () 
         );
         notifyTagsChanged();
         clearSelection();
-        showToast({ message: `Merged ${pluralize(fromTags.length, 'tag')} into "${toTag}" across ${pluralize(binsUpdated, 'bin')}` });
+        showToast({
+          message: t('bulk.merged', {
+            defaultValue: 'Merged {{tags}} into "{{target}}" across {{bins}}',
+            tags: tagCount(fromTags.length),
+            target: toTag,
+            bins: binCount(binsUpdated),
+          }),
+        });
       } finally {
         setIsBusy(false);
       }
     },
-    [locationId, clearSelection, showToast],
+    [locationId, clearSelection, showToast, t, tagCount, binCount],
   );
 
   return { bulkDelete, bulkSetParent, bulkSetColor, bulkMerge, isBusy };
