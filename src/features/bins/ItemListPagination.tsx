@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getPageNumbers } from '@/lib/paginationUtil';
 import { cn } from '@/lib/utils';
 
@@ -9,7 +10,6 @@ interface ItemListPaginationProps {
   rangeStart: number;
   rangeEnd: number;
   onPageChange: (p: number) => void;
-  itemLabel?: string;
 }
 
 /**
@@ -23,8 +23,8 @@ export function ItemListPagination({
   rangeStart,
   rangeEnd,
   onPageChange,
-  itemLabel = 'items',
 }: ItemListPaginationProps) {
+  const { t } = useTranslation('bins');
   if (totalPages <= 1) return null;
 
   const pages = getPageNumbers(page, totalPages);
@@ -34,11 +34,17 @@ export function ItemListPagination({
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={t('itemPagination.label', { defaultValue: 'Pagination' })}
       className="flex items-center justify-between gap-3 px-3.5 py-1.5 border-t border-[var(--border-subtle)] bg-[var(--bg-hover)]"
     >
       <span className="text-[12px] text-[var(--text-tertiary)] tabular-nums">
-        {rangeStart}&ndash;{rangeEnd} of {totalCount} {itemLabel}
+        {t('itemPagination.summary', {
+          count: totalCount,
+          start: rangeStart,
+          end: rangeEnd,
+          defaultValue_one: '{{start}}–{{end}} of {{count}} item',
+          defaultValue_other: '{{start}}–{{end}} of {{count}} items',
+        })}
       </span>
 
       <div className="flex items-center gap-0.5">
@@ -46,7 +52,7 @@ export function ItemListPagination({
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          aria-label="Previous page"
+          aria-label={t('itemPagination.previous', { defaultValue: 'Previous page' })}
           className={cn(
             navBtn,
             page <= 1
@@ -69,7 +75,7 @@ export function ItemListPagination({
                 key={p}
                 type="button"
                 onClick={() => onPageChange(p)}
-                aria-label={`Page ${p}`}
+                aria-label={t('itemPagination.page', { defaultValue: 'Page {{page}}', page: p })}
                 aria-current={p === page ? 'page' : undefined}
                 className={cn(
                   'flex items-center justify-center h-7 min-w-7 px-1.5 rounded-[var(--radius-xs)] text-[12px] font-medium tabular-nums transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
@@ -85,7 +91,9 @@ export function ItemListPagination({
         </div>
 
         <span className="sm:hidden px-2 text-[12px] text-[var(--text-tertiary)] tabular-nums">
-          <span className="sr-only">Page {page} of {totalPages}</span>
+          <span className="sr-only">
+            {t('itemPagination.pageOf', { defaultValue: 'Page {{page}} of {{total}}', page, total: totalPages })}
+          </span>
           <span aria-hidden="true">{page} / {totalPages}</span>
         </span>
 
@@ -93,7 +101,7 @@ export function ItemListPagination({
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          aria-label="Next page"
+          aria-label={t('itemPagination.next', { defaultValue: 'Next page' })}
           className={cn(
             navBtn,
             page >= totalPages

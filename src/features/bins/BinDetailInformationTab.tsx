@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useScanHistory } from '@/features/dashboard/scanHistory';
 import { BinUsageSection } from '@/features/usage/BinUsageSection';
 import { resolveColor } from '@/lib/colorPalette';
@@ -19,6 +20,7 @@ const QR_BG_FALLBACK = '#fff';
 const QR_GEN_SIZE = 540;
 
 export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
+  const { t, i18n } = useTranslation('bins');
   const Icon = resolveIcon(bin.icon);
   const colorPreset = useMemo(
     () => (bin.color ? resolveColor(bin.color) : null),
@@ -44,38 +46,38 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
 
   const createdAbsolute = useMemo(
     () =>
-      new Date(bin.created_at).toLocaleDateString(undefined, {
+      new Intl.DateTimeFormat(i18n.language, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-      }),
-    [bin.created_at],
+      }).format(new Date(bin.created_at)),
+    [bin.created_at, i18n.language],
   );
 
   return (
     <div className="flex flex-col gap-8">
       <section>
         <header className={sectionHeaderRow}>
-          <h3 className={sectionHeader}>Details</h3>
+          <h3 className={sectionHeader}>{t('infoTab.details', { defaultValue: 'Details' })}</h3>
         </header>
         <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 items-start md:gap-8">
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-2.5 text-[13px] self-start">
             {bin.created_by_name && (
               <>
-                <dt className="text-[var(--text-tertiary)]">Creator</dt>
+                <dt className="text-[var(--text-tertiary)]">{t('infoTab.creator', { defaultValue: 'Creator' })}</dt>
                 <dd className="text-[var(--text-primary)]">{bin.created_by_name}</dd>
               </>
             )}
 
-            <dt className="text-[var(--text-tertiary)]">Created</dt>
+            <dt className="text-[var(--text-tertiary)]">{t('infoTab.created', { defaultValue: 'Created' })}</dt>
             <dd className="text-[var(--text-primary)]">{createdAbsolute}</dd>
 
-            <dt className="text-[var(--text-tertiary)]">Updated</dt>
+            <dt className="text-[var(--text-tertiary)]">{t('infoTab.updated', { defaultValue: 'Updated' })}</dt>
             <dd className="text-[var(--text-primary)]">{relativeTime(bin.updated_at)}</dd>
 
-            <dt className="text-[var(--text-tertiary)]">Last scanned</dt>
+            <dt className="text-[var(--text-tertiary)]">{t('infoTab.lastScanned', { defaultValue: 'Last scanned' })}</dt>
             <dd className="text-[var(--text-primary)]">
-              {lastScan ? relativeTime(lastScan.scannedAt) : 'Never'}
+              {lastScan ? relativeTime(lastScan.scannedAt) : t('infoTab.never', { defaultValue: 'Never' })}
             </dd>
           </dl>
 
@@ -91,7 +93,7 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
               {qrUrl && (
                 <img
                   src={qrUrl}
-                  alt={`QR code for ${bin.name}`}
+                  alt={t('infoTab.qrAlt', { defaultValue: 'QR code for {{name}}', name: bin.name })}
                   className="w-full h-full block"
                 />
               )}
@@ -120,7 +122,7 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
 
       <section>
         <header className={sectionHeaderRow}>
-          <h3 className={sectionHeader}>Usage</h3>
+          <h3 className={sectionHeader}>{t('infoTab.usage', { defaultValue: 'Usage' })}</h3>
         </header>
         <BinUsageSection binId={bin.id} />
       </section>

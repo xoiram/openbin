@@ -9,7 +9,10 @@ import type dashboard from './locales/en/dashboard.json';
 import type errors from './locales/en/errors.json';
 import type locations from './locales/en/locations.json';
 import type onboarding from './locales/en/onboarding.json';
+import type print from './locales/en/print.json';
+import type qrcode from './locales/en/qrcode.json';
 import type settings from './locales/en/settings.json';
+import type tags from './locales/en/tags.json';
 import type tour from './locales/en/tour.json';
 import type usage from './locales/en/usage.json';
 
@@ -30,6 +33,9 @@ declare module 'i18next' {
       areas: typeof areas;
       activity: typeof activity;
       usage: typeof usage;
+      print: typeof print;
+      qrcode: typeof qrcode;
+      tags: typeof tags;
     };
   }
 }

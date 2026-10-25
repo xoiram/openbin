@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTerminology } from '@/lib/terminology';
@@ -11,21 +12,22 @@ interface DeleteBinDialogProps {
 }
 
 export function DeleteBinDialog({ open, onOpenChange, binName, onConfirm }: DeleteBinDialogProps) {
-  const t = useTerminology();
+  const { t } = useTranslation(['bins', 'common']);
+  const term = useTerminology();
   const [deleting, setDeleting] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!deleting) onOpenChange(v); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete this {t.bin}?</DialogTitle>
+          <DialogTitle>{t('deleteDialog.title', { defaultValue: 'Delete this {{bin}}?', bin: term.bin })}</DialogTitle>
           <DialogDescription>
-            This will delete &apos;{binName}&apos; and all its photos. You can undo this action briefly after deletion.
+            {t('deleteDialog.description', { defaultValue: "This will delete '{{name}}' and all its photos. You can undo this action briefly after deletion.", name: binName })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={deleting}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             variant="destructive"
@@ -40,7 +42,7 @@ export function DeleteBinDialog({ open, onOpenChange, binName, onConfirm }: Dele
               }
             }}
           >
-            {deleting ? 'Deleting\u2026' : 'Delete'}
+            {deleting ? t('deleteDialog.deleting', { defaultValue: 'Deleting\u2026' }) : t('common:actions.delete', { defaultValue: 'Delete' })}
           </Button>
         </DialogFooter>
       </DialogContent>

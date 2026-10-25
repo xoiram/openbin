@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { BulkUpdateDialog } from '@/lib/bulk/BulkUpdateDialog';
-import { pluralizeBins } from './pluralizeBins';
+import { useTerminology } from '@/lib/terminology';
 import { updateBin } from './useBins';
 import { useCustomFields } from './useCustomFields';
+import { useSelectedBinsLabel } from './useSelectedBinsLabel';
 
 interface BulkCustomFieldsDialogProps {
   open: boolean;
@@ -15,6 +17,9 @@ interface BulkCustomFieldsDialogProps {
 }
 
 export function BulkCustomFieldsDialog({ open, onOpenChange, binIds, onDone }: BulkCustomFieldsDialogProps) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
+  const selectedLabel = useSelectedBinsLabel(binIds.length);
   const { activeLocationId } = useAuth();
   const { fields } = useCustomFields(open ? activeLocationId : null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -38,8 +43,11 @@ export function BulkCustomFieldsDialog({ open, onOpenChange, binIds, onDone }: B
     <BulkUpdateDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Set Custom Fields"
-      description={`Set custom field values for ${pluralizeBins(binIds.length)}. Only filled fields will be updated.`}
+      title={t('bulk.customFields.title', { defaultValue: 'Set Custom Fields' })}
+      description={t('bulk.customFields.description', {
+        defaultValue: 'Set custom field values for {{selected}}. Only filled fields will be updated.',
+        selected: selectedLabel,
+      })}
       selectedIds={binIds}
       onApply={apply}
       onApplied={onDone}
@@ -48,7 +56,7 @@ export function BulkCustomFieldsDialog({ open, onOpenChange, binIds, onDone }: B
       <div className="space-y-3">
         {fields.length === 0 ? (
           <p className="text-[13px] text-[var(--text-tertiary)]">
-            No custom fields defined for this location.
+            {t('bulk.customFields.empty', { defaultValue: 'No custom fields defined for this {{location}}.', location: term.location })}
           </p>
         ) : (
           fields.map((field) => (

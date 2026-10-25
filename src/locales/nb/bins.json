@@ -1,9 +1,273 @@
 {
+  "activity": {
+    "emptySubtitle": "Endringer i denne {{bin}} vises her",
+    "emptyTitle": "Ingen aktivitet ennå",
+    "loadFailed": "Kunne ikke laste aktivitet",
+    "showAll": "Vis alle hendelser",
+    "showLess": "Vis færre",
+    "title": "Aktivitet"
+  },
+  "aiBadge": {
+    "label": "AI",
+    "undo": "Angre AI-forslag"
+  },
+  "aiFill": {
+    "fill": "AI-utfylling",
+    "filled_one": "AI fylte ut {{count}} felt",
+    "filled_other": "AI fylte ut {{count}} felt",
+    "fillFromPhotos_one": "AI-utfylling fra {{count}} bilde",
+    "fillFromPhotos_other": "AI-utfylling fra {{count}} bilder",
+    "reanalyze": "Analyser bildene på nytt med AI",
+    "reanalyzeTooltip": "Kjør AI-analysen av bildene dine på nytt med gjeldende feltverdier som kontekst",
+    "setUp": "Sett opp AI for å fylle ut detaljer automatisk"
+  },
+  "aiSetup": {
+    "close": "Lukk AI-oppsett",
+    "title": "Sett opp AI"
+  },
+  "appearanceTab": {
+    "color": "Farge",
+    "icon": "Ikon",
+    "preview": "Forhåndsvisning",
+    "style": "Stil"
+  },
+  "autoSave": {
+    "fields": {
+      "area": "{{area}}",
+      "color": "farge",
+      "customFields": "egendefinerte felt",
+      "icon": "ikon",
+      "name": "navn",
+      "notes": "notater",
+      "style": "stil",
+      "tags": "stikkord",
+      "visibility": "synlighet"
+    },
+    "saveFailed": "Kunne ikke lagre {{field}}"
+  },
+  "bulk": {
+    "appearance": {
+      "color": "Farge",
+      "description": "Tilpass {{selected}}. Bare endrede seksjoner brukes.",
+      "icon": "Ikon",
+      "style": "Stil",
+      "title": "Utseende"
+    },
+    "area": {
+      "description": "Plasser {{selected}} i {{area}}.",
+      "title": "Flytt til {{Area}}"
+    },
+    "customFields": {
+      "description": "Angi verdier for egendefinerte felt for {{selected}}. Bare utfylte felt oppdateres.",
+      "empty": "Ingen egendefinerte felt er definert for denne {{location}}.",
+      "title": "Angi egendefinerte felt"
+    },
+    "deleted_one": "Slettet {{count}} {{bin}}",
+    "deleted_other": "Slettet {{count}} {{bins}}",
+    "duplicatedMany_one": "Duplisert {{count}} {{bins}}",
+    "duplicatedMany_other": "Duplisert {{count}} {{bins}}",
+    "duplicatedOne": "Duplisert «{{name}}»",
+    "location": {
+      "apply": "Flytt",
+      "description": "Flytt {{selected}} til en annen {{location}}.",
+      "empty": "Ingen andre {{locations}} er tilgjengelige.",
+      "title": "Flytt til {{Location}}"
+    },
+    "moving": "Flytter...",
+    "pin": "Fest",
+    "selectedBins_one": "{{count}} valgt {{bin}}",
+    "selectedBins_other": "{{count}} valgte {{bins}}",
+    "tag": {
+      "description": "Legg til stikkord på {{selected}}.",
+      "label": "Stikkord",
+      "title": "Legg til stikkord"
+    },
+    "undo": "Angre",
+    "unpin": "Løsne",
+    "visibility": {
+      "description": "Angi synlighet for {{selected}}. {{bins}} du ikke eier som settes til privat, hoppes over av serveren.",
+      "title": "Endre synlighet"
+    }
+  },
   "card": {
     "select": "Velg"
   },
+  "changeCode": {
+    "back": "Tilbake",
+    "changed": "Koden er endret til {{code}}",
+    "changeFailed": "Kunne ikke endre koden. Prøv igjen.",
+    "codeInUse": "Koden er allerede i bruk.",
+    "confirm": "Endre koden til denne {{bin}} fra <from>{{oldCode}}</from> til <to>{{newCode}}</to>?",
+    "description": "Skriv inn den nye korte koden for denne {{bin}}.",
+    "lookUp": "Slå opp",
+    "lookupFailed": "Kunne ikke slå opp koden. Prøv igjen.",
+    "placeholder": "Skriv inn kode...",
+    "sameCode": "Dette er allerede koden til denne {{bin}}.",
+    "title": "Endre kode",
+    "warning": "Hvis du endrer koden, blir utskrevne QR-etiketter som peker til <code>{{code}}</code> ugyldige. Du må skrive ut etiketter på nytt før de kan skannes til denne {{bin}} igjen."
+  },
+  "checkout": {
+    "outBy": "Ute · {{name}} · {{time}}"
+  },
+  "colorPicker": {
+    "black": "Svart",
+    "choose": "Velg en farge",
+    "color": "Farge",
+    "gray": "Grå",
+    "none": "Ingen",
+    "white": "Hvit"
+  },
+  "createDialog": {
+    "createFailed": "Kunne ikke opprette {{bin}}",
+    "description": "Legg til en ny {{bin}} i oppbevaringen din.",
+    "photosFailed_one": "{{count}} bilde ble ikke lastet opp",
+    "photosFailed_other": "{{count}} bilder ble ikke lastet opp",
+    "title": "Ny {{Bin}}"
+  },
+  "createForm": {
+    "create": "Opprett",
+    "createBin": "Opprett {{Bin}}",
+    "creating": "Oppretter...",
+    "name": "Navn",
+    "namePlaceholder": "f.eks. Julepynt",
+    "nameRequired": "Navn er påkrevd",
+    "setUpAi": "Sett opp AI-analyse",
+    "tapToAnalyze": "— trykk på <icon></icon> for å analysere"
+  },
+  "createSuccess": {
+    "allSet": "Alt klart",
+    "createAnother": "Opprett en til",
+    "createdMany_one": "Opprettet {{count}} {{bins}}",
+    "createdMany_other": "Opprettet {{count}} {{bins}}",
+    "createdManyWithItems_one": "Opprettet {{bins}} ({{binCount}}) · {{count}} gjenstand",
+    "createdManyWithItems_other": "Opprettet {{bins}} ({{binCount}}) · {{count}} gjenstander",
+    "createdOne": "Opprettet {{name}}",
+    "createdOneWithItems_one": "Opprettet {{name}} med {{count}} gjenstand",
+    "createdOneWithItems_other": "Opprettet {{name}} med {{count}} gjenstander",
+    "done": "Ferdig"
+  },
+  "customFields": {
+    "add": "Legg til",
+    "addFailed": "Kunne ikke legge til felt",
+    "cancelEdit": "Avbryt redigering",
+    "delete": "Slett {{name}}",
+    "deleted": "«{{name}}» er slettet",
+    "deleteFailed": "Kunne ikke slette felt",
+    "description": "Definer egendefinerte felt som vises på alle {{bins}} i dette {{location}}.",
+    "empty": "Ingen egendefinerte felt ennå. Legg til ett nedenfor.",
+    "newPlaceholder": "Navn på nytt felt",
+    "rename": "Gi {{name}} nytt navn",
+    "renameFailed": "Kunne ikke endre navn på felt",
+    "saveName": "Lagre navn",
+    "title": "Egendefinerte felt"
+  },
+  "deleteDialog": {
+    "deleting": "Sletter…",
+    "description": "Dette sletter «{{name}}» og alle bildene. Du kan angre rett etter sletting.",
+    "title": "Slette denne {{bin}}?"
+  },
+  "detailActions": {
+    "analyzeFailed": "Kunne ikke analysere bildet. Prøv igjen",
+    "deleted": "«{{name}}» er slettet",
+    "deleteFailed": "Kunne ikke slette",
+    "duplicated": "«{{name}}» er duplisert",
+    "duplicatedNoPhotos": "«{{name}}» er duplisert (bilder ble ikke kopiert)",
+    "duplicateFailed": "Kunne ikke duplisere",
+    "moved": "Flyttet til {{location}}",
+    "moveFailed": "Kunne ikke flytte",
+    "pinFailed": "Kunne ikke oppdatere festing",
+    "pinned": "Festet",
+    "reanalyzeFailed": "Kunne ikke analysere bildet på nytt. Prøv igjen",
+    "suggestionsApplied": "AI-forslag er brukt",
+    "suggestionsFailed": "Kunne ikke bruke forslagene",
+    "undo": "Angre",
+    "unpinned": "Løsnet"
+  },
+  "detailContent": {
+    "dismiss": "Lukk"
+  },
+  "detailPage": {
+    "backTo": "Tilbake til {{bins}}",
+    "notFoundSubtitle": "Den kan ha blitt slettet eller flyttet til en annen {{location}}.",
+    "notFoundTitle": "{{bin}} ble ikke funnet",
+    "progress": {
+      "almostDone": "Nesten ferdig...",
+      "comparingChanges": "Sammenligner endringer...",
+      "generatingDetails": "Lager detaljer...",
+      "identifyingItems": "Gjenkjenner gjenstander...",
+      "preparingReanalysis": "Forbereder ny analyse...",
+      "updatingSuggestions": "Oppdaterer forslag...",
+      "uploadingPhotos": "Laster opp bilder..."
+    },
+    "upgradeDescription": "AI-drevet analyse og forslag er tilgjengelig i Pro-abonnementet.",
+    "upgradeFeature": "AI-funksjoner"
+  },
+  "detailRail": {
+    "changeCode": "Endre kode",
+    "code": "Kode",
+    "codeCopied": "Koden er kopiert",
+    "copied": "Kopiert!",
+    "copyCode": "Kopier kode",
+    "heading": "Detaljer for {{bin}}",
+    "noArea": "Ingen {{area}}",
+    "noNotes": "Ingen notater",
+    "noTags": "Ingen stikkord",
+    "notes": "Notater",
+    "notesPlaceholder": "Legg til notater...",
+    "tags": "Stikkord",
+    "visibility": "Synlighet"
+  },
+  "detailTabs": {
+    "contents": "Innhold",
+    "files": "Filer",
+    "info": "Info",
+    "sections": "Seksjoner i {{bin}}"
+  },
+  "detailToolbar": {
+    "analyzeWithAi": "Analyser med AI",
+    "binName": "Navn på {{bin}}",
+    "close": "Lukk",
+    "customizeAppearance": "Tilpass utseende",
+    "duplicate": "Dupliser",
+    "editName": "Rediger navn: {{name}}",
+    "more": "Mer",
+    "moreActions": "Flere handlinger",
+    "move": "Flytt",
+    "namePlaceholder": "Navn...",
+    "next": "Neste",
+    "nextBin": "Neste {{bin}}",
+    "pin": "Fest",
+    "pinBin": "Fest {{bin}}",
+    "previous": "Forrige",
+    "previousBin": "Forrige {{bin}}",
+    "printLabel": "Skriv ut etikett",
+    "private": "Privat",
+    "reanalyzeWithAi": "Analyser på nytt med AI",
+    "share": "Del",
+    "unpin": "Løsne",
+    "unpinBin": "Løsne {{bin}}"
+  },
+  "dictation": {
+    "addCount": "Legg til {{selected}}",
+    "almostDone": "Nesten ferdig...",
+    "dictateItems": "Dikter gjenstander",
+    "edit": "rediger",
+    "extractingItems": "Henter ut gjenstander...",
+    "heard": "Hørte:",
+    "parsedCount_one": "{{count}} gjenstand tolket fra diktering",
+    "parsedCount_other": "{{count}} gjenstander tolket fra diktering",
+    "parsingItems": "Tolker gjenstander...",
+    "parsingItemsAria": "Tolker gjenstander",
+    "recording": "Tar opp: {{elapsed}}",
+    "sendingAudio": "Sender lyd...",
+    "stopRecording": "Stopp opptak",
+    "transcribing": "Transkriberer...",
+    "transcribingAudio": "Transkriberer lyd",
+    "transcriptQuote": "«{{transcript}}»",
+    "useThis": "Bruk denne"
+  },
   "fields": {
-    "area": "Område",
+    "area": "{{Area}}",
     "created": "Opprettet",
     "createdBy": "Opprettet av",
     "customFields": "Egendefinerte felt",
@@ -13,23 +277,31 @@
     "tags": "Stikkord",
     "updated": "Oppdatert"
   },
+  "filesTab": {
+    "documents": "Dokumenter",
+    "emptySubtitle": "Bilder og vedlegg som legges til denne {{bin}} vises her.",
+    "emptyTitle": "Ingen filer",
+    "photos": "Bilder",
+    "upgradeDescription": "Last opp PDF-er, regneark og andre filer til {{bins}}.",
+    "upgradeFeature": "Dokumentvedlegg"
+  },
   "filters": {
     "apply": "Bruk",
     "applyWithCount": "Bruk ({{active}})",
-    "area": "Område",
+    "area": "{{Area}}",
     "asc": "Stigende",
     "clear": "Tøm",
     "desc": "Synkende",
     "hasItems": "Har gjenstander",
     "hasNotes": "Har notater",
     "needsOrganizing": "Trenger organisering",
-    "noTags": "Ingen stikkord på dette stedet",
+    "noTags": "Ingen stikkord i denne {{location}}",
     "reset": "Tilbakestill",
     "saveView": "Lagre visning",
     "showLess": "Vis færre",
     "showMore": "+{{hidden}} til",
     "sort": "Sortering",
-    "sortArea": "Område",
+    "sortArea": "{{Area}}",
     "sortCreated": "Opprettet",
     "sortLastUsed": "Sist brukt",
     "sortName": "Navn",
@@ -37,10 +309,67 @@
     "tagModeAll": "Alle",
     "tagModeAny": "Hvilken som helst",
     "tags": "Stikkord",
-    "title": "Filtrer bokser",
+    "title": "Filtrer {{bins}}",
     "unassigned": "Uten område",
     "unusedSince": "Ubrukt siden",
     "usage": "Bruk"
+  },
+  "infoTab": {
+    "created": "Opprettet",
+    "creator": "Opprettet av",
+    "details": "Detaljer",
+    "lastScanned": "Sist skannet",
+    "never": "Aldri",
+    "qrAlt": "QR-kode for {{name}}",
+    "updated": "Oppdatert",
+    "usage": "Bruk"
+  },
+  "itemActions": {
+    "checkOut": "Sjekk ut",
+    "menuLabel": "Gjenstandshandlinger",
+    "return": "Returner"
+  },
+  "itemList": {
+    "actions": "Handlinger",
+    "addedToShoppingList_one": "Lagt til i handlelisten",
+    "addedToShoppingList_other": "Lagt til {{count}} i handlelisten",
+    "addToList_one": "Legg til i listen",
+    "addToList_other": "Legg alle til i listen",
+    "addToListFailed": "Kunne ikke legge til i listen",
+    "checkedOut": "Gjenstand sjekket ut",
+    "checkedOutCount": "{{out}} ute",
+    "checkoutFailed": "Kunne ikke sjekke ut gjenstanden",
+    "deleteFailed": "Kunne ikke slette gjenstanden",
+    "filterPlaceholder": "Filtrer gjenstander...",
+    "headerCount_one": "{{count}} gjenstand",
+    "headerCount_other": "{{count}} gjenstander",
+    "headerFilteredCount_one": "{{filtered}} av {{count}} gjenstand",
+    "headerFilteredCount_other": "{{filtered}} av {{count}} gjenstander",
+    "itemsRemoved_one": "Gjenstand fjernet",
+    "itemsRemoved_other": "{{count}} gjenstander fjernet",
+    "name": "Navn",
+    "noItems": "Ingen gjenstander",
+    "noItemsYet": "Ingen gjenstander ennå – legg til en under",
+    "noMatches": "Ingen gjenstander samsvarer med «{{query}}»",
+    "qty": "Antall",
+    "returned": "Gjenstand returnert",
+    "returnFailed": "Kunne ikke returnere gjenstanden",
+    "sortFailed": "Kunne ikke sortere gjenstander",
+    "undo": "Angre",
+    "updateFailed": "Kunne ikke oppdatere gjenstanden"
+  },
+  "itemPagination": {
+    "label": "Sidenavigering",
+    "next": "Neste side",
+    "page": "Side {{page}}",
+    "pageOf": "Side {{page}} av {{total}}",
+    "previous": "Forrige side",
+    "summary_one": "{{start}}–{{end}} av {{count}} gjenstand",
+    "summary_other": "{{start}}–{{end}} av {{count}} gjenstander"
+  },
+  "itemRow": {
+    "itemName": "Gjenstandsnavn",
+    "quantity": "Antall"
   },
   "list": {
     "askAi": "Spør AI",
@@ -65,6 +394,73 @@
     "upgradeAiDescription": "AI-drevne kommandoer, analyse og forslag er tilgjengelig i Pro-abonnementet.",
     "upgradeAiFeature": "AI-funksjoner"
   },
+  "moreOptions": {
+    "appearance": "Utseende",
+    "color": "Farge",
+    "customFields": "Egendefinerte felt",
+    "icon": "Ikon",
+    "label": "Flere valg",
+    "notes": "Notater",
+    "notesPlaceholder": "Tilleggsnotater...",
+    "style": "Stil",
+    "tags": "Stikkord",
+    "visibility": "Synlighet"
+  },
+  "moveDialog": {
+    "description": "Velg et {{location}} å flytte «{{name}}» ({{bin}}) til.",
+    "empty": "Ingen andre {{locations}} tilgjengelig",
+    "move": "Flytt",
+    "title": "Flytt til et annet {{location}}"
+  },
+  "onboardingFields": {
+    "color": "Farge",
+    "icon": "Ikon",
+    "namePlaceholder": "Navn på {{Bin}}",
+    "style": "Stil"
+  },
+  "photoAnalysis": {
+    "analyzeFailed": "Kunne ikke analysere bildene",
+    "reanalyzeFailed": "Kunne ikke analysere bildene på nytt"
+  },
+  "photoUpload": {
+    "addFromGallery": "Legg til fra galleri",
+    "addMore": "Legg til flere bilder",
+    "addPhotos": "Legg til bilder",
+    "camera": "Kamera",
+    "dragOrClick": "Dra og slipp, eller klikk for å legge til bilder",
+    "morePhotos": "Flere bilder",
+    "multipleHint": "Flere bilder gir bedre AI-treffsikkerhet",
+    "preview": "Forhåndsvisning {{n}}",
+    "removePhoto": "Fjern bilde {{n}}",
+    "tapToAdd": "Trykk for å legge til bilder"
+  },
+  "previewCard": {
+    "myBin": "Min {{bin}}",
+    "sampleItems": "Gjenstand én, gjenstand to, gjenstand tre",
+    "sampleTag1": "stikkord",
+    "sampleTag2": "merkelapp"
+  },
+  "quickAdd": {
+    "addCount": "Legg til {{selected}}",
+    "added_one": "La til {{count}} gjenstand",
+    "added_other": "La til {{count}} gjenstander",
+    "addFailed": "Kunne ikke legge til gjenstand",
+    "addItem": "Legg til gjenstand",
+    "addItemsFailed": "Kunne ikke legge til gjenstander",
+    "addWithAi": "Legg til med AI",
+    "back": "Tilbake",
+    "emptyPlaceholder": "Legg til gjenstander – skriv, lim inn en liste eller trykk på mikrofonen",
+    "expandedHint": "Lim inn eller skriv fritt – AI rydder opp",
+    "expandedPlaceholder": "List opp eller beskriv gjenstander, f.eks. «tre sokker, AA-batterier, vinterjakke»",
+    "extracting": "Henter ut...",
+    "extractItems": "Hent ut gjenstander",
+    "pasteTruncated": "Limte inn {{lines}} linjer – bare de første 500 blir lagt til",
+    "placeholder": "Legg til gjenstand...",
+    "progressAlmostDone": "Nesten ferdig...",
+    "progressExtracting": "Henter ut gjenstander...",
+    "progressProcessing": "Behandler tekst...",
+    "progressStructuring": "Strukturerer resultatene..."
+  },
   "saveView": {
     "namePlaceholder": "Navn på visning...",
     "saved": "Visning lagret",
@@ -79,14 +475,86 @@
     "filter": "Filter",
     "filterBins": "Filtrer {{bins}}",
     "placeholder": "Søk i {{bins}}...",
-    "removeAreaFilter": "Fjern områdefilter {{area}}",
+    "removeAreaFilter": "Fjern {{areaTerm}}-filter {{area}}",
     "removeHasItemsFilter": "Fjern filteret «har gjenstander»",
     "removeHasNotesFilter": "Fjern filteret «har notater»",
     "removeNeedsOrganizingFilter": "Fjern filteret «trenger organisering»",
     "removeTagFilter": "Fjern stikkordfilter {{tag}}"
   },
+  "shareDialog": {
+    "copyFailed": "Kunne ikke kopiere lenken",
+    "copyLink": "Kopier lenke",
+    "createFailed": "Kunne ikke opprette delingslenke",
+    "createIntro": "Opprett en lenke som alle kan bruke til å se denne {{bin}} uten å logge inn.",
+    "createLink": "Opprett delingslenke",
+    "creating": "Oppretter...",
+    "expiration": "Utløp",
+    "expires": "Utløper {{date}}",
+    "expiry": {
+      "1h": "1 time",
+      "24h": "24 timer",
+      "30d": "30 dager",
+      "7d": "7 dager",
+      "never": "Aldri"
+    },
+    "linkCopied": "Lenken er kopiert til utklippstavlen",
+    "public": "Offentlig",
+    "publicHint": "Kan oppdages og er synlig for alle",
+    "revokeFailed": "Kunne ikke trekke tilbake delingslenken",
+    "revokeLink": "Trekk tilbake lenke",
+    "revoking": "Trekker tilbake...",
+    "title": "Del",
+    "unlisted": "Ulistet",
+    "unlistedHint": "Bare personer med lenken kan se den",
+    "upgradeDescription": "Lag offentlige eller ulistede lenker for å dele {{bins}} med hvem som helst.",
+    "upgradeFeature": "Deling av {{bin}}",
+    "views_one": "{{count}} visning",
+    "views_other": "{{count}} visninger",
+    "visibility": "Synlighet"
+  },
+  "sharedPage": {
+    "details": "Detaljer",
+    "goToApp": "Gå til OpenBin",
+    "items": "Gjenstander",
+    "notes": "Notater",
+    "photos": "Bilder",
+    "poweredBy": "Drevet av OpenBin",
+    "tags": "Stikkord",
+    "unavailableMessage": "Delingslenken kan ha blitt trukket tilbake eller slettet.",
+    "unavailableTitle": "Denne lenken er ikke lenger tilgjengelig"
+  },
+  "stylePicker": {
+    "backgrounds": "Bakgrunner",
+    "borders": {
+      "dashed": "Stiplet",
+      "dotted": "Prikket",
+      "double": "Dobbel",
+      "solid": "Hel"
+    },
+    "borderStyle": "Kantstil",
+    "position": "Plassering",
+    "positions": {
+      "bottom": "Nederst",
+      "left": "Venstre",
+      "right": "Høyre",
+      "top": "Øverst"
+    },
+    "thickness": "Tykkelse",
+    "variants": {
+      "border": "Kant",
+      "default": "Flat",
+      "gradient": "Gradient",
+      "photo": "Bilde",
+      "stripe": "Stripe"
+    },
+    "yourPhotos": "Bildene dine"
+  },
   "table": {
     "name": "Navn"
+  },
+  "tagInput": {
+    "create": "Opprett <name>{{name}}</name>",
+    "placeholder": "Søk etter eller opprett stikkord..."
   },
   "trash": {
     "confirmMessage": "Er du sikker på at du vil slette <strong>«{{name}}»</strong> permanent?",
@@ -117,5 +585,9 @@
     "compact": "Kompakt",
     "grid": "Rutenett",
     "table": "Tabell"
+  },
+  "visibility": {
+    "everyone": "Alle",
+    "onlyMe": "Bare meg"
   }
 }

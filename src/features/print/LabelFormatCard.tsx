@@ -1,5 +1,6 @@
 import { Check, ChevronDown, LayoutGrid, RectangleHorizontal, RectangleVertical, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,7 +9,7 @@ import { OptionGroup } from '@/components/ui/option-group';
 import { useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { computeLabelsPerPage, filterLabelFormats } from './labelFormats';
+import { computeLabelsPerPage, filterLabelFormats, type LabelFormat } from './labelFormats';
 import { inchesToMm } from './pdfUnits';
 import type { FormatState } from './usePrintPageActions';
 import { CUSTOM_FIELDS } from './usePrintPageActions';
@@ -38,6 +39,7 @@ function FormatThumbnail({ columns, perPage }: { columns: number; perPage: numbe
 }
 
 export function LabelFormatCard({ format: f, expanded, onExpandedChange }: LabelFormatCardProps) {
+  const { t } = useTranslation(['print', 'common']);
   const [formatSearch, setFormatSearch] = useState('');
   const [presetName, setPresetName] = useState('');
   const [showSaveInput, setShowSaveInput] = useState(false);
@@ -47,10 +49,23 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
   function handleSave() {
     if (!presetName.trim()) return;
     f.handleSavePreset(presetName);
-    showToast({ message: `Preset "${presetName.trim()}" saved`, variant: 'success' });
+    showToast({ message: t('format.presetSaved', { defaultValue: 'Preset "{{name}}" saved', name: presetName.trim() }), variant: 'success' });
     setPresetName('');
     setShowSaveInput(false);
   }
+
+  const customFieldLabels: Partial<Record<keyof LabelFormat, string>> = {
+    pageWidth: t('format.fields.pageWidth', { defaultValue: 'Page Width' }),
+    pageHeight: t('format.fields.pageHeight', { defaultValue: 'Page Height' }),
+    cellWidth: t('format.fields.cellWidth', { defaultValue: 'Label Width' }),
+    cellHeight: t('format.fields.cellHeight', { defaultValue: 'Label Height' }),
+    columns: t('format.fields.columns', { defaultValue: 'Columns' }),
+    qrSize: t('format.fields.qrSize', { defaultValue: 'QR Size' }),
+    pageMarginTop: t('format.fields.pageMarginTop', { defaultValue: 'Top Margin' }),
+    pageMarginBottom: t('format.fields.pageMarginBottom', { defaultValue: 'Bottom Margin' }),
+    pageMarginLeft: t('format.fields.pageMarginLeft', { defaultValue: 'Left Margin' }),
+    pageMarginRight: t('format.fields.pageMarginRight', { defaultValue: 'Right Margin' }),
+  };
 
   return (
     <Card>
@@ -63,7 +78,7 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
         >
           <div className="row">
             <LayoutGrid className="h-4 w-4 text-[var(--text-tertiary)]" />
-            <Label className="text-[15px] font-semibold text-[var(--text-primary)] pointer-events-none">Label Format</Label>
+            <Label className="text-[15px] font-semibold text-[var(--text-primary)] pointer-events-none">{t('format.title', { defaultValue: 'Label Format' })}</Label>
             {!expanded && (
               <span className="text-[13px] text-[var(--text-tertiary)]">({f.baseFormat.name})</span>
             )}
@@ -81,7 +96,7 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-tertiary)] pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search by Avery product number..."
+                placeholder={t('format.searchPlaceholder', { defaultValue: 'Search by Avery product number...' })}
                 value={formatSearch}
                 onChange={(e) => setFormatSearch(e.target.value)}
                 className="w-full h-9 rounded-[var(--radius-sm)] bg-[var(--bg-input)] pl-9 pr-8 text-[14px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none focus:ring-2 focus:ring-[var(--accent)]/30 transition-shadow"
@@ -90,7 +105,7 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
                 <button
                   type="button"
                   onClick={() => setFormatSearch('')}
-                  aria-label="Clear search"
+                  aria-label={t('format.clearSearch', { defaultValue: 'Clear search' })}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-[var(--radius-lg)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -100,7 +115,7 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
 
             {f.savedPresets.length > 0 && (
               <div className="space-y-1 mt-2">
-                <span className="text-[12px] text-[var(--text-tertiary)] font-medium px-3">Saved Presets</span>
+                <span className="text-[12px] text-[var(--text-tertiary)] font-medium px-3">{t('format.savedPresets', { defaultValue: 'Saved Presets' })}</span>
                 {f.savedPresets.map((fmt) => {
                   const perPage = computeLabelsPerPage(fmt);
                   return (
@@ -128,12 +143,12 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
                           </span>
                         </div>
                       </button>
-                      <Tooltip content={`Delete ${fmt.name}`}>
+                      <Tooltip content={t('format.deletePreset', { defaultValue: 'Delete {{name}}', name: fmt.name })}>
                         <button
                           type="button"
                           className="shrink-0 p-2 mr-1 rounded-[var(--radius-sm)] text-[var(--text-tertiary)] hover:text-[var(--destructive)] hover:bg-[var(--bg-hover)] transition-colors"
                           onClick={() => f.handleDeletePreset(fmt.key)}
-                          aria-label={`Delete ${fmt.name}`}
+                          aria-label={t('format.deletePreset', { defaultValue: 'Delete {{name}}', name: fmt.name })}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -167,7 +182,9 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
                       <div className="min-w-0">
                         <span className="text-[15px] text-[var(--text-primary)]">{fmt.name}</span>
                         <span className="text-[13px] text-[var(--text-tertiary)] ml-2">
-                          {perPage > 1 ? `${perPage} per page` : 'single label'}
+                          {perPage > 1
+                            ? t('format.perPage', { defaultValue: '{{perPage}} per page', perPage })
+                            : t('format.singleLabel', { defaultValue: 'single label' })}
                         </span>
                       </div>
                     </button>
@@ -176,17 +193,17 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
               </div>
             ) : (
               <p className="text-[13px] text-[var(--text-tertiary)] py-6 text-center">
-                No matching label formats
+                {t('format.noMatches', { defaultValue: 'No matching label formats' })}
               </p>
             )}
 
             {/* Orientation toggle */}
             <div className="flex items-center gap-1 mt-3 pt-3 border-t border-[var(--border-subtle)] px-1">
-              <span className="text-[12px] text-[var(--text-secondary)] font-medium mr-2">Orientation</span>
+              <span className="text-[12px] text-[var(--text-secondary)] font-medium mr-2">{t('format.orientation', { defaultValue: 'Orientation' })}</span>
               <OptionGroup
                 options={[
-                  { key: 'landscape' as const, label: 'Landscape', icon: RectangleHorizontal },
-                  { key: 'portrait' as const, label: 'Portrait', icon: RectangleVertical },
+                  { key: 'landscape' as const, label: t('format.landscape', { defaultValue: 'Landscape' }), icon: RectangleHorizontal },
+                  { key: 'portrait' as const, label: t('format.portrait', { defaultValue: 'Portrait' }), icon: RectangleVertical },
                 ]}
                 value={f.effectiveOrientation}
                 onChange={(v) => v !== f.effectiveOrientation && f.toggleOrientation()}
@@ -210,18 +227,18 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
                   checked={f.customState.customizing}
                   onCheckedChange={f.toggleCustomize}
                 />
-                <span className="text-[15px] text-[var(--text-primary)]">Customize dimensions</span>
+                <span className="text-[15px] text-[var(--text-primary)]">{t('format.customize', { defaultValue: 'Customize dimensions' })}</span>
               </label>
             </div>
 
             {f.customState.customizing && (
               <>
                 <div className="flex items-center gap-1 mt-3 px-1">
-                  <span className="text-[12px] text-[var(--text-secondary)] font-medium mr-2">Units</span>
+                  <span className="text-[12px] text-[var(--text-secondary)] font-medium mr-2">{t('format.units', { defaultValue: 'Units' })}</span>
                   <OptionGroup
                     options={[
-                      { key: 'in' as const, label: 'Inches' },
-                      { key: 'mm' as const, label: 'mm' },
+                      { key: 'in' as const, label: t('format.inches', { defaultValue: 'Inches' }) },
+                      { key: 'mm' as const, label: t('format.millimeters', { defaultValue: 'mm' }) },
                     ]}
                     value={f.displayUnit}
                     onChange={(v) => f.updateDisplayUnit(v)}
@@ -231,13 +248,15 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
 
                 <div className="grid grid-cols-2 gap-3 mt-3 px-1">
                   {CUSTOM_FIELDS.map((field) => {
-                    const unitSuffix = field.isDimensional ? ` (${f.displayUnit})` : '';
+                    const fieldLabel = customFieldLabels[field.key] ?? field.key;
                     const step = f.displayUnit === 'mm' && field.isDimensional ? field.stepMm : field.stepIn;
                     const min = f.displayUnit === 'mm' && field.isDimensional ? String(inchesToMm(field.minIn)) : String(field.minIn);
                     return (
                       <div key={field.key} className="flex flex-col gap-1">
                         <label htmlFor={`custom-field-${field.key}`} className="text-[12px] text-[var(--text-secondary)] font-medium">
-                          {field.label}{unitSuffix}
+                          {field.isDimensional
+                            ? t('format.fieldWithUnit', { defaultValue: '{{field}} ({{unit}})', field: fieldLabel, unit: f.displayUnit })
+                            : fieldLabel}
                         </label>
                         <input
                           id={`custom-field-${field.key}`}
@@ -258,14 +277,14 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
                   <div className="row mt-3 px-1">
                     <input
                       type="text"
-                      placeholder="Preset name"
+                      placeholder={t('format.presetNamePlaceholder', { defaultValue: 'Preset name' })}
                       value={presetName}
                       onChange={(e) => setPresetName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSave()}
                       className="h-9 flex-1 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2.5 text-[14px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <Button size="sm" onClick={handleSave} disabled={!presetName.trim()} className="h-9 px-3">
-                      Save
+                      {t('common:actions.save', { defaultValue: 'Save' })}
                     </Button>
                     <Button
                       variant="ghost"
@@ -284,7 +303,7 @@ export function LabelFormatCard({ format: f, expanded, onExpandedChange }: Label
                     className="mt-3 mx-1 text-[13px] text-[var(--accent)] h-9 px-3"
                   >
                     <Save className="h-4 w-4 mr-1.5" />
-                    Save as Preset
+                    {t('format.saveAsPreset', { defaultValue: 'Save as Preset' })}
                   </Button>
                 )}
               </>

@@ -1,9 +1,11 @@
 import { AlertTriangle, Clock } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Crossfade } from '@/components/ui/crossfade';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ActivityTableSkeleton } from '@/features/activity/ActivityTableSkeleton';
 import { ActivityTableView } from '@/features/activity/ActivityTableView';
+import { useTerminology } from '@/lib/terminology';
 import { sectionHeader, sectionHeaderRow } from '@/lib/utils';
 import { useBinActivity } from './useBinActivity';
 
@@ -15,6 +17,8 @@ interface BinDetailActivitySectionProps {
 }
 
 export function BinDetailActivitySection({ binId }: BinDetailActivitySectionProps) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const [expanded, setExpanded] = useState(false);
   const { entries, isLoading, isLoadingMore, hasMore, error, loadMore } = useBinActivity(
     binId,
@@ -28,7 +32,7 @@ export function BinDetailActivitySection({ binId }: BinDetailActivitySectionProp
   return (
     <section>
       <header className={sectionHeaderRow}>
-        <h3 className={sectionHeader}>Activity</h3>
+        <h3 className={sectionHeader}>{t('activity.title', { defaultValue: 'Activity' })}</h3>
       </header>
 
       <Crossfade
@@ -38,15 +42,15 @@ export function BinDetailActivitySection({ binId }: BinDetailActivitySectionProp
         {error ? (
           <EmptyState
             icon={AlertTriangle}
-            title="Failed to load activity"
+            title={t('activity.loadFailed', { defaultValue: 'Failed to load activity' })}
             subtitle={error}
             compact
           />
         ) : entries.length === 0 ? (
           <EmptyState
             icon={Clock}
-            title="No activity yet"
-            subtitle="Changes to this bin will appear here"
+            title={t('activity.emptyTitle', { defaultValue: 'No activity yet' })}
+            subtitle={t('activity.emptySubtitle', { defaultValue: 'Changes to this {{bin}} will appear here', bin: term.bin })}
             compact
           />
         ) : (
@@ -68,7 +72,7 @@ export function BinDetailActivitySection({ binId }: BinDetailActivitySectionProp
             aria-expanded={expanded}
             className="text-[13px] text-[var(--accent)] underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none rounded-sm"
           >
-            {expanded ? 'Show less' : 'Show all events'}
+            {expanded ? t('activity.showLess', { defaultValue: 'Show less' }) : t('activity.showAll', { defaultValue: 'Show all events' })}
           </button>
         </div>
       )}

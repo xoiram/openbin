@@ -57,6 +57,11 @@ vi.mock('@/lib/usePlan', () => ({
 import { usePlan } from '@/lib/usePlan';
 import { useUserPreferences } from '@/lib/userPreferences';
 
+vi.mock('@/lib/terminology', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/terminology')>();
+  return { ...actual, useTerminology: () => actual.DEFAULT_TERMINOLOGY };
+});
+
 describe('BinDetailFilesTab', () => {
   it('hides upload affordance when attachments feature is gated and user can edit', () => {
     // In non-EE builds (test environment has __EE__=false) the UpgradePrompt

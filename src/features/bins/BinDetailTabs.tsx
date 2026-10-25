@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { OptionGroup, type OptionGroupOption } from '@/components/ui/option-group';
+import { useTerminology } from '@/lib/terminology';
 import type { useDictation } from '@/lib/useDictation';
 import type { Bin, CustomField, ItemCheckout, Photo } from '@/types';
 import { BinDetailContentsTab } from './BinDetailContentsTab';
@@ -12,11 +14,7 @@ export type BinDetailTab = 'contents' | 'files' | 'information';
 
 const STORAGE_KEY = 'openbin-detail-tab';
 
-const TAB_OPTIONS: OptionGroupOption<BinDetailTab>[] = [
-  { key: 'contents', label: 'Contents' },
-  { key: 'files', label: 'Files' },
-  { key: 'information', label: 'Info' },
-];
+const TAB_KEYS: BinDetailTab[] = ['contents', 'files', 'information'];
 
 function isTab(v: string | null): v is BinDetailTab {
   return v === 'contents' || v === 'files' || v === 'information';
@@ -61,6 +59,16 @@ export function BinDetailTabs({
   photos,
   checkouts,
 }: BinDetailTabsProps) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
+  const tabOptions = useMemo<OptionGroupOption<BinDetailTab>[]>(
+    () => [
+      { key: 'contents', label: t('detailTabs.contents', { defaultValue: 'Contents' }) },
+      { key: 'files', label: t('detailTabs.files', { defaultValue: 'Files' }) },
+      { key: 'information', label: t('detailTabs.info', { defaultValue: 'Info' }) },
+    ],
+    [t],
+  );
   const [tab, setTab] = useState<BinDetailTab>(() => readInitialTab());
   const tabsId = useId();
 
@@ -86,9 +94,9 @@ export function BinDetailTabs({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (!/^[1-9]$/.test(e.key)) return;
       const idx = Number(e.key);
-      if (idx < 1 || idx > TAB_OPTIONS.length) return;
+      if (idx < 1 || idx > TAB_KEYS.length) return;
       e.preventDefault();
-      handleChange(TAB_OPTIONS[idx - 1].key);
+      handleChange(TAB_KEYS[idx - 1]);
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -98,12 +106,12 @@ export function BinDetailTabs({
     <div>
       <div data-tour="bin-tabs">
         <OptionGroup
-          options={TAB_OPTIONS}
+          options={tabOptions}
           value={tab}
           onChange={handleChange}
           size="lg"
           variant="tabs"
-          aria-label="Bin sections"
+          aria-label={t('detailTabs.sections', { defaultValue: '{{bin}} sections', bin: term.Bin })}
           idPrefix={tabsId}
         />
       </div>

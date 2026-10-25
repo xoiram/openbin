@@ -1,6 +1,7 @@
 import './html5qrcode-overrides.css';
 import type { Html5Qrcode } from 'html5-qrcode';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '@/lib/utils';
 
 interface Html5QrcodePluginProps {
@@ -9,11 +10,13 @@ interface Html5QrcodePluginProps {
 }
 
 export function Html5QrcodePlugin({ paused, onScanSuccess }: Html5QrcodePluginProps) {
+  const { t } = useTranslation('qrcode');
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerId = 'html5-qrcode-scanner';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the scanner starts once on mount
   useEffect(() => {
     let cancelled = false;
 
@@ -41,7 +44,7 @@ export function Html5QrcodePlugin({ paused, onScanSuccess }: Html5QrcodePluginPr
         })
         .catch((err) => {
           if (!cancelled) {
-            setError(getErrorMessage(err, 'Failed to start camera'));
+            setError(getErrorMessage(err, t('scanner.cameraFailed', { defaultValue: 'Failed to start camera' })));
           }
         });
     });
@@ -74,7 +77,7 @@ export function Html5QrcodePlugin({ paused, onScanSuccess }: Html5QrcodePluginPr
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-4">
-        <p className="text-[15px] font-medium text-[var(--text-primary)]">Failed to start scanner</p>
+        <p className="text-[15px] font-medium text-[var(--text-primary)]">{t('scanner.startFailed', { defaultValue: 'Failed to start scanner' })}</p>
         <p className="text-[13px] text-[var(--text-tertiary)]">{error}</p>
       </div>
     );
