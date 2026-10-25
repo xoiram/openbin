@@ -184,7 +184,10 @@ export const nestedBoxes: Migration = {
       `);
       await client.query(`
         DO $$ BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'bin_items_bin_xor_area') THEN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'bin_items_bin_xor_area' AND conrelid = 'bin_items'::regclass
+          ) THEN
             ALTER TABLE bin_items ADD CONSTRAINT bin_items_bin_xor_area CHECK (bin_id IS NULL OR area_id IS NULL);
           END IF;
         END $$;
