@@ -41,7 +41,7 @@ tags:
   - name: PrintSettings
     description: Per-user print label settings
   - name: Export
-    description: Export and import location data
+    description: Export and import location data as JSON, ZIP or CSV. JSON and ZIP use format version 4
   - name: AI
     description: AI provider settings and image analysis
   - name: Activity
@@ -1481,100 +1481,449 @@ components:
           format: date-time
 
     # ── Export ─────────────────────────────────────────────
-    ExportDataV2:
+    ExportItem:
+      description: An item in an export. A bare name, or an object with an optional quantity
+      oneOf:
+        - type: string
+        - type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+            quantity:
+              type: integer
+              minimum: 1
+              nullable: true
+
+    ExportPhoto:
       type: object
+      description: Photo embedded in a JSON export or import (`data` is base64). ZIP archives store `zipPath` instead
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        data:
+          type: string
+          format: byte
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    ExportBin:
+      type: object
+      required: [id, name, items, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The bin's UUID. Imports do not match bins by this id; parents are matched by shortCode
+        name:
+          type: string
+        location:
+          type: string
+          description: Area path, segments joined with " / " (e.g. "Garage / Shelf A"). Empty string when the bin has no area
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportItem'
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        icon:
+          type: string
+        color:
+          type: string
+        cardStyle:
+          type: string
+          description: JSON-encoded card style configuration
+        visibility:
+          type: string
+          enum: [location, private]
+          description: Omitted for location-visible bins
+        customFields:
+          type: object
+          additionalProperties:
+            type: string
+          description: Custom field values keyed by field name
+        shortCode:
+          type: string
+          description: The bin's short code (the value shown on its QR label)
+        parentShortCode:
+          type: string
+          description: Short code of the parent box. Only child boxes carry it. Omitted when the parent is not part of the export, in which case the child is skipped on import
+        createdBy:
+          type: string
+          format: uuid
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Only present on entries of trashedBins
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportPhoto'
+
+    ExportArea:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+          description: Area path, segments joined with " / "
+        createdBy:
+          type: string
+          format: uuid
+        items:
+          type: array
+          description: Loose items directly in this area. Present only when the area has some
+          items:
+            $ref: '#/components/schemas/ExportItem'
+
+    ExportData:
+      type: object
+      description: JSON export of a location (format version 4)
+      required: [version, exportedAt, bins]
       properties:
         version:
           type: integer
-          enum: [2]
+          enum: [4]
         exportedAt:
           type: string
           format: date-time
         locationName:
           type: string
+        locationSettings:
+          type: object
+          properties:
+            activityRetentionDays:
+              type: integer
+            trashRetentionDays:
+              type: integer
+            appName:
+              type: string
+            termBin:
+              type: string
+            termLocation:
+              type: string
+            termArea:
+              type: string
+            defaultJoinRole:
+              type: string
+              enum: [member, viewer]
         bins:
+          type: array
+          description: Live bins, top-level and child boxes
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        trashedBins:
+          type: array
+          description: Trashed bins. Present only when there are some
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        areas:
+          type: array
+          description: Every area of the location. Present only when there are some
+          items:
+            $ref: '#/components/schemas/ExportArea'
+        unassignedItems:
+          type: array
+          description: Loose items in no area. Present only when there are some
+          items:
+            $ref: '#/components/schemas/ExportItem'
+        tagColors:
           type: array
           items:
             type: object
             properties:
-              id:
-                type: string
-                description: 6-character alphanumeric short code
-              name:
-                type: string
-              location:
-                type: string
-                description: Area name for backward compatibility
-              items:
-                type: array
-                items:
-                  type: string
-              notes:
-                type: string
-              tags:
-                type: array
-                items:
-                  type: string
-              icon:
+              tag:
                 type: string
               color:
                 type: string
-              cardStyle:
-                type: string
-                description: JSON-encoded card style configuration
-              shortCode:
-                type: string
-                description: Same as id (kept for export format compatibility)
-              customFields:
-                type: object
-                additionalProperties:
-                  type: string
-                description: "Custom field values as { fieldName: value } map"
-              createdAt:
-                type: string
-                format: date-time
-              updatedAt:
-                type: string
-                format: date-time
-              photos:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    filename:
-                      type: string
-                    mimeType:
-                      type: string
-                    data:
-                      type: string
-                      format: byte
-
-    ImportRequest:
-      type: object
-      required: [version, bins]
-      properties:
-        version:
-          type: integer
-          enum: [1, 2]
-        exportedAt:
-          type: string
-          format: date-time
-        locationName:
-          type: string
-        bins:
+        customFieldDefinitions:
           type: array
           items:
             type: object
-        photos:
+            properties:
+              name:
+                type: string
+              position:
+                type: integer
+        pinnedBins:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+              binId:
+                type: string
+                format: uuid
+              position:
+                type: integer
+        savedViews:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+              name:
+                type: string
+              searchQuery:
+                type: string
+              sort:
+                type: string
+              filters:
+                type: string
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+              email:
+                type: string
+              role:
+                type: string
+                enum: [admin, member, viewer]
+              joinedAt:
+                type: string
+                format: date-time
+
+    ImportRequest:
+      type: object
+      description: Body of the JSON import. Same shape as ExportData, with `version` optional and `mode`/`dryRun` added
+      required: [bins]
+      properties:
+        version:
+          type: integer
+          minimum: 2
+          maximum: 4
+          nullable: true
+          description: "Export format version. Optional: a missing or null version is accepted. Any other value outside 2 to 4 gives 422"
+        bins:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        trashedBins:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportBin'
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportArea'
+        unassignedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportItem'
+        tagColors:
+          type: array
+          items:
+            type: object
+        customFieldDefinitions:
+          type: array
+          items:
+            type: object
+        locationSettings:
+          type: object
+        pinnedBins:
+          type: array
+          items:
+            type: object
+        savedViews:
+          type: array
+          items:
+            type: object
+        members:
           type: array
           items:
             type: object
         mode:
           type: string
           enum: [merge, replace]
-          description: Import mode — merge adds to existing, replace clears first
+          default: merge
+          description: merge adds to existing data. replace deletes all bins, items and areas of the location first (admins only)
+        dryRun:
+          type: boolean
+          description: When true, returns an ImportPreview and changes nothing
+
+    ImportResult:
+      type: object
+      description: Counts from a JSON or ZIP import
+      properties:
+        binsImported:
+          type: integer
+          description: Live bins imported (top-level and children)
+        binsSkipped:
+          type: integer
+          description: Live bins skipped because they already exist (merge)
+        trashedBinsImported:
+          type: integer
+        trashedBinsSkipped:
+          type: integer
+        childBinsImported:
+          type: integer
+          description: Imported bins (live and trashed) that are child boxes
+        binsSkippedUnresolvedParent:
+          type: integer
+          description: Child boxes skipped because their parent can't be resolved
+        photosImported:
+          type: integer
+        photosSkipped:
+          type: integer
+        areasImported:
+          type: integer
+        pinsImported:
+          type: integer
+        viewsImported:
+          type: integer
+        membersImported:
+          type: integer
+        settingsApplied:
+          type: boolean
+        looseItemsImported:
+          type: integer
+          description: Loose items (in an area or unassigned) inserted
+        looseItemsSkipped:
+          type: integer
+          description: Loose items skipped because an item with the same name is already in that place (merge)
+
+    ImportPreview:
+      type: object
+      description: Dry-run result of a JSON or ZIP import. Nothing is written
+      properties:
+        preview:
+          type: boolean
+          enum: [true]
+        toCreate:
+          type: array
+          items:
+            type: object
+            required: [name, itemCount, tags, trashed, isChild]
+            properties:
+              name:
+                type: string
+              itemCount:
+                type: integer
+              tags:
+                type: array
+                items:
+                  type: string
+              trashed:
+                type: boolean
+              isChild:
+                type: boolean
+              parentShortCode:
+                type: string
+                description: Present for child boxes
+        toSkip:
+          type: array
+          items:
+            type: object
+            required: [name, reason, code]
+            properties:
+              name:
+                type: string
+              reason:
+                type: string
+              code:
+                type: string
+                enum: [exists, unresolved_parent]
+        totalBins:
+          type: integer
+          description: Entries in bins
+        totalTrashedBins:
+          type: integer
+          description: Entries in trashedBins
+        totalChildBins:
+          type: integer
+          description: Child boxes across bins and trashedBins
+        binsSkippedUnresolvedParent:
+          type: integer
+        totalItems:
+          type: integer
+          description: Items inside bins, including skipped bins
+        looseItemsTotal:
+          type: integer
+        looseItemsToCreate:
+          type: integer
+        looseItemsToSkip:
+          type: integer
+
+    CsvImportResult:
+      type: object
+      properties:
+        binsImported:
+          type: integer
+        binsSkipped:
+          type: integer
+        itemsImported:
+          type: integer
+        looseItemsImported:
+          type: integer
+        looseItemsSkipped:
+          type: integer
+
+    CsvImportPreview:
+      type: object
+      description: Dry-run result of a CSV import. Nothing is written
+      properties:
+        preview:
+          type: boolean
+          enum: [true]
+        toCreate:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              itemCount:
+                type: integer
+              tags:
+                type: array
+                items:
+                  type: string
+        toSkip:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              reason:
+                type: string
+        totalBins:
+          type: integer
+        totalItems:
+          type: integer
+        looseItemsTotal:
+          type: integer
+        looseItemsToCreate:
+          type: integer
+        looseItemsToSkip:
+          type: integer
 
     # ── Plan ───────────────────────────────────────────────
     PlanFeatures:
@@ -6153,14 +6502,18 @@ paths:
 
   # ════════════════════════════════════════════════════════
   # Export / Import
-  # TODO(export v4): document export format version 4 (box parentShortCode, areas[].items, unassignedItems,
-  # new import counters) once that PR lands. The export/import schemas below still describe the current formats.
   # ════════════════════════════════════════════════════════
   /locations/{id}/export:
     get:
       tags: [Export]
       summary: Export location as JSON
-      description: Returns V2 format JSON with base64-encoded photos embedded in each bin. Requires Pro plan.
+      description: |
+        Returns the location as one JSON document (format version 4). `bins` are the live bins and
+        `trashedBins` the trashed ones; photos are embedded as base64. `areas` lists every area, with
+        its loose items when it has any, and `unassignedItems` holds loose items in no area. A child
+        box carries `parentShortCode`. Private bins are included only for their creator.
+        Requires a Plus or Pro plan (not during a trial). Self-hosted instances are not restricted.
+        Limited to 5000 bins (422).
       parameters:
         - name: id
           in: path
@@ -6174,19 +6527,30 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExportDataV2'
+                $ref: '#/components/schemas/ExportData'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           oneOf:
             - $ref: '#/components/responses/Forbidden'
             - $ref: '#/components/responses/PlanRestricted'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /locations/{id}/export/zip:
     get:
       tags: [Export]
       summary: Export location as ZIP
-      description: Returns a ZIP file containing a JSON manifest and a photos directory. Requires Pro plan.
+      description: |
+        Returns a ZIP archive:
+        - `manifest.json`: `format: "openbin-zip"`, `version: 4`, `locationName`, `locationSettings`,
+          counts, and the `areas`, `unassignedItems`, `tagColors`, `customFieldDefinitions`,
+          `pinnedBins`, `savedViews` and `members` lists (each present only when non-empty)
+        - `bins.json`: live bins, shaped like ExportBin, with each photo's `zipPath` instead of `data`
+        - `trashed-bins.json`: trashed bins (only when there are some)
+        - `photos/`: the image files that `zipPath` refers to
+        Requires a Plus or Pro plan (not during a trial). Self-hosted instances are not restricted.
+        Limited to 5000 bins (422).
       parameters:
         - name: id
           in: path
@@ -6208,15 +6572,18 @@ paths:
           oneOf:
             - $ref: '#/components/responses/Forbidden'
             - $ref: '#/components/responses/PlanRestricted'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /locations/{id}/export/csv:
     get:
       tags: [Export]
       summary: Export location as CSV
       description: |
-        Returns a CSV spreadsheet with one row per item. Columns: Bin Name, Area, Item,
-        Quantity, Tags (comma-separated). Bins with no items get a single row with empty
-        Item and Quantity fields.
+        One row per item. Columns: `Bin Name,Area,Item,Quantity,Tags`, with tags joined by `; `.
+        A bin with no items gets one row with empty Item and Quantity. Loose items have an empty
+        Bin Name and the area path in Area (empty for unassigned items). Child boxes appear as
+        ordinary rows, without their parent. Trashed bins are not exported. Member role or above.
       parameters:
         - name: id
           in: path
@@ -6239,10 +6606,22 @@ paths:
   /locations/{id}/import:
     post:
       tags: [Export]
-      summary: Import bins and photos
+      summary: Import a JSON export
       description: |
-        Imports V1 or V2 format data. Supports merge (add to existing) or replace (clear first) modes.
-        50MB body limit. Creates areas from location strings on import.
+        Imports a JSON export. Accepts `version` 2, 3 or 4, or no version at all; any other value
+        gives 422 (the message names `version`). Body limit 50 MB; at most 2000 bins (live and trashed).
+
+        - **merge** (default) adds to existing data. A bin is skipped when a bin with the same
+          `shortCode` exists. A loose item is skipped when an item with the same name is already in
+          the same area, or when both are unassigned.
+        - **replace** (admins only, 403 otherwise) first deletes all bins, items and areas of the
+          location, then imports.
+        - **Child boxes**: `parentShortCode` must name a top-level box from this import, or an
+          existing top-level box in the location that the caller can see. Otherwise the child is
+          skipped and counted in `binsSkippedUnresolvedParent`. A live child of a trashed parent is
+          imported trashed with it.
+        - **Dry run**: `dryRun: true` returns an ImportPreview and writes nothing.
+        - Plan limits: an import that would exceed the bin or photo-storage limit gives 403 PLAN_RESTRICTED.
       parameters:
         - name: id
           in: path
@@ -6258,22 +6637,19 @@ paths:
               $ref: '#/components/schemas/ImportRequest'
       responses:
         '200':
-          description: Import summary
+          description: Import result, or a preview when dryRun is true
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  imported:
-                    type: integer
-                    description: Number of bins imported
-                  photos:
-                    type: integer
-                    description: Number of photos imported
+                oneOf:
+                  - $ref: '#/components/schemas/ImportResult'
+                  - $ref: '#/components/schemas/ImportPreview'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          oneOf:
+            - $ref: '#/components/responses/Forbidden'
+            - $ref: '#/components/responses/PlanRestricted'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -6282,10 +6658,13 @@ paths:
       tags: [Export]
       summary: Import bins from CSV
       description: |
-        Imports bins from a CSV file. Supports two formats:
-        - Round-trip format (matches CSV export): Bin Name, Area, Item, Quantity, Tags
-        - One-bin-per-row format: Bin Name, Area, Items, Tags
-        Max 10MB file size. Max 2000 bins.
+        Two header formats:
+        - Round-trip (matches CSV export): `Bin Name,Area,Item,Quantity,Tags`. Rows with an empty
+          Bin Name are loose items: the Area is their area path, and an empty Area means unassigned.
+        - One bin per row: `Bin Name,Area,Items,Tags` (the first column may also be called `Name`).
+
+        Max 10 MB file, at most 2000 bins. Send `dryRun=true` to get a CSV preview without writing.
+        `mode=replace` is admin only (403 otherwise).
       parameters:
         - name: id
           in: path
@@ -6309,24 +6688,25 @@ paths:
                   type: string
                   enum: [merge, replace]
                   default: merge
+                dryRun:
+                  type: string
+                  enum: ['true']
+                  description: Send "true" to get a preview instead of importing
       responses:
         '200':
-          description: Import summary
+          description: Import result, or a preview when dryRun is "true"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  binsImported:
-                    type: integer
-                  binsSkipped:
-                    type: integer
-                  itemsImported:
-                    type: integer
+                oneOf:
+                  - $ref: '#/components/schemas/CsvImportResult'
+                  - $ref: '#/components/schemas/CsvImportPreview'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          oneOf:
+            - $ref: '#/components/responses/Forbidden'
+            - $ref: '#/components/responses/PlanRestricted'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -6335,10 +6715,11 @@ paths:
       tags: [Export]
       summary: Import from ZIP backup
       description: |
-        Imports bins, photos, tag colors, and custom field definitions from a ZIP backup
-        produced by the ZIP export endpoint. The ZIP must contain `manifest.json` (with
-        `format: "openbin-zip"`) and `bins.json`. Photos are read from `photos/` directory.
-        Max 200MB file size. Max 2000 bins.
+        Imports a ZIP produced by the ZIP export. `manifest.json` must have `format: "openbin-zip"` and
+        a `version` of 2, 3 or 4 (or none); `bins.json` is required, `trashed-bins.json` optional.
+        Photos are read from the `zipPath` entries. Max 25 MB file, at most 2000 bins. Modes, child
+        box rules, loose items and plan limits are the same as for the JSON import. Send the form
+        field `dryRun=true` for an ImportPreview.
       parameters:
         - name: id
           in: path
@@ -6362,26 +6743,25 @@ paths:
                   type: string
                   enum: [merge, replace]
                   default: merge
+                dryRun:
+                  type: string
+                  enum: ['true']
+                  description: Send "true" to get a preview instead of importing
       responses:
         '200':
-          description: Import summary
+          description: Import result, or a preview when dryRun is "true"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  binsImported:
-                    type: integer
-                  binsSkipped:
-                    type: integer
-                  photosImported:
-                    type: integer
-                  photosSkipped:
-                    type: integer
+                oneOf:
+                  - $ref: '#/components/schemas/ImportResult'
+                  - $ref: '#/components/schemas/ImportPreview'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          oneOf:
+            - $ref: '#/components/responses/Forbidden'
+            - $ref: '#/components/responses/PlanRestricted'
         '422':
           $ref: '#/components/responses/ValidationError'
 
