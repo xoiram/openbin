@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BulkUpdateDialog } from '@/lib/bulk/BulkUpdateDialog';
 import { TagColorPicker } from './TagColorPicker';
 
@@ -10,6 +11,7 @@ interface BulkSetColorDialogProps {
 }
 
 export function BulkSetColorDialog({ open, onOpenChange, selectedTagNames, onApply }: BulkSetColorDialogProps) {
+  const { t } = useTranslation('tags');
   const [color, setColor] = useState<string>('');
 
   return (
@@ -19,18 +21,26 @@ export function BulkSetColorDialog({ open, onOpenChange, selectedTagNames, onApp
         if (!v) setColor('');
         onOpenChange(v);
       }}
-      title={`Set color for ${selectedTagNames.length} tag${selectedTagNames.length === 1 ? '' : 's'}`}
-      description="Pick a color to apply to every selected tag."
+      title={t('bulkSetColor.title', {
+        count: selectedTagNames.length,
+        defaultValue_one: 'Set color for {{count}} tag',
+        defaultValue_other: 'Set color for {{count}} tags',
+      })}
+      description={t('bulkSetColor.description', { defaultValue: 'Pick a color to apply to every selected tag.' })}
       selectedIds={selectedTagNames}
       onApply={(tags) => onApply(tags, color)}
       applyDisabled={!color}
-      applyLabel="Apply color"
-      loadingLabel="Applying…"
+      applyLabel={t('bulkSetColor.apply', { defaultValue: 'Apply color' })}
+      loadingLabel={t('bulkSetColor.applying', { defaultValue: 'Applying…' })}
     >
       <TagColorPicker
         currentColor={color}
         onColorChange={setColor}
-        tagName={`${selectedTagNames.length} tags`}
+        tagName={t('bulkSetColor.tagCount', {
+          count: selectedTagNames.length,
+          defaultValue_one: '{{count}} tag',
+          defaultValue_other: '{{count}} tags',
+        })}
         inline
       />
     </BulkUpdateDialog>

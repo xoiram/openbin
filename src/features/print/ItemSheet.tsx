@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAreaPath } from '@/features/areas/useAreas';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
+import { useTerminology } from '@/lib/terminology';
 import { cn } from '@/lib/utils';
 import type { Area, Bin } from '@/types';
 import { generateItemSheetQrMap } from './itemSheetQr';
@@ -31,6 +33,9 @@ export function ItemSheet({
   zebraStripes,
   blankRowCount,
 }: ItemSheetProps) {
+  const { t } = useTranslation('print');
+  const term = useTerminology();
+
   const [qrMap, setQrMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(false);
 
@@ -67,7 +72,7 @@ export function ItemSheet({
   if (bins.length === 0) {
     return (
       <div className="flex items-center justify-center py-8 text-[var(--text-tertiary)] text-[13px]">
-        No bins selected
+        {t('itemSheet.noBinsSelected', { defaultValue: 'No {{bins}} selected', bins: term.bins })}
       </div>
     );
   }
@@ -75,7 +80,7 @@ export function ItemSheet({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8 text-[var(--text-tertiary)] text-[13px]">
-        Generating…
+        {t('itemSheet.generating', { defaultValue: 'Generating…' })}
       </div>
     );
   }
@@ -127,13 +132,14 @@ function BinSection({
   zebraStripes,
   blankRowCount,
 }: BinSectionProps) {
+  const { t } = useTranslation('print');
   const Icon = showIcon && bin.icon ? resolveIcon(bin.icon) : null;
   const colorPreset = bin.color ? resolveColor(bin.color) : undefined;
   const chipBg = colorPreset?.bg ?? '#e5e7eb';
 
   const areaPath = showAreaPath && bin.area_id ? getAreaPath(bin.area_id, areas) : '';
   const itemCount = bin.items.length;
-  const itemCountLabel = itemCount === 1 ? '1 item' : `${itemCount} items`;
+  const itemCountLabel = t('itemSheet.itemCount', { count: itemCount, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' });
 
   const hasItems = itemCount > 0;
   const showTable = hasItems || blankRowCount > 0;
@@ -197,7 +203,7 @@ function BinSection({
       )}
 
       {showEmptyPlaceholder && (
-        <p className="item-sheet-empty">No items</p>
+        <p className="item-sheet-empty">{t('itemSheet.noItems', { defaultValue: 'No items' })}</p>
       )}
 
       {showTable && (
@@ -205,9 +211,9 @@ function BinSection({
           <thead>
             <tr>
               {showCheckboxes && <th className="item-sheet-checkbox-col" />}
-              <th className="item-sheet-name-col">Item</th>
-              {showQuantity && <th className="item-sheet-qty-col">Qty</th>}
-              {showNotesColumn && <th className="item-sheet-notes-col">Notes</th>}
+              <th className="item-sheet-name-col">{t('itemSheet.itemColumn', { defaultValue: 'Item' })}</th>
+              {showQuantity && <th className="item-sheet-qty-col">{t('itemSheet.qtyColumn', { defaultValue: 'Qty' })}</th>}
+              {showNotesColumn && <th className="item-sheet-notes-col">{t('itemSheet.notesColumn', { defaultValue: 'Notes' })}</th>}
             </tr>
           </thead>
           <tbody>

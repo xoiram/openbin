@@ -8,6 +8,10 @@ vi.mock('@/lib/eventBus', () => ({
   Events: { BINS: 'BINS', TAG_COLORS: 'TAG_COLORS' },
   notify: (...a: unknown[]) => mockNotify(...a),
 }));
+vi.mock('@/lib/terminology', async () => {
+  const { DEFAULT_TERMINOLOGY } = await vi.importActual<typeof import('@/lib/terminology')>('@/lib/terminology');
+  return { useTerminology: () => DEFAULT_TERMINOLOGY };
+});
 
 import { useTagBulkActions } from '../useTagBulkActions';
 

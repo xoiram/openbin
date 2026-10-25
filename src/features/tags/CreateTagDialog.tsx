@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,6 +25,7 @@ interface CreateTagDialogProps {
 }
 
 export function CreateTagDialog({ open, onOpenChange, tagName, onConfirm, suggestions, tagParents, defaultParent }: CreateTagDialogProps) {
+  const { t } = useTranslation(['tags', 'common']);
   const { activeLocationId } = useAuth();
   const { theme } = useTheme();
   const [name, setName] = useState('');
@@ -52,7 +54,7 @@ export function CreateTagDialog({ open, onOpenChange, tagName, onConfirm, sugges
   // Parent-eligible: tags that are NOT children of another tag
   const parentOptions = useMemo(() => {
     if (!suggestions || !tagParents) return [];
-    return suggestions.filter((t) => !tagParents.has(t) && t !== effectiveName);
+    return suggestions.filter((tag) => !tagParents.has(tag) && tag !== effectiveName);
   }, [suggestions, tagParents, effectiveName]);
 
   const currentPreset = color ? resolveColor(color) : undefined;
@@ -77,7 +79,7 @@ export function CreateTagDialog({ open, onOpenChange, tagName, onConfirm, sugges
         notify(Events.TAG_COLORS);
       } catch (err) {
         setSaving(false);
-        setError(err instanceof Error ? err.message : 'Failed to create tag');
+        setError(err instanceof Error ? err.message : t('create.failed', { defaultValue: 'Failed to create tag' }));
         return;
       }
       setSaving(false);
@@ -89,43 +91,43 @@ export function CreateTagDialog({ open, onOpenChange, tagName, onConfirm, sugges
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create new tag</DialogTitle>
+          <DialogTitle>{t('create.title', { defaultValue: 'Create new tag' })}</DialogTitle>
           <DialogDescription>
             {isNameEditable
-              ? 'Set up a tag with a color and optional parent grouping.'
-              : 'Choose a color and optional parent for this tag.'}
+              ? t('create.descriptionNew', { defaultValue: 'Set up a tag with a color and optional parent grouping.' })
+              : t('create.descriptionExisting', { defaultValue: 'Choose a color and optional parent for this tag.' })}
           </DialogDescription>
         </DialogHeader>
 
         {isNameEditable ? (
           <div className="space-y-2">
-            <Label htmlFor="create-tag-name">Name</Label>
+            <Label htmlFor="create-tag-name">{t('create.name', { defaultValue: 'Name' })}</Label>
             <Input
               ref={nameInputRef}
               id="create-tag-name"
               value={name}
               onChange={(e) => { setName(e.target.value); setError(''); }}
               onKeyDown={(e) => { if (e.key === 'Enter' && canSubmit) handleConfirm(); }}
-              placeholder="e.g. electronics"
+              placeholder={t('create.namePlaceholder', { defaultValue: 'e.g. electronics' })}
               maxLength={100}
               autoFocus
             />
             {effectiveName ? (
               <div className="flex items-center gap-2">
-                <span className={categoryHeader}>Preview</span>
+                <span className={categoryHeader}>{t('create.preview', { defaultValue: 'Preview' })}</span>
                 <Badge variant="secondary" className="text-[13px]" style={previewStyle}>
                   {effectiveName}
                 </Badge>
               </div>
             ) : (
               <p className="text-[12px] text-[var(--text-tertiary)]">
-                Tag names are stored in lowercase.
+                {t('create.lowercaseHint', { defaultValue: 'Tag names are stored in lowercase.' })}
               </p>
             )}
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <span className={categoryHeader}>Preview</span>
+            <span className={categoryHeader}>{t('create.preview', { defaultValue: 'Preview' })}</span>
             <Badge variant="secondary" className="text-[13px]" style={previewStyle}>
               {tagName}
             </Badge>
@@ -133,26 +135,32 @@ export function CreateTagDialog({ open, onOpenChange, tagName, onConfirm, sugges
         )}
 
         <div className="space-y-2">
-          <Label>Color</Label>
+          <Label>{t('create.color', { defaultValue: 'Color' })}</Label>
           <HueGradientPicker value={color} onChange={setColor} />
         </div>
 
         {parentOptions.length > 0 && (
           <div className="space-y-2">
-            <Label>Parent</Label>
+            <Label>{t('create.parent', { defaultValue: 'Parent' })}</Label>
             <select
               value={parent}
               onChange={(e) => setParent(e.target.value)}
               className={cn(inputBase, 'h-10 focus-visible:ring-2 focus-visible:ring-[var(--accent)]')}
             >
-              <option value="">None</option>
-              {parentOptions.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              <option value="">{t('create.none', { defaultValue: 'None' })}</option>
+              {parentOptions.map((tag) => (
+                <option key={tag} value={tag}>{tag}</option>
               ))}
             </select>
             {parent && (
               <p className="text-[12px] text-[var(--text-tertiary)]">
-                Will be grouped under: <span className="font-medium text-[var(--text-secondary)]">{parent}</span>
+                <Trans
+                  t={t}
+                  i18nKey="create.groupedUnder"
+                  defaults="Will be grouped under: <strong>{{parent}}</strong>"
+                  values={{ parent }}
+                  components={{ strong: <span className="font-medium text-[var(--text-secondary)]" /> }}
+                />
               </p>
             )}
           </div>
@@ -163,9 +171,9 @@ export function CreateTagDialog({ open, onOpenChange, tagName, onConfirm, sugges
         )}
 
         <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>{t('common:actions.cancel', { defaultValue: 'Cancel' })}</Button>
           <Button onClick={handleConfirm} disabled={!canSubmit}>
-            {saving ? 'Creating\u2026' : 'Create'}
+            {saving ? t('create.creating', { defaultValue: 'Creating…' }) : t('create.create', { defaultValue: 'Create' })}
           </Button>
         </DialogFooter>
       </DialogContent>

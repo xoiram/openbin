@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { generateQRDataURL, type QRColorOptions } from '@/lib/qr';
 
 interface QRCodeDisplayProps {
@@ -12,6 +13,7 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ binId, size = 200, shortCode, colors, containerStyle, shortCodeStyle }: QRCodeDisplayProps) {
+  const { t } = useTranslation('qrcode');
   const [dataUrl, setDataUrl] = useState<string>('');
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export function QRCodeDisplay({ binId, size = 200, shortCode, colors, containerS
         className="rounded-[var(--radius-lg)] bg-[var(--bg-print-surface)] p-3.5 border border-[var(--border-flat)] flex flex-col items-center"
         style={containerStyle}
       >
-        <img src={dataUrl} alt="QR Code" width={size} height={size} />
+        <img src={dataUrl} alt={t('display.alt', { defaultValue: 'QR Code' })} width={size} height={size} />
         {shortCode && (
           <p
             className="font-mono font-bold tracking-wider text-[var(--text-tertiary)] text-center"

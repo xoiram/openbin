@@ -12,17 +12,18 @@ import { useBinSelection } from './useBinSelection';
 import type { CustomState, DisplayUnit, ItemListOptions, LabelOptions, NameCardOptions, PrintMode, QrStyleOptions } from './usePrintSettings';
 import { DEFAULT_ITEM_LIST_OPTIONS, DEFAULT_NAME_CARD_OPTIONS, DEFAULT_QR_STYLE, usePrintSettings } from './usePrintSettings';
 
-const CUSTOM_FIELDS: { label: string; key: keyof LabelFormat; minIn: number; max?: string; stepIn: string; stepMm: string; isNumber?: boolean; isDimensional: boolean }[] = [
-  { label: 'Page Width', key: 'pageWidth', minIn: 1, stepIn: '0.5', stepMm: '10', isNumber: true, isDimensional: true },
-  { label: 'Page Height', key: 'pageHeight', minIn: 1, stepIn: '0.5', stepMm: '10', isNumber: true, isDimensional: true },
-  { label: 'Label Width', key: 'cellWidth', minIn: 0.1, stepIn: '0.0625', stepMm: '1', isDimensional: true },
-  { label: 'Label Height', key: 'cellHeight', minIn: 0.1, stepIn: '0.0625', stepMm: '1', isDimensional: true },
-  { label: 'Columns', key: 'columns', minIn: 1, max: '10', stepIn: '1', stepMm: '1', isNumber: true, isDimensional: false },
-  { label: 'QR Size', key: 'qrSize', minIn: 0.1, stepIn: '0.0625', stepMm: '1', isDimensional: true },
-  { label: 'Top Margin', key: 'pageMarginTop', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
-  { label: 'Bottom Margin', key: 'pageMarginBottom', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
-  { label: 'Left Margin', key: 'pageMarginLeft', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
-  { label: 'Right Margin', key: 'pageMarginRight', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+// Labels are translated at render time (LabelFormatCard's customFieldLabels).
+const CUSTOM_FIELDS: { key: keyof LabelFormat; minIn: number; max?: string; stepIn: string; stepMm: string; isNumber?: boolean; isDimensional: boolean }[] = [
+  { key: 'pageWidth', minIn: 1, stepIn: '0.5', stepMm: '10', isNumber: true, isDimensional: true },
+  { key: 'pageHeight', minIn: 1, stepIn: '0.5', stepMm: '10', isNumber: true, isDimensional: true },
+  { key: 'cellWidth', minIn: 0.1, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+  { key: 'cellHeight', minIn: 0.1, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+  { key: 'columns', minIn: 1, max: '10', stepIn: '1', stepMm: '1', isNumber: true, isDimensional: false },
+  { key: 'qrSize', minIn: 0.1, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+  { key: 'pageMarginTop', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+  { key: 'pageMarginBottom', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+  { key: 'pageMarginLeft', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
+  { key: 'pageMarginRight', minIn: 0, stepIn: '0.0625', stepMm: '1', isDimensional: true },
 ];
 
 export { CUSTOM_FIELDS };

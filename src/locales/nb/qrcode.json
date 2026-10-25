@@ -1,0 +1,28 @@
+{
+  "display": {
+    "alt": "QR-kode"
+  },
+  "scan": {
+    "codePlaceholder": "Skriv inn {{bin}}-kode",
+    "createBin": "Opprett {{bin}}",
+    "deletedDescription": "Den kan kanskje gjenopprettes fra papirkurven.",
+    "deletedTitle": "Denne {{bin}} er slettet",
+    "forbiddenDescription": "Du må bli med på {{location}} som eier denne {{bin}} for å se den.",
+    "forbiddenTitle": "Denne {{bin}} tilhører et annet {{location}}",
+    "lookUp": "Slå opp",
+    "manualLookup": "Manuelt oppslag",
+    "noBinWithCode": "Fant ingen {{bin}} med den koden",
+    "notABinQr": "Ikke en {{bin}}-QR-kode",
+    "notFoundDescription": "Denne QR-koden peker til en {{bin}} som ikke finnes ennå.",
+    "notFoundTitle": "{{bin}} ikke funnet",
+    "pointCamera": "Rett kameraet mot en {{bin}}-QR-kode",
+    "redirecting": "Videresender...",
+    "scanAgain": "Skann igjen",
+    "title": "Skann QR-kode",
+    "viewTrash": "Vis papirkurv"
+  },
+  "scanner": {
+    "cameraFailed": "Kunne ikke starte kameraet",
+    "startFailed": "Kunne ikke starte skanneren"
+  }
+}
