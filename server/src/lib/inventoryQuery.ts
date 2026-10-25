@@ -1,4 +1,7 @@
+import { query } from '../db.js';
+import type { ContextLooseItem } from './aiContext.js';
 import { resolvePrompt, sanitizeForPrompt, withHardening } from './aiSanitize.js';
+import { loadPathBuilder, type PathBuilder } from './binPath.js';
 import { fetchBinById } from './binQueries.js';
 import { DEFAULT_QUERY_PROMPT, QUERY_RESPONSE_SHAPE } from './defaultPrompts.js';
 import { createLogger } from './logger.js';
@@ -13,9 +16,14 @@ export interface EnrichedQueryItem {
 }
 
 export interface QueryMatch {
+  kind: 'bin';
   bin_id: string;
   name: string;
   area_name: string;
+  /** `[area path ›] [parent box ›] name`, built from the DB (never from model output). */
+  bin_path: string;
+  parent_bin_id: string | null;
+  parent_bin_name: string;
   items: EnrichedQueryItem[];
   /** Total items in the bin — may exceed `items.length` when the AI truncated. */
   total_item_count: number;
@@ -38,6 +46,8 @@ export interface InventoryContext {
     items: string[];
     tags: string[];
     area_name: string;
+    /** Set on a box that is inside another box (it has no area of its own). */
+    parent_bin_code?: string;
     notes: string;
     visibility: string;
     is_pinned: boolean;
@@ -45,7 +55,9 @@ export interface InventoryContext {
     custom_fields?: Record<string, string>;
   }>;
   other_bins?: Array<{ bin_code: string; name: string }>;
-  areas: Array<{ id: string; name: string }>;
+  /** Items that live in an area or nowhere, not in a box. Read-only; may only be mentioned in the answer text. */
+  loose_items?: ContextLooseItem[];
+  areas: Array<{ id: string; name: string; path?: string }>;
   trash_bins: Array<{ bin_code: string; name: string }>;
   /** True iff `bins` is the user's full visible inventory; false ⇒ model must not assert non-existence from absence. */
   complete: boolean;
@@ -70,9 +82,10 @@ OUTPUT INVARIANTS:
 }
 
 export function buildUserMessage(question: string, context: InventoryContext): string {
-  const { other_bins, ...rest } = context;
+  const { other_bins, loose_items, ...rest } = context;
   const data: Record<string, unknown> = { ...rest };
   if (other_bins?.length) data.other_bins = other_bins;
+  if (loose_items?.length) data.loose_items = loose_items;
   return `Question: ${sanitizeForPrompt(question)}
 
 <inventory>
@@ -115,6 +128,7 @@ async function enrichOneMatch(
   match: RawMatch,
   locationId: string,
   userId: string,
+  paths: PathBuilder,
 ): Promise<QueryMatch | null> {
   const binId = await resolveBinCode(locationId, match.bin_code);
   if (!binId) {
@@ -175,10 +189,24 @@ async function enrichOneMatch(
     }
   }
 
+  // Show the parent's name only when the user may see the parent.
+  let parentName = '';
+  if (bin.parent_bin_id) {
+    const parent = await query<{ name: string }>(
+      "SELECT name FROM bins WHERE id = $1 AND location_id = $2 AND (visibility = 'location' OR created_by = $3)",
+      [bin.parent_bin_id, locationId, userId],
+    );
+    parentName = parent.rows[0]?.name ?? '';
+  }
+
   return {
+    kind: 'bin',
     bin_id: binId,
     name: bin.name,
     area_name: bin.area_name ?? '',
+    bin_path: paths.binPath({ area_id: bin.area_id, name: bin.name, parent_bin_name: parentName }),
+    parent_bin_id: bin.parent_bin_id ?? null,
+    parent_bin_name: parentName,
     items,
     total_item_count: rawBinItems.length,
     tags: match.tags,
@@ -194,8 +222,10 @@ export async function enrichQueryMatches(
   locationId: string,
   userId: string,
 ): Promise<QueryMatch[]> {
+  if (matches.length === 0) return [];
+  const paths = await loadPathBuilder(locationId);
   const results = await Promise.all(
-    matches.map((match) => enrichOneMatch(match, locationId, userId)),
+    matches.map((match) => enrichOneMatch(match, locationId, userId, paths)),
   );
   return results.filter((r): r is QueryMatch => r !== null);
 }

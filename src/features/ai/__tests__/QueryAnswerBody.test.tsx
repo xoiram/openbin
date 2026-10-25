@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { QueryAnswerBody } from '../QueryAnswerBody';
-import type { QueryMatch } from '../useInventoryQuery';
+import type { BinQueryMatch, QueryMatch } from '../useInventoryQuery';
 
 vi.mock('@/lib/usePermissions', () => ({
   usePermissions: () => ({ canWrite: true }),
@@ -24,7 +24,7 @@ vi.mock('@/features/items/itemActions', () => ({
   updateQuantitySafe: vi.fn().mockResolvedValue({ ok: true, quantity: null }),
 }));
 
-const makeMatch = (overrides?: Partial<QueryMatch>): QueryMatch => ({
+const makeMatch = (overrides?: Partial<BinQueryMatch>): QueryMatch => ({
   bin_id: 'b1',
   name: 'Camping Gear',
   area_name: 'Garage',

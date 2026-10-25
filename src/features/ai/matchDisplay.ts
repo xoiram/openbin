@@ -48,6 +48,10 @@ function itemCountLabel(count: number, t?: unknown): string {
 }
 
 export function getMatchDisplay(match: QueryMatch, t?: unknown): MatchDisplay {
+  // A loose item is a single row with nothing to expand or open.
+  if (match.kind === 'loose_item') {
+    return { mode: 'header-only', defaultExpanded: false, countLabel: '' };
+  }
   const itemsCount = match.items.length;
   const totalCount = match.total_item_count;
 

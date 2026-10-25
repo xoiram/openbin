@@ -12,12 +12,13 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/lib/auth';
 import { usePermissions } from '@/lib/usePermissions';
-import { getErrorMessage } from '@/lib/utils';
+import { cn, flatCard, getErrorMessage } from '@/lib/utils';
 import { BinItemGroup } from './BinItemGroup';
 import { ItemSelectionBar } from './ItemSelectionBar';
+import { LooseItemRow } from './LooseItemRow';
 import { executeBatch } from './useActionExecutor';
 import type { CommandAction } from './useCommand';
-import type { QueryMatch } from './useInventoryQuery';
+import { type BinQueryMatch, getMatchKey, isLooseItemMatch, type QueryMatch } from './useInventoryQuery';
 import { useItemQuerySelection } from './useItemQuerySelection';
 
 interface ItemQueryResultsProps {
@@ -34,21 +35,31 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
   const { showToast } = useToast();
 
   // Defensive: the prompt says "at most 8 bins", but a misbehaving model
-  // could return more. Also dedup — two matches with the same bin_id would
-  // share item IDs, cross-wiring selection and tripping React key warnings.
+  // could return more. Also dedup — two matches with the same key would share
+  // item IDs, cross-wiring selection and tripping React key warnings. Boxes
+  // key by bin_id and loose items by item_id (a loose item and a box item can
+  // share a name, and two loose items never collapse). The limit counts all
+  // matches, boxes and loose items alike.
   const visibleMatches = useMemo(() => {
     const seen = new Set<string>();
     const deduped: QueryMatch[] = [];
     for (const m of matches) {
-      if (seen.has(m.bin_id)) continue;
-      seen.add(m.bin_id);
+      const key = getMatchKey(m);
+      if (seen.has(key)) continue;
+      seen.add(key);
       deduped.push(m);
       if (deduped.length >= MAX_MATCHES) break;
     }
     return deduped;
   }, [matches]);
+  // Loose items are display-only: they never reach selection or any action.
+  const binMatches = useMemo(
+    () => visibleMatches.filter((m): m is BinQueryMatch => !isLooseItemMatch(m)),
+    [visibleMatches],
+  );
+  const looseMatches = useMemo(() => visibleMatches.filter(isLooseItemMatch), [visibleMatches]);
 
-  const selection = useItemQuerySelection(visibleMatches);
+  const selection = useItemQuerySelection(binMatches);
   const [isBusy, setIsBusy] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [removedItemIds, setRemovedItemIds] = useState<Set<string>>(new Set());
@@ -60,8 +71,8 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
     try {
       const actions: CommandAction[] =
         kind === 'checkout'
-          ? buildCheckoutActions(selection.selected, visibleMatches)
-          : buildRemoveActions(selection.selected, visibleMatches);
+          ? buildCheckoutActions(selection.selected, binMatches)
+          : buildRemoveActions(selection.selected, binMatches);
 
       // Chunk here so selecting many items never trips the server limit.
       // Keep BATCH_CAP in sync with MAX_OPS in server/src/routes/batch.ts.
@@ -126,7 +137,7 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
 
   return (
     <div className="space-y-2">
-      {visibleMatches.map((match) => (
+      {binMatches.map((match) => (
         <BinItemGroup
           key={match.bin_id}
           match={match}
@@ -136,6 +147,22 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
           onBinClick={onBinClick}
         />
       ))}
+      {looseMatches.length > 0 && (
+        <section
+          className={cn(flatCard, 'overflow-hidden rounded-[var(--radius-sm)]')}
+        >
+          <h3 className="px-3 pt-2 pb-1 text-[12px] font-medium uppercase tracking-wide text-[var(--text-tertiary)]">
+            {t('itemQuery.looseItems', { defaultValue: 'Loose items' })}
+          </h3>
+          <ul className="divide-y divide-[var(--border-subtle)]">
+            {looseMatches.map((match) => (
+              <li key={match.item_id}>
+                <LooseItemRow match={match} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <ItemSelectionBar
         selectionCount={selection.selectionCount}
         onCheckout={() => runBulk('checkout')}
@@ -184,13 +211,13 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
 
 // --- Local action builders ---
 
-function indexByBinId(matches: QueryMatch[]): Map<string, string> {
+function indexByBinId(matches: BinQueryMatch[]): Map<string, string> {
   return new Map(matches.map((m) => [m.bin_id, m.name]));
 }
 
 function buildCheckoutActions(
   selected: ReturnType<typeof useItemQuerySelection>['selected'],
-  matches: QueryMatch[],
+  matches: BinQueryMatch[],
 ): CommandAction[] {
   const nameByBinId = indexByBinId(matches);
   const actions: CommandAction[] = [];
@@ -207,7 +234,7 @@ function buildCheckoutActions(
 
 function buildRemoveActions(
   selected: ReturnType<typeof useItemQuerySelection>['selected'],
-  matches: QueryMatch[],
+  matches: BinQueryMatch[],
 ): CommandAction[] {
   const nameByBinId = indexByBinId(matches);
   const byBin = new Map<string, { bin_name: string; items: string[] }>();

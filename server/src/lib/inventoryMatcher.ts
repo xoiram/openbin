@@ -9,7 +9,11 @@ export interface CandidateBin {
   bin_id: string;
   bin_code: string;
   name: string;
+  area_id: string | null;
   area_name: string;
+  /** Parent box (nested boxes); null for top-level boxes. Name is '' when the parent is not visible to the user. */
+  parent_bin_id: string | null;
+  parent_bin_name: string;
   items: Array<{ id: string; name: string; quantity: number | null }>;
   tags: string[];
   visibility: 'location' | 'private';
@@ -35,7 +39,11 @@ function candidateSelect(): string {
   b.id AS bin_id,
   b.short_code AS bin_code,
   b.name,
+  b.area_id,
   COALESCE(a.name, '') AS area_name,
+  b.parent_bin_id,
+  COALESCE((SELECT pb2.name FROM bins pb2
+            WHERE pb2.id = b.parent_bin_id AND (pb2.visibility = 'location' OR pb2.created_by = $2)), '') AS parent_bin_name,
   COALESCE((SELECT ${d.jsonGroupArray(d.jsonObject("'id'", 'bi.id', "'name'", 'bi.name', "'quantity'", 'bi.quantity'))}
             FROM (SELECT id, name, quantity FROM bin_items bi
                   WHERE bi.bin_id = b.id AND bi.deleted_at IS NULL
@@ -64,7 +72,10 @@ interface RawRow {
   bin_id: string;
   bin_code: string;
   name: string;
+  area_id: string | null;
   area_name: string;
+  parent_bin_id: string | null;
+  parent_bin_name: string;
   items: string | Array<{ id: string; name: string; quantity: number | null }>;
   tags: string | string[];
   visibility: string;
@@ -81,7 +92,10 @@ function rowToCandidate(r: RawRow, hint: string): CandidateBin {
     bin_id: r.bin_id,
     bin_code: r.bin_code,
     name: r.name,
+    area_id: r.area_id ?? null,
     area_name: r.area_name,
+    parent_bin_id: r.parent_bin_id ?? null,
+    parent_bin_name: r.parent_bin_name ?? '',
     items: Array.isArray(items) ? items : [],
     tags: Array.isArray(tags) ? tags : [],
     visibility: r.visibility === 'private' ? 'private' : 'location',
@@ -281,4 +295,113 @@ export async function findNearMissBins(
   `;
   const result = await query<RawRow>(sql, [locationId, userId, term]);
   return result.rows.map((r) => rowToCandidate(r, 'name similar to query'));
+}
+
+// ---------------------------------------------------------------------------
+// Loose items (items that live in an area or are unassigned, not in a box)
+// ---------------------------------------------------------------------------
+
+export interface LooseItemCandidate {
+  item_id: string;
+  name: string;
+  quantity: number | null;
+  area_id: string | null;
+  area_name: string;
+  match_hint: string;
+}
+
+interface LooseRow {
+  item_id: string;
+  name: string;
+  quantity: number | string | null;
+  area_id: string | null;
+  area_name: string;
+}
+
+const LOOSE_FROM = `
+  bin_items bi
+  LEFT JOIN areas a ON a.id = bi.area_id
+`;
+
+const LOOSE_SELECT = `bi.id AS item_id, bi.name, bi.quantity, bi.area_id, COALESCE(a.name, '') AS area_name`;
+
+/** Loose items are location-scoped and visible to every member (never private). */
+const LOOSE_BASE = 'bi.location_id = $1 AND bi.bin_id IS NULL AND bi.deleted_at IS NULL';
+
+export const MAX_LOOSE_CANDIDATES = 10;
+
+function rowToLoose(r: LooseRow, hint: string): LooseItemCandidate {
+  return {
+    item_id: r.item_id,
+    name: r.name,
+    quantity: r.quantity == null ? null : Number(r.quantity),
+    area_id: r.area_id ?? null,
+    area_name: r.area_name ?? '',
+    match_hint: hint,
+  };
+}
+
+export interface LooseMatchOpts {
+  fields?: string[];
+  limit?: number;
+}
+
+/**
+ * Loose items whose name contains a search probe. Name only (area names are not probed).
+ * Honours the plan's `fields`: loose items only match when `fields` is empty or includes `item`.
+ * `userId` is accepted for symmetry with the bin matchers; loose items are never private.
+ */
+export async function findLooseItemMatches(
+  locationId: string,
+  userId: string,
+  terms: string[],
+  opts: LooseMatchOpts = {},
+): Promise<LooseItemCandidate[]> {
+  void userId;
+  const { fields } = opts;
+  if (fields && fields.length > 0 && !fields.includes('item')) return [];
+  const probes = buildSearchProbes(terms);
+  if (probes.length === 0) return [];
+
+  const params: unknown[] = [locationId];
+  const orClauses = probes.map((probe) => {
+    const like = `%${probe.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
+    params.push(like);
+    return `${sqlNormalizeName('bi.name')} LIKE $${params.length} ESCAPE '\\'`;
+  });
+  const limit = Math.min(opts.limit ?? MAX_LOOSE_CANDIDATES, MAX_CANDIDATES);
+
+  const result = await query<LooseRow>(
+    `SELECT ${LOOSE_SELECT}
+     FROM ${LOOSE_FROM}
+     WHERE ${LOOSE_BASE} AND (${orClauses.join(' OR ')})
+     ORDER BY bi.updated_at DESC, bi.id
+     LIMIT ${limit}`,
+    params,
+  );
+  return result.rows.map((r) => {
+    const name = r.name.toLowerCase();
+    const stem = probes.find((p) => name.includes(p));
+    return rowToLoose(r, stem ? `item "${r.name}"` : 'matches query');
+  });
+}
+
+/** Loose items that currently have an active checkout. */
+export async function findCheckedOutLooseItems(
+  locationId: string,
+  userId: string,
+  opts: { limit?: number } = {},
+): Promise<LooseItemCandidate[]> {
+  void userId;
+  const limit = Math.min(opts.limit ?? MAX_LOOSE_CANDIDATES, MAX_CANDIDATES);
+  const result = await query<LooseRow>(
+    `SELECT ${LOOSE_SELECT}
+     FROM ${LOOSE_FROM}
+     WHERE ${LOOSE_BASE}
+       AND EXISTS (SELECT 1 FROM item_checkouts ic WHERE ic.item_id = bi.id AND ic.returned_at IS NULL)
+     ORDER BY bi.updated_at DESC, bi.id
+     LIMIT ${limit}`,
+    [locationId],
+  );
+  return result.rows.map((r) => rowToLoose(r, 'checked out'));
 }
