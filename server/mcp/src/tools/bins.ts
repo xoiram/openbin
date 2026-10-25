@@ -13,6 +13,9 @@ interface Bin {
   name: string;
   area_id: string | null;
   area_name: string;
+  parent_bin_id?: string | null;
+  parent_bin_name?: string | null;
+  child_count?: number;
   items: BinItem[];
   notes: string;
   tags: string[];
@@ -35,6 +38,8 @@ interface ListResponse {
 function formatBin(bin: Bin): string {
   const parts = [`**${bin.name}** (${bin.short_code})`, `ID: ${bin.id}`];
 
+  if (bin.parent_bin_id) parts.push(`Inside: ${bin.parent_bin_name ?? bin.parent_bin_id} (parent_bin_id: ${bin.parent_bin_id})`);
+  if (bin.child_count) parts.push(`Contains ${bin.child_count} nested box(es) (find them with search_bins parent="${bin.id}")`);
   if (bin.area_name) parts.push(`Area: ${bin.area_name}`);
   if (bin.items.length > 0)
     parts.push(`Items (${bin.items.length}): ${bin.items.map((i) => `${i.name} [${i.id}]`).join(", ")}`);
@@ -51,7 +56,7 @@ function formatBin(bin: Bin): string {
 export function registerBinTools(server: McpServer, api: ApiClient) {
   server.tool(
     "search_bins",
-    "Search bins in a location with optional filters",
+    "Search bins in a location with optional filters. Nested (child) boxes are included and shown as 'Inside: <parent>'; use top_level or parent to filter them.",
     {
       location_id: z.string().describe("Location UUID (required)"),
       q: z.string().optional().describe("Search text (searches name, notes, items, tags)"),
@@ -61,6 +66,8 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
         .string()
         .optional()
         .describe("Filter by area UUID (use '__unassigned__' for bins with no area)"),
+      parent: z.string().optional().describe("Only bins nested directly inside this parent bin ID"),
+      top_level: z.boolean().optional().describe("true = only top-level bins (hide nested child boxes)"),
       sort: z
         .enum(["name", "created_at", "updated_at", "area"])
         .optional()
@@ -73,13 +80,15 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
         .optional()
         .describe("How to match multiple tags: 'any' (default, OR) or 'all' (AND)"),
     },
-    withErrorHandling(async ({ location_id, q, tag, tags, area_id, sort, sort_dir, limit, offset, tag_mode }) => {
+    withErrorHandling(async ({ location_id, q, tag, tags, area_id, parent, top_level, sort, sort_dir, limit, offset, tag_mode }) => {
       const params = new URLSearchParams({ location_id });
       if (q) params.set("q", q);
       if (tags) params.set("tags", tags);
       else if (tag) params.set("tag", tag);
       if (tag_mode === "all") params.set("tag_mode", "all");
       if (area_id) params.set("area_id", area_id);
+      if (parent) params.set("parent", parent);
+      else if (top_level) params.set("top_level", "true");
       if (sort) params.set("sort", sort);
       if (sort_dir) params.set("sort_dir", sort_dir);
       if (limit !== undefined) params.set("limit", String(limit));
@@ -131,24 +140,26 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
 
   server.tool(
     "create_bin",
-    "Create a new bin in a location",
+    "Create a new bin in a location. Set parent_bin_id to create it as a nested box inside another bin (one level deep only; the child takes the parent's area and can't be more public than it).",
     {
       location_id: z.string().describe("Location UUID"),
       name: z.string().describe("Bin name"),
       items: z.array(z.string()).optional().describe("List of item names"),
       tags: z.array(z.string()).optional().describe("List of tags"),
       notes: z.string().optional().describe("Notes"),
-      area_id: z.string().optional().describe("Area UUID to assign the bin to"),
+      area_id: z.string().optional().describe("Area UUID to assign the bin to (ignored for a nested box: it follows its parent's area)"),
+      parent_bin_id: z.string().optional().describe("Parent bin ID to nest the new bin inside (the parent must be a top-level bin)"),
       icon: z.string().optional().describe("Icon identifier"),
       color: z.string().optional().describe("Color value"),
       card_style: z.string().optional().describe('Card style JSON. Variants: "default" (omit or empty string), "border" ({variant,secondaryColor,borderWidth,borderStyle}), "gradient" ({variant,secondaryColor}), "stripe" ({variant,secondaryColor,stripePosition:left|right|top|bottom,stripeWidth}), "photo" ({variant,coverPhotoId})'),
     },
-    withErrorHandling(async ({ location_id, name, items, tags, notes, area_id, icon, color, card_style }) => {
+    withErrorHandling(async ({ location_id, name, items, tags, notes, area_id, parent_bin_id, icon, color, card_style }) => {
       const body: Record<string, unknown> = { locationId: location_id, name };
       if (items) body.items = items;
       if (tags) body.tags = tags;
       if (notes) body.notes = notes;
       if (area_id) body.areaId = area_id;
+      if (parent_bin_id) body.parentBinId = parent_bin_id;
       if (icon) body.icon = icon;
       if (color) body.color = color;
       if (card_style) body.cardStyle = card_style;
@@ -168,7 +179,7 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
 
   server.tool(
     "update_bin",
-    "Update an existing bin",
+    "Update an existing bin. parent_bin_id nests it inside another top-level bin (moves it into that bin's area); null or an empty string takes it out of its parent. A nested box's area can't be set directly: change its parent's area.",
     {
       id: z.string().describe("Bin ID (6-character short code)"),
       name: z.string().optional().describe("New bin name"),
@@ -182,18 +193,24 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
         .string()
         .nullable()
         .optional()
-        .describe("Area UUID (null to unassign)"),
+        .describe("Area UUID (null to unassign). Not allowed for a nested box."),
+      parent_bin_id: z
+        .string()
+        .nullable()
+        .optional()
+        .describe("Parent bin ID to nest inside (null or empty string to detach into a top-level bin)"),
       icon: z.string().optional().describe("Icon identifier"),
       color: z.string().optional().describe("Color value"),
       card_style: z.string().optional().describe('Card style JSON. Variants: "default" (omit or empty string), "border" ({variant,secondaryColor,borderWidth,borderStyle}), "gradient" ({variant,secondaryColor}), "stripe" ({variant,secondaryColor,stripePosition:left|right|top|bottom,stripeWidth}), "photo" ({variant,coverPhotoId})'),
     },
-    withErrorHandling(async ({ id, name, items, tags, notes, area_id, icon, color, card_style }) => {
+    withErrorHandling(async ({ id, name, items, tags, notes, area_id, parent_bin_id, icon, color, card_style }) => {
       const body: Record<string, unknown> = {};
       if (name !== undefined) body.name = name;
       if (items !== undefined) body.items = items;
       if (tags !== undefined) body.tags = tags;
       if (notes !== undefined) body.notes = notes;
       if (area_id !== undefined) body.areaId = area_id;
+      if (parent_bin_id !== undefined) body.parentBinId = parent_bin_id === "" ? null : parent_bin_id;
       if (icon !== undefined) body.icon = icon;
       if (color !== undefined) body.color = color;
       if (card_style !== undefined) body.cardStyle = card_style;
@@ -213,7 +230,7 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
 
   server.tool(
     "delete_bin",
-    "Soft-delete a bin (moves to trash, can be restored)",
+    "Soft-delete a bin (moves to trash, can be restored). Deleting a bin that contains nested boxes trashes them too; restoring the parent restores them.",
     { id: z.string().describe("Bin ID (6-character short code)") },
     withErrorHandling(async ({ id }) => {
       const bin = await api.del<Bin>(`/api/bins/${encodeURIComponent(id)}`);
@@ -260,7 +277,7 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
 
   server.tool(
     "restore_bin",
-    "Restore a soft-deleted bin from trash",
+    "Restore a soft-deleted bin from trash (restores its nested boxes with it; a nested box whose parent is still in trash can't be restored on its own)",
     { id: z.string().describe("Bin ID (6-character short code)") },
     withErrorHandling(async ({ id }) => {
       const bin = await api.post<Bin>(`/api/bins/${encodeURIComponent(id)}/restore`);
@@ -389,7 +406,7 @@ export function registerBinTools(server: McpServer, api: ApiClient) {
 
   server.tool(
     "move_bin",
-    "Move a bin to a different location (admin only). Area is unassigned after move.",
+    "Move a bin to a different LOCATION (admin only). Area is unassigned after move. A parent bin takes its nested boxes with it; a nested box can't be moved on its own (detach it with update_bin parent_bin_id=null first). To move a bin to another area use update_bin area_id.",
     {
       id: z.string().describe("Bin ID (6-character short code)"),
       location_id: z.string().describe("Target location UUID"),

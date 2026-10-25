@@ -12,12 +12,13 @@ interface ExportBin {
   id: string;
   name: string;
   location: string;
-  items: string[];
+  items: Array<string | { name: string; quantity?: number | null }>;
   notes: string;
   tags: string[];
   icon: string;
   color: string;
   shortCode: string;
+  parentShortCode?: string | null;
   createdAt: string;
   updatedAt: string;
   photos: ExportPhoto[];
@@ -30,10 +31,15 @@ interface ExportData {
   bins: ExportBin[];
 }
 
+function formatItem(item: string | { name: string; quantity?: number | null }): string {
+  if (typeof item === "string") return item;
+  return item.quantity != null ? `${item.name} (x${item.quantity})` : item.name;
+}
+
 export function registerExportTools(server: McpServer, api: ApiClient) {
   server.tool(
     "export_location_json",
-    "Export all bins in a location as JSON",
+    "Export the bins in a location (with their items) as JSON and summarize them. Covers bins only: nested boxes appear as their own bins; items that are loose in an area or unassigned (not inside any bin) are not included.",
     {
       location_id: z.string().describe("Location UUID"),
     },
@@ -49,8 +55,9 @@ export function registerExportTools(server: McpServer, api: ApiClient) {
 
       for (const bin of data.bins) {
         const parts = [`- **${bin.name}** (${bin.shortCode})`];
+        if (bin.parentShortCode) parts.push(`  Inside bin: ${bin.parentShortCode}`);
         if (bin.location) parts.push(`  Area: ${bin.location}`);
-        if (bin.items.length > 0) parts.push(`  Items: ${bin.items.join(", ")}`);
+        if (bin.items.length > 0) parts.push(`  Items: ${bin.items.map(formatItem).join(", ")}`);
         if (bin.tags.length > 0) parts.push(`  Tags: ${bin.tags.join(", ")}`);
         if (bin.notes) parts.push(`  Notes: ${bin.notes}`);
         if (bin.photos.length > 0) parts.push(`  Photos: ${bin.photos.length}`);
@@ -65,7 +72,7 @@ export function registerExportTools(server: McpServer, api: ApiClient) {
 
   server.tool(
     "export_location_csv",
-    "Export all bins in a location as CSV text",
+    "Export the bins in a location as CSV text (one row per bin item). Covers bins only: items that are loose in an area or unassigned (not inside any bin) are not included.",
     {
       location_id: z.string().describe("Location UUID"),
     },
