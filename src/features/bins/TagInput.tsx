@@ -1,6 +1,7 @@
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { useDialogPortal } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ interface TagInputProps {
 }
 
 export function TagInput({ tags, onChange, suggestions = [] }: TagInputProps) {
+  const { t } = useTranslation('bins');
   const dialogPortal = useDialogPortal();
   const { tagParents } = useTagColorsContext();
   const [input, setInput] = useState('');
@@ -233,7 +235,7 @@ export function TagInput({ tags, onChange, suggestions = [] }: TagInputProps) {
           }}
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
-          placeholder={tags.length === 0 ? 'Search or create tags...' : ''}
+          placeholder={tags.length === 0 ? t('tagInput.placeholder', { defaultValue: 'Search or create tags...' }) : ''}
           maxLength={100}
           className="h-6 min-w-[80px] flex-1 border-0 bg-transparent px-0.5 py-0 text-base focus-visible:ring-0 focus-visible:shadow-none"
         />
@@ -349,7 +351,17 @@ export function TagInput({ tags, onChange, suggestions = [] }: TagInputProps) {
                   )}
                 >
                   <Plus className="h-3.5 w-3.5 flex-shrink-0 text-[var(--accent)]" />
-                  <span>Create <span className="font-medium text-[var(--text-primary)]">{trimmedInput}</span></span>
+                  <span>
+                    <Trans
+                      t={t}
+                      i18nKey="tagInput.create"
+                      defaults="Create <name>{{name}}</name>"
+                      values={{ name: trimmedInput }}
+                      components={{ name: <span className="font-medium text-[var(--text-primary)]" /> }}
+                    >
+                      Create <span className="font-medium text-[var(--text-primary)]">{trimmedInput}</span>
+                    </Trans>
+                  </span>
                 </button>
               </>
             )}

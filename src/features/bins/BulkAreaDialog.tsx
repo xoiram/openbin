@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AreaPicker } from '@/features/areas/AreaPicker';
 import { useAuth } from '@/lib/auth';
 import { BulkUpdateDialog } from '@/lib/bulk/BulkUpdateDialog';
-import { pluralizeBins } from './pluralizeBins';
+import { useTerminology } from '@/lib/terminology';
 import { updateBin } from './useBins';
+import { useSelectedBinsLabel } from './useSelectedBinsLabel';
 
 interface BulkAreaDialogProps {
   open: boolean;
@@ -13,6 +15,9 @@ interface BulkAreaDialogProps {
 }
 
 export function BulkAreaDialog({ open, onOpenChange, binIds, onDone }: BulkAreaDialogProps) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
+  const selectedLabel = useSelectedBinsLabel(binIds.length);
   const { activeLocationId } = useAuth();
   const [areaId, setAreaId] = useState<string | null>(null);
 
@@ -25,12 +30,12 @@ export function BulkAreaDialog({ open, onOpenChange, binIds, onDone }: BulkAreaD
     <BulkUpdateDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Move to Area"
-      description={`Assign ${pluralizeBins(binIds.length)} to an area.`}
+      title={t('bulk.area.title', { defaultValue: 'Move to {{Area}}', Area: term.Area })}
+      description={t('bulk.area.description', { defaultValue: 'Assign {{selected}} to {{area}}.', selected: selectedLabel, area: term.area })}
       selectedIds={binIds}
       onApply={apply}
       onApplied={onDone}
-      loadingLabel="Moving..."
+      loadingLabel={t('bulk.moving', { defaultValue: 'Moving...' })}
     >
       <div className="space-y-2">
         <AreaPicker

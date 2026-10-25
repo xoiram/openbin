@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { parseBareQuantity } from '@/lib/itemQuantities';
 import { cn } from '@/lib/utils';
 import { ItemListActionMenu } from './ItemListActionMenu';
@@ -14,6 +15,7 @@ interface ItemListRowProps {
 }
 
 export function ItemListRow({ text, quantity, saved, onCheckout, onSave, onDelete }: ItemListRowProps) {
+  const { t } = useTranslation('bins');
   const [editValue, setEditValue] = useState(text);
   const [qtyDraft, setQtyDraft] = useState(quantity != null ? String(quantity) : '');
   // "committed" tracks the last reconciled value — used as the Escape-revert target,
@@ -74,7 +76,7 @@ export function ItemListRow({ text, quantity, saved, onCheckout, onSave, onDelet
           });
         }}
         className="flex-1 min-w-0 bg-transparent text-[15px] text-[var(--text-primary)] leading-relaxed outline-none resize-none [field-sizing:content] min-h-[1.5em]"
-        aria-label="Item name"
+        aria-label={t('itemRow.itemName', { defaultValue: 'Item name' })}
       />
 
       <input
@@ -100,7 +102,7 @@ export function ItemListRow({ text, quantity, saved, onCheckout, onSave, onDelet
           'bg-transparent text-right text-[15px] text-[var(--text-primary)] leading-relaxed outline-none tabular-nums'
         )}
         inputMode="numeric"
-        aria-label="Quantity"
+        aria-label={t('itemRow.quantity', { defaultValue: 'Quantity' })}
       />
 
       <div className={cn(ACTIONS_COL_WIDTH, 'inline-flex items-center justify-end')}>

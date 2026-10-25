@@ -1,4 +1,5 @@
 import { ChevronRight, CirclePlus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AnimatedCheckmark } from '@/components/ui/animated-checkmark';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { ListItem } from '@/components/ui/list-item';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
 import { useTerminology } from '@/lib/terminology';
-import { cn, plural, stickyDialogFooter } from '@/lib/utils';
+import { cn, stickyDialogFooter } from '@/lib/utils';
 
 export interface CreatedBinInfo {
   id: string;
@@ -22,32 +23,54 @@ interface BinCreateSuccessProps {
   onClose: () => void;
 }
 
-function StatsLine({ createdBins, binsLabel }: { createdBins: CreatedBinInfo[]; binsLabel: string }) {
+function StatsLine({ createdBins }: { createdBins: CreatedBinInfo[] }) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const count = createdBins.length;
   const totalItems = createdBins.reduce((sum, b) => sum + (b.itemCount ?? 0), 0);
 
   if (count === 1) {
     const bin = createdBins[0];
     if (totalItems > 0) {
-      return <>Created {bin.name} with {totalItems} {plural(totalItems, 'item')}</>;
+      return (
+        <>
+          {t('createSuccess.createdOneWithItems', {
+            count: totalItems,
+            defaultValue_one: 'Created {{name}} with {{count}} item',
+            defaultValue_other: 'Created {{name}} with {{count}} items',
+            name: bin.name,
+          })}
+        </>
+      );
     }
-    return <>Created {bin.name}</>;
+    return <>{t('createSuccess.createdOne', { defaultValue: 'Created {{name}}', name: bin.name })}</>;
   }
 
   if (totalItems > 0) {
-    return <>Created {count} {binsLabel} &middot; {totalItems} {plural(totalItems, 'item')}</>;
+    return (
+      <>
+        {t('createSuccess.createdManyWithItems', {
+          count: totalItems,
+          defaultValue_one: 'Created {{bins}} ({{binCount}}) · {{count}} item',
+          defaultValue_other: 'Created {{bins}} ({{binCount}}) · {{count}} items',
+          bins: term.bins,
+          binCount: count,
+        })}
+      </>
+    );
   }
-  return <>Created {count} {binsLabel}</>;
+  return <>{t('createSuccess.createdMany', { defaultValue: 'Created {{count}} {{bins}}', count, bins: term.bins })}</>;
 }
 
 export function BinCreateSuccess({ createdBins, onCreateAnother, onClose }: BinCreateSuccessProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const navigate = useNavigate();
   const showColor = createdBins.length > 1;
 
   function handleViewBin(binId: string) {
     onClose();
-    navigate(`/bin/${binId}`, { state: { backLabel: t.Bins, backPath: '/bins' } });
+    navigate(`/bin/${binId}`, { state: { backLabel: term.Bins, backPath: '/bins' } });
   }
 
   return (
@@ -59,9 +82,9 @@ export function BinCreateSuccess({ createdBins, onCreateAnother, onClose }: BinC
 
       {/* Heading + stats */}
       <div className="text-center scan-text-fade">
-        <h2 className="text-xl font-bold text-[var(--text-primary)]">All set</h2>
+        <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('createSuccess.allSet', { defaultValue: 'All set' })}</h2>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          <StatsLine createdBins={createdBins} binsLabel={t.bins} />
+          <StatsLine createdBins={createdBins} />
         </p>
       </div>
 
@@ -77,11 +100,11 @@ export function BinCreateSuccess({ createdBins, onCreateAnother, onClose }: BinC
       {/* Action buttons */}
       <div className={cn('row-spread self-stretch', stickyDialogFooter, 'scan-text-fade-delay')}>
         <Button variant="ghost" onClick={onClose}>
-          Done
+          {t('createSuccess.done', { defaultValue: 'Done' })}
         </Button>
         <Button onClick={onCreateAnother}>
           <CirclePlus className="mr-2 h-4 w-4" />
-          Create another
+          {t('createSuccess.createAnother', { defaultValue: 'Create another' })}
         </Button>
       </div>
     </div>
@@ -89,6 +112,7 @@ export function BinCreateSuccess({ createdBins, onCreateAnother, onClose }: BinC
 }
 
 export function BinRow({ bin, showColor, onViewBin }: { bin: CreatedBinInfo; showColor: boolean; onViewBin: (id: string) => void }) {
+  const { t } = useTranslation('common');
   const Icon = resolveIcon(bin.icon);
   const colorPreset = showColor ? resolveColor(bin.color) : null;
 
@@ -102,7 +126,7 @@ export function BinRow({ bin, showColor, onViewBin }: { bin: CreatedBinInfo; sho
       <span className="flex-1 truncate text-[var(--text-primary)] font-medium">{bin.name}</span>
       {showColor && (bin.itemCount ?? 0) > 0 && (
         <span className="text-xs text-[var(--text-tertiary)]">
-          {bin.itemCount} {plural(bin.itemCount ?? 0, 'item')}
+          {t('itemCount', { count: bin.itemCount ?? 0, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })}
         </span>
       )}
       <ChevronRight className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />

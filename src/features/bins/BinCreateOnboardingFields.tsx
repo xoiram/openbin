@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { AreaPicker } from '@/features/areas/AreaPicker';
 import { getSecondaryColorInfo, setSecondaryColor } from '@/lib/cardStyle';
@@ -64,7 +65,8 @@ export function BinCreateOnboardingFields({
   canTranscribe,
   showAi,
 }: BinCreateOnboardingFieldsProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const secondaryInfo = getSecondaryColorInfo(cardStyle);
 
   return (
@@ -73,7 +75,7 @@ export function BinCreateOnboardingFields({
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={`${t.Bin} name`}
+          placeholder={t('onboardingFields.namePlaceholder', { defaultValue: '{{Bin}} name', Bin: term.Bin })}
           maxLength={255}
           required
           autoFocus
@@ -98,14 +100,14 @@ export function BinCreateOnboardingFields({
       </div>
 
       <div className="text-left">
-        <label htmlFor="bin-area" className={compactLabel}>{t.Area}</label>
+        <label htmlFor="bin-area" className={compactLabel}>{term.Area}</label>
         <AreaPicker locationId={locationId} value={areaId} onChange={setAreaId} />
       </div>
 
       <PhotoUploadSection {...photoUpload} />
 
       <div className="text-left">
-        <label htmlFor="bin-color" className={compactLabel}>Color</label>
+        <label htmlFor="bin-color" className={compactLabel}>{t('onboardingFields.color', { defaultValue: 'Color' })}</label>
         <ColorPicker
           value={color}
           onChange={setColor}
@@ -115,11 +117,11 @@ export function BinCreateOnboardingFields({
         />
       </div>
       <div className="text-left">
-        <label htmlFor="bin-icon" className={compactLabel}>Icon</label>
+        <label htmlFor="bin-icon" className={compactLabel}>{t('onboardingFields.icon', { defaultValue: 'Icon' })}</label>
         <IconPicker value={icon} onChange={setIcon} />
       </div>
       <div className="text-left">
-        <label htmlFor="bin-style" className={compactLabel}>Style</label>
+        <label htmlFor="bin-style" className={compactLabel}>{t('onboardingFields.style', { defaultValue: 'Style' })}</label>
         <StylePicker value={cardStyle} color={color} onChange={setCardStyle} />
       </div>
     </>

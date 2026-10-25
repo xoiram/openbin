@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LocationSelectList } from '@/features/locations/LocationSelectList';
@@ -14,7 +15,8 @@ interface MoveBinDialogProps {
 }
 
 export function MoveBinDialog({ open, onOpenChange, binName, locations, onConfirm }: MoveBinDialogProps) {
-  const t = useTerminology();
+  const { t } = useTranslation(['bins', 'common']);
+  const term = useTerminology();
   const [targetId, setTargetId] = useState<string | null>(null);
 
   function handleOpenChange(next: boolean) {
@@ -26,9 +28,9 @@ export function MoveBinDialog({ open, onOpenChange, binName, locations, onConfir
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Move to another {t.location}</DialogTitle>
+          <DialogTitle>{t('moveDialog.title', { defaultValue: 'Move to another {{location}}', location: term.location })}</DialogTitle>
           <DialogDescription>
-            Select a {t.location} to move the &apos;{binName}&apos; {t.bin}.
+            {t('moveDialog.description', { defaultValue: "Select a {{location}} to move the '{{name}}' {{bin}}.", location: term.location, name: binName, bin: term.bin })}
           </DialogDescription>
         </DialogHeader>
         <div className="py-2">
@@ -36,18 +38,18 @@ export function MoveBinDialog({ open, onOpenChange, binName, locations, onConfir
             locations={locations}
             value={targetId}
             onChange={setTargetId}
-            emptyMessage={`No other ${t.locations} available`}
+            emptyMessage={t('moveDialog.empty', { defaultValue: 'No other {{locations}} available', locations: term.locations })}
           />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => handleOpenChange(false)}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             onClick={() => { if (targetId) onConfirm(targetId); }}
             disabled={!targetId}
           >
-            Move
+            {t('moveDialog.move', { defaultValue: 'Move' })}
           </Button>
         </DialogFooter>
       </DialogContent>

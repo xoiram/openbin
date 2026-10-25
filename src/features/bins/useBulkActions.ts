@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { pinBin, unpinBin } from '@/features/pins/usePins';
 import { useAuth } from '@/lib/auth';
@@ -12,8 +13,9 @@ export function useBulkActions(
   selectedIds: Set<string>,
   clearSelection: () => void,
   showToast: (toast: { message: string; action?: { label: string; onClick: () => void } }) => void,
-  t: Terminology,
+  term: Terminology,
 ) {
+  const { t } = useTranslation('bins');
   const { activeLocationId } = useAuth();
   const navigate = useNavigate();
   const [isBusy, setIsBusy] = useState(false);
@@ -27,7 +29,7 @@ export function useBulkActions(
     [selected],
   );
 
-  const pinLabel = majorityUnpinned ? 'Pin' : 'Unpin';
+  const pinLabel = majorityUnpinned ? t('bulk.pin', { defaultValue: 'Pin' }) : t('bulk.unpin', { defaultValue: 'Unpin' });
 
   const bulkDelete = useCallback(async () => {
     setIsBusy(true);
@@ -37,9 +39,15 @@ export function useBulkActions(
       haptic([50, 30, 50]);
       clearSelection();
       showToast({
-        message: `Deleted ${snapshots.length} ${snapshots.length !== 1 ? t.bins : t.bin}`,
+        message: t('bulk.deleted', {
+          count: snapshots.length,
+          defaultValue_one: 'Deleted {{count}} {{bin}}',
+          defaultValue_other: 'Deleted {{count}} {{bins}}',
+          bin: term.bin,
+          bins: term.bins,
+        }),
         action: {
-          label: 'Undo',
+          label: t('bulk.undo', { defaultValue: 'Undo' }),
           onClick: async () => {
             for (const bin of snapshots) {
               await restoreBin(bin);
@@ -50,7 +58,7 @@ export function useBulkActions(
     } finally {
       setIsBusy(false);
     }
-  }, [selected, clearSelection, showToast, t]);
+  }, [selected, clearSelection, showToast, t, term]);
 
   const bulkPinToggle = useCallback(async () => {
     setIsBusy(true);
@@ -90,14 +98,14 @@ export function useBulkActions(
       clearSelection();
       if (ids.length === 1) {
         navigate(`/bin/${ids[0]}`);
-        showToast({ message: `Duplicated "${selected[0].name}"` });
+        showToast({ message: t('bulk.duplicatedOne', { defaultValue: 'Duplicated "{{name}}"', name: selected[0].name }) });
       } else {
-        showToast({ message: `Duplicated ${ids.length} ${t.bins}` });
+        showToast({ message: t('bulk.duplicatedMany', { defaultValue: 'Duplicated {{count}} {{bins}}', count: ids.length, bins: term.bins }) });
       }
     } finally {
       setIsBusy(false);
     }
-  }, [selected, activeLocationId, clearSelection, showToast, navigate, t]);
+  }, [selected, activeLocationId, clearSelection, showToast, navigate, t, term]);
 
   return { bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy };
 }

@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
+import { useTerminology } from '@/lib/terminology';
 import type { Bin, BinVisibility } from '@/types';
 import { updateBin } from './useBins';
 
 type FieldName = 'name' | 'notes' | 'tags' | 'areaId' | 'icon' | 'color' | 'cardStyle' | 'visibility' | 'customFields';
 
 export function useAutoSaveBin(bin: Bin | null) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const { showToast } = useToast();
   const [savedFields, setSavedFields] = useState<Set<FieldName>>(new Set());
   const [savingFields, setSavingFields] = useState<Set<FieldName>>(new Set());
@@ -22,7 +26,7 @@ export function useAutoSaveBin(bin: Bin | null) {
     const sTimers = savedTimers;
     const pending = pendingSaves;
     return () => {
-      for (const t of sTimers.current.values()) clearTimeout(t);
+      for (const timer of sTimers.current.values()) clearTimeout(timer);
       for (const [field, timer] of dTimers.current) {
         clearTimeout(timer);
         const changes = pending.current.get(field);
@@ -52,7 +56,18 @@ export function useAutoSaveBin(bin: Bin | null) {
       await updateBin(binRef.current.id, changes);
       markSaved(field);
     } catch {
-      showToast({ message: `Failed to save ${field === 'areaId' ? 'area' : field === 'cardStyle' ? 'style' : field}` });
+      const fieldLabels: Record<FieldName, string> = {
+        name: t('autoSave.fields.name', { defaultValue: 'name' }),
+        notes: t('autoSave.fields.notes', { defaultValue: 'notes' }),
+        tags: t('autoSave.fields.tags', { defaultValue: 'tags' }),
+        areaId: t('autoSave.fields.area', { defaultValue: '{{area}}', area: term.area }),
+        icon: t('autoSave.fields.icon', { defaultValue: 'icon' }),
+        color: t('autoSave.fields.color', { defaultValue: 'color' }),
+        cardStyle: t('autoSave.fields.style', { defaultValue: 'style' }),
+        visibility: t('autoSave.fields.visibility', { defaultValue: 'visibility' }),
+        customFields: t('autoSave.fields.customFields', { defaultValue: 'custom fields' }),
+      };
+      showToast({ message: t('autoSave.saveFailed', { defaultValue: 'Failed to save {{field}}', field: fieldLabels[field] }) });
     } finally {
       setSavingFields((prev) => { const next = new Set(prev); next.delete(field); return next; });
     }

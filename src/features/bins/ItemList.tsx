@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { SearchInput } from '@/components/ui/search-input';
 import { type SortDirection, SortHeader } from '@/components/ui/sort-header';
@@ -37,6 +38,7 @@ interface ItemListProps {
 }
 
 export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, checkouts = [], onItemsChange, headerExtra, footerSlot }: ItemListProps) {
+  const { t } = useTranslation(['bins', 'common']);
   const [sortColumn, setSortColumn] = useState<SortColumn>('');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const { showToast, updateToast } = useToast();
@@ -138,10 +140,10 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
     if (reorderTimerRef.current) clearTimeout(reorderTimerRef.current);
     reorderTimerRef.current = setTimeout(() => {
       reorderItems(binId, sorted.map((i) => i.id), { quiet: true }).catch(() => {
-        showToast({ message: 'Failed to sort items', variant: 'error' });
+        showToast({ message: t('itemList.sortFailed', { defaultValue: 'Failed to sort items' }), variant: 'error' });
       });
     }, 500);
-  }, [items, localItems, viewMode, binId, onItemsChange, showToast]);
+  }, [items, localItems, viewMode, binId, onItemsChange, showToast, t]);
 
   async function handleSaveEdit(itemId: string, value: string, quantity: number | null) {
     const next = effectiveItems.map((i) => (i.id === itemId ? { ...i, name: value, quantity } : i));
@@ -157,7 +159,7 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
       markSaved(itemId);
     } catch {
       setLocalItems(items);
-      showToast({ message: 'Failed to update item', variant: 'error' });
+      showToast({ message: t('itemList.updateFailed', { defaultValue: 'Failed to update item' }), variant: 'error' });
     }
   }
 
@@ -190,7 +192,7 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
           .catch(() => {
             setLocalItems(itemsRef.current);
             setPendingDeleteIds((prev) => { const n = new Set(prev); n.delete(itemId); return n; });
-            showToast({ message: 'Failed to delete item', variant: 'error' });
+            showToast({ message: t('itemList.deleteFailed', { defaultValue: 'Failed to delete item' }), variant: 'error' });
           });
       }
     }, 5000);
@@ -232,10 +234,14 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
       void addItemsToShoppingList(binId, names)
         .then((entries) => {
           showToast({
-            message: names.length === 1 ? 'Added to shopping list' : `Added ${names.length} to list`,
+            message: t('itemList.addedToShoppingList', {
+              count: names.length,
+              defaultValue_one: 'Added to shopping list',
+              defaultValue_other: 'Added {{count}} to list',
+            }),
             variant: 'success',
             action: {
-              label: 'Undo',
+              label: t('itemList.undo', { defaultValue: 'Undo' }),
               onClick: () => {
                 void Promise.all(entries.map((e) => removeFromShoppingList(e.id)));
               },
@@ -243,14 +249,21 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
           });
         })
         .catch(() => {
-          showToast({ message: 'Failed to add to list', variant: 'error' });
+          showToast({ message: t('itemList.addToListFailed', { defaultValue: 'Failed to add to list' }), variant: 'error' });
         });
     };
     const payload = {
-      message: count === 1 ? 'Item removed' : `${count} items removed`,
+      message: t('itemList.itemsRemoved', {
+        count,
+        defaultValue_one: 'Item removed',
+        defaultValue_other: '{{count}} items removed',
+      }),
       duration: 5500,
-      action: { label: 'Undo', onClick: undo },
-      secondaryAction: { label: count === 1 ? 'Add to list' : 'Add all to list', onClick: addToList },
+      action: { label: t('itemList.undo', { defaultValue: 'Undo' }), onClick: undo },
+      secondaryAction: {
+        label: t('itemList.addToList', { count, defaultValue_one: 'Add to list', defaultValue_other: 'Add all to list' }),
+        onClick: addToList,
+      },
     };
     if (isNewBatch) {
       batch.toastId = showToast(payload);
@@ -263,9 +276,9 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
     if (!binId) return;
     try {
       await checkoutItem(binId, itemId);
-      showToast({ message: 'Item checked out' });
+      showToast({ message: t('itemList.checkedOut', { defaultValue: 'Item checked out' }) });
     } catch {
-      showToast({ message: 'Failed to check out item' });
+      showToast({ message: t('itemList.checkoutFailed', { defaultValue: 'Failed to check out item' }) });
     }
   }
 
@@ -273,9 +286,9 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
     if (!binId) return;
     try {
       await returnItem(binId, itemId);
-      showToast({ message: 'Item returned' });
+      showToast({ message: t('itemList.returned', { defaultValue: 'Item returned' }) });
     } catch {
-      showToast({ message: 'Failed to return item' });
+      showToast({ message: t('itemList.returnFailed', { defaultValue: 'Failed to return item' }) });
     }
   }
 
@@ -284,7 +297,7 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
     const saved = savedTimersRef;
     const reorder = reorderTimerRef;
     return () => {
-      for (const t of saved.current.values()) clearTimeout(t);
+      for (const timer of saved.current.values()) clearTimeout(timer);
       clearTimeout(reorder.current);
 
       const entries = [...pending.current.entries()];
@@ -305,10 +318,18 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
 
   if (hideWhenEmpty && items.length === 0) return null;
 
-  const itemWord = displayItems.length === 1 ? 'Item' : 'Items';
   const headerCount = filterQuery
-    ? `${filteredItems.length} of ${displayItems.length} ${itemWord}`
-    : `${displayItems.length} ${itemWord}`;
+    ? t('itemList.headerFilteredCount', {
+        count: displayItems.length,
+        filtered: filteredItems.length,
+        defaultValue_one: '{{filtered}} of {{count}} Item',
+        defaultValue_other: '{{filtered}} of {{count}} Items',
+      })
+    : t('itemList.headerCount', {
+        count: displayItems.length,
+        defaultValue_one: '{{count}} Item',
+        defaultValue_other: '{{count}} Items',
+      });
   const showSortHeaders = !readOnly && effectiveItems.length >= 2;
 
   return (
@@ -317,7 +338,8 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
         <div className="row-spread mb-2 min-h-8">
           <Label>
             {headerCount}
-            {checkouts.length > 0 && ` · ${checkouts.length} out`}
+            {checkouts.length > 0 &&
+              ` · ${t('itemList.checkedOutCount', { defaultValue: '{{out}} out', out: checkouts.length })}`}
           </Label>
           {headerExtra && <span className="inline-flex items-center gap-1.5">{headerExtra}</span>}
         </div>
@@ -329,14 +351,16 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
             onClear={filterQuery ? () => setFilterQuery('') : undefined}
-            placeholder="Filter items..."
+            placeholder={t('itemList.filterPlaceholder', { defaultValue: 'Filter items...' })}
           />
         </div>
       )}
 
       {displayItems.length === 0 && !footerSlot ? (
         <p className="text-[14px] text-[var(--text-tertiary)] py-2">
-          {readOnly ? 'No items' : 'No items yet — add one below'}
+          {readOnly
+            ? t('itemList.noItems', { defaultValue: 'No items' })
+            : t('itemList.noItemsYet', { defaultValue: 'No items yet — add one below' })}
         </p>
       ) : (
         <div className="rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-flat)] overflow-hidden">
@@ -344,24 +368,24 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
             <div className="row-tight min-h-[44px] px-3.5 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]">
               {showSortHeaders ? (
                 <>
-                  <SortHeader label="Name" column="name" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleHeaderSort} className="flex-1" />
-                  <SortHeader label="Qty" column="qty" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleHeaderSort} defaultDirection="desc" className={cn(QTY_COL_WIDTH, 'justify-end')} />
+                  <SortHeader label={t('itemList.name', { defaultValue: 'Name' })} column="name" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleHeaderSort} className="flex-1" />
+                  <SortHeader label={t('itemList.qty', { defaultValue: 'Qty' })} column="qty" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleHeaderSort} defaultDirection="desc" className={cn(QTY_COL_WIDTH, 'justify-end')} />
                 </>
               ) : (
                 <>
-                  <span className="ui-col-header flex-1">Name</span>
-                  <span className={cn('ui-col-header', QTY_COL_WIDTH, 'text-right')}>Qty</span>
+                  <span className="ui-col-header flex-1">{t('itemList.name', { defaultValue: 'Name' })}</span>
+                  <span className={cn('ui-col-header', QTY_COL_WIDTH, 'text-right')}>{t('itemList.qty', { defaultValue: 'Qty' })}</span>
                 </>
               )}
               {!readOnly && (
-                <span className={cn('ui-col-header', ACTIONS_COL_WIDTH, 'text-right')}>Actions</span>
+                <span className={cn('ui-col-header', ACTIONS_COL_WIDTH, 'text-right')}>{t('itemList.actions', { defaultValue: 'Actions' })}</span>
               )}
             </div>
           )}
           {displayItems.length > 0 && (
             visibleItems.length === 0 && filterQuery ? (
               <p className="px-3.5 py-3 text-[14px] text-[var(--text-tertiary)] italic">
-                No items match &ldquo;{filterQuery}&rdquo;
+                {t('itemList.noMatches', { defaultValue: 'No items match “{{query}}”', query: filterQuery })}
               </p>
             ) : (
               <div key={page} className="animate-page-enter">
@@ -414,7 +438,6 @@ export function ItemList({ items, binId, readOnly, hideWhenEmpty, hideHeader, ch
             rangeStart={rangeStart}
             rangeEnd={rangeEnd}
             onPageChange={setPage}
-            itemLabel={displayItems.length === 1 ? 'item' : 'items'}
           />
         </div>
       )}

@@ -1,10 +1,12 @@
 import { Paperclip } from 'lucide-react';
 import { lazy, Suspense, useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AttachmentsList } from '@/features/attachments/AttachmentsList';
 import { useAttachments } from '@/features/attachments/useAttachments';
 import { PhotoGallery } from '@/features/photos/PhotoGallery';
 import { isAttachmentsEnabled } from '@/lib/qrConfig';
+import { useTerminology } from '@/lib/terminology';
 import { usePlan } from '@/lib/usePlan';
 import { useUserPreferences } from '@/lib/userPreferences';
 import { sectionHeader } from '@/lib/utils';
@@ -21,6 +23,8 @@ interface BinDetailFilesTabProps {
 }
 
 export function BinDetailFilesTab({ binId, photos, canEdit }: BinDetailFilesTabProps) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const attachmentsOn = isAttachmentsEnabled();
   const { planInfo, isGated } = usePlan();
   const attachmentsGated = isGated('attachments');
@@ -41,8 +45,8 @@ export function BinDetailFilesTab({ binId, photos, canEdit }: BinDetailFilesTabP
     return (
       <EmptyState
         icon={Paperclip}
-        title="No files"
-        subtitle="Photos and attachments added to this bin will appear here."
+        title={t('filesTab.emptyTitle', { defaultValue: 'No files' })}
+        subtitle={t('filesTab.emptySubtitle', { defaultValue: 'Photos and attachments added to this {{bin}} will appear here.', bin: term.bin })}
         compact
       />
     );
@@ -54,7 +58,7 @@ export function BinDetailFilesTab({ binId, photos, canEdit }: BinDetailFilesTabP
         <section aria-labelledby={showSectionLabels ? photosLabelId : undefined} className="flex flex-col gap-1">
           {showSectionLabels && (
             <h3 id={photosLabelId} className={sectionHeader}>
-              Photos
+              {t('filesTab.photos', { defaultValue: 'Photos' })}
             </h3>
           )}
           <PhotoGallery binId={binId} variant="inline" />
@@ -64,14 +68,14 @@ export function BinDetailFilesTab({ binId, photos, canEdit }: BinDetailFilesTabP
         <section aria-labelledby={showSectionLabels ? docsLabelId : undefined} className="flex flex-col gap-1">
           {showSectionLabels && (
             <h3 id={docsLabelId} className={sectionHeader}>
-              Documents
+              {t('filesTab.documents', { defaultValue: 'Documents' })}
             </h3>
           )}
           {__EE__ && attachmentsGated && canEdit && (
             <Suspense fallback={null}>
               <UpgradePrompt
-                feature="Document Attachments"
-                description="Upload PDFs, spreadsheets, and other files to bins."
+                feature={t('filesTab.upgradeFeature', { defaultValue: 'Document Attachments' })}
+                description={t('filesTab.upgradeDescription', { defaultValue: 'Upload PDFs, spreadsheets, and other files to {{bins}}.', bins: term.bins })}
                 upgradeAction={planInfo.upgradeAction}
                 dismissKey="attachments"
               />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MAX_AI_PHOTOS } from '@/features/ai/aiConstants';
 import type { AnalyzeStreamMode } from '@/features/ai/analyzeLabel';
 import { useAiStream } from '@/features/ai/useAiStream';
@@ -18,12 +19,13 @@ export function usePhotoAnalysis({
   onApplyDirect,
   onAiSetupNeeded,
 }: UsePhotoAnalysisOptions) {
+  const { t } = useTranslation('bins');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
-  const analyze = useAiStream<AiSuggestions>('/api/ai/analyze-image/stream', 'Failed to analyze photos');
-  const reanalyze = useAiStream<AiSuggestions>('/api/ai/reanalyze-image/stream', 'Failed to reanalyze photos');
+  const analyze = useAiStream<AiSuggestions>('/api/ai/analyze-image/stream', t('photoAnalysis.analyzeFailed', { defaultValue: 'Failed to analyze photos' }));
+  const reanalyze = useAiStream<AiSuggestions>('/api/ai/reanalyze-image/stream', t('photoAnalysis.reanalyzeFailed', { defaultValue: 'Failed to reanalyze photos' }));
   const analyzing = analyze.isStreaming || reanalyze.isStreaming;
   const analyzeError = analyze.error ?? reanalyze.error;
   const analyzeMode: AnalyzeStreamMode = reanalyze.isStreaming
