@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { RadioOption } from '@/components/ui/radio-option';
 import { useToast } from '@/components/ui/toast';
+import { useTerminology } from '@/lib/terminology';
 import { returnItem } from './useCheckouts';
 
 interface ReturnItemDialogProps {
@@ -24,6 +25,7 @@ interface ReturnItemDialogProps {
 
 export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, originBinName }: ReturnItemDialogProps) {
   const { t } = useTranslation(['checkouts', 'common']);
+  const term = useTerminology();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'origin' | 'different'>('origin');
   const [targetId, setTargetId] = useState<string | null>(null);
@@ -68,13 +70,13 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
           <RadioOption
             selected={mode === 'origin'}
             onClick={() => { setMode('origin'); setTargetId(null); }}
-            label={t('returnItem.originalBin', { defaultValue: 'Original bin' })}
+            label={t('returnItem.originalBin', { defaultValue: 'Original {{bin}}', bin: term.bin })}
             description={originBinName}
           />
           <RadioOption
             selected={mode === 'different'}
             onClick={() => setMode('different')}
-            label={t('returnItem.differentBin', { defaultValue: 'Different bin' })}
+            label={t('returnItem.differentBin', { defaultValue: 'Different {{bin}}', bin: term.bin })}
           />
         </div>
 

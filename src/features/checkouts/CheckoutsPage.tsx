@@ -21,6 +21,7 @@ import { useBulkSelection } from '@/lib/bulk/useBulkSelection';
 import { useEntitySelectionInteraction } from '@/lib/bulk/useEntitySelectionInteraction';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
+import { useTerminology } from '@/lib/terminology';
 import { useMountOnOpen } from '@/lib/useMountOnOpen';
 import { usePermissions } from '@/lib/usePermissions';
 import { cn, relativeTime } from '@/lib/utils';
@@ -40,6 +41,7 @@ type CheckoutSortColumn = 'alpha' | 'time';
 
 export function CheckoutsPage() {
   const { t } = useTranslation('checkouts');
+  const term = useTerminology();
   const { activeLocationId } = useAuth();
   const { checkouts, isLoading } = useLocationCheckouts(activeLocationId ?? undefined);
   const { canWrite } = usePermissions();
@@ -101,7 +103,7 @@ export function CheckoutsPage() {
     {
       id: 'return-tobin',
       icon: ArrowRightLeft,
-      label: t('page.bulk.returnToBin', { defaultValue: 'Return to bin' }),
+      label: t('page.bulk.returnToBin', { defaultValue: 'Return to {{bin}}', bin: term.bin }),
       onClick: () => setOpenBulk('tobin'),
       group: 'primary',
     },
@@ -116,7 +118,7 @@ export function CheckoutsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={search ? () => setSearch('') : undefined}
-          placeholder={t('page.searchPlaceholder', { defaultValue: 'Search items, bins, people...' })}
+          placeholder={t('page.searchPlaceholder', { defaultValue: 'Search items, {{bins}}, people...', bins: term.bins })}
         />
       )}
 
@@ -157,7 +159,7 @@ export function CheckoutsPage() {
               : t('page.empty.title', { defaultValue: 'No items checked out' })}
             subtitle={search
               ? t('page.empty.noMatchesSubtitle', { defaultValue: 'Try a different search' })
-              : t('page.empty.subtitle', { defaultValue: 'Items you check out from bins will appear here' })}
+              : t('page.empty.subtitle', { defaultValue: 'Items you check out from {{bins}} will appear here', bins: term.bins })}
           />
         ) : (
           <div className={cn(selectable && 'pb-16')}>
@@ -165,7 +167,7 @@ export function CheckoutsPage() {
               <TableHeader>
                 <span className="w-6 shrink-0" aria-hidden />
                 <SortHeader label={t('page.columns.item', { defaultValue: 'Item' })} column="alpha" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleSort} className="flex-[2]" />
-                <span className="flex-1 ui-col-header">{t('page.columns.bin', { defaultValue: 'Bin' })}</span>
+                <span className="flex-1 ui-col-header">{t('page.columns.bin', { defaultValue: '{{Bin}}', Bin: term.Bin })}</span>
                 <span className="hidden md:block flex-1 ui-col-header">
                   {t('page.columns.by', { defaultValue: 'By' })}
                 </span>

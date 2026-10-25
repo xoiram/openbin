@@ -4,22 +4,22 @@
     "submitting": "Returning…"
   },
   "bulkReturnOriginal": {
-    "title_one": "Return {{count}} item to its original bin?",
-    "title_other": "Return {{count}} items to their original bins?",
+    "title_one": "Return {{count}} item to its original {{bin}}?",
+    "title_other": "Return {{count}} items to their original {{bins}}?",
     "description": "Each item goes back to where it was checked out from."
   },
   "bulkReturnToBin": {
-    "title_one": "Return {{count}} item to chosen bin",
-    "title_other": "Return {{count}} items to chosen bin",
-    "description_one": "Items currently span {{count}} bin. They'll all move to the picked destination.",
-    "description_other": "Items currently span {{count}} bins. They'll all move to the picked destination."
+    "title_one": "Return {{count}} item to chosen {{bin}}",
+    "title_other": "Return {{count}} items to chosen {{bin}}",
+    "description_one": "Items currently span {{count}} {{bin}}. They'll all move to the picked destination.",
+    "description_other": "Items currently span {{count}} {{bins}}. They'll all move to the picked destination."
   },
   "returnItem": {
     "title": "Return “{{name}}”",
     "returned": "{{name}} returned",
     "failed": "Failed to return item",
-    "originalBin": "Original bin",
-    "differentBin": "Different bin"
+    "originalBin": "Original {{bin}}",
+    "differentBin": "Different {{bin}}"
   },
   "bulkToasts": {
     "returned_one": "Returned {{count}} item",
@@ -30,20 +30,20 @@
   },
   "page": {
     "title": "Checked Out",
-    "searchPlaceholder": "Search items, bins, people...",
+    "searchPlaceholder": "Search items, {{bins}}, people...",
     "bulk": {
       "returnToOriginal": "Return to original",
-      "returnToBin": "Return to bin"
+      "returnToBin": "Return to {{bin}}"
     },
     "empty": {
       "noMatchesTitle": "No matches",
       "title": "No items checked out",
       "noMatchesSubtitle": "Try a different search",
-      "subtitle": "Items you check out from bins will appear here"
+      "subtitle": "Items you check out from {{bins}} will appear here"
     },
     "columns": {
       "item": "Item",
-      "bin": "Bin",
+      "bin": "{{Bin}}",
       "by": "By",
       "time": "Time"
     },

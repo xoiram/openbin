@@ -11,20 +11,20 @@
   },
   "steps": {
     "createBin": {
-      "title": "Add your first bin",
+      "title": "Add your first {{bin}}",
       "description": "Snap a photo and let AI fill it in"
     },
     "addThreeBins": {
       "title": "Build out your shelf",
-      "description": "Reach 3 bins so AI search has something to work with"
+      "description": "Reach 3 {{bins}} so AI search has something to work with"
     },
     "askAi": {
       "title": "Ask AI to find something",
-      "description": "Type a question — AI checks every bin"
+      "description": "Type a question — AI checks every {{bin}}"
     },
     "printLabel": {
       "title": "Print your first label",
-      "description": "A QR sticker turns any bin into a tap-to-open shortcut"
+      "description": "A QR sticker turns any {{bin}} into a tap-to-open shortcut"
     }
   }
 }

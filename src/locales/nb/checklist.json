@@ -11,20 +11,20 @@
   },
   "steps": {
     "createBin": {
-      "title": "Legg til din første boks",
+      "title": "Legg til din første {{bin}}",
       "description": "Ta et bilde og la AI fylle ut resten"
     },
     "addThreeBins": {
       "title": "Bygg ut hylla di",
-      "description": "Nå 3 bokser, så har AI-søket noe å jobbe med"
+      "description": "Nå 3 {{bins}}, så har AI-søket noe å jobbe med"
     },
     "askAi": {
       "title": "Be AI finne noe",
-      "description": "Skriv et spørsmål — AI sjekker hver boks"
+      "description": "Skriv et spørsmål — AI sjekker hver {{bin}}"
     },
     "printLabel": {
       "title": "Skriv ut din første etikett",
-      "description": "Et QR-klistremerke gjør hver boks til en snarvei du åpner med ett trykk"
+      "description": "Et QR-klistremerke gjør hver {{bin}} til en snarvei du åpner med ett trykk"
     }
   }
 }

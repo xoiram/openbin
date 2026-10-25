@@ -4,22 +4,22 @@
     "submitting": "Returnerer…"
   },
   "bulkReturnOriginal": {
-    "title_one": "Returnere {{count}} gjenstand til den opprinnelige boksen?",
-    "title_other": "Returnere {{count}} gjenstander til de opprinnelige boksene?",
+    "title_one": "Returnere {{count}} gjenstand til opprinnelig {{bin}}?",
+    "title_other": "Returnere {{count}} gjenstander til opprinnelige {{bins}}?",
     "description": "Hver gjenstand legges tilbake der den ble sjekket ut fra."
   },
   "bulkReturnToBin": {
-    "title_one": "Returner {{count}} gjenstand til valgt boks",
-    "title_other": "Returner {{count}} gjenstander til valgt boks",
-    "description_one": "Gjenstandene kommer nå fra {{count}} boks. Alle flyttes til det valgte målet.",
-    "description_other": "Gjenstandene kommer nå fra {{count}} bokser. Alle flyttes til det valgte målet."
+    "title_one": "Returner {{count}} gjenstand til valgt {{bin}}",
+    "title_other": "Returner {{count}} gjenstander til valgt {{bin}}",
+    "description_one": "Gjenstandene kommer nå fra {{count}} {{bin}}. Alle flyttes til det valgte målet.",
+    "description_other": "Gjenstandene kommer nå fra {{count}} {{bins}}. Alle flyttes til det valgte målet."
   },
   "returnItem": {
     "title": "Returner «{{name}}»",
     "returned": "{{name}} er returnert",
     "failed": "Kunne ikke returnere gjenstanden",
-    "originalBin": "Opprinnelig boks",
-    "differentBin": "Annen boks"
+    "originalBin": "Opprinnelig {{bin}}",
+    "differentBin": "Annen {{bin}}"
   },
   "bulkToasts": {
     "returned_one": "Returnerte {{count}} gjenstand",
@@ -30,20 +30,20 @@
   },
   "page": {
     "title": "Utsjekket",
-    "searchPlaceholder": "Søk i gjenstander, bokser, personer...",
+    "searchPlaceholder": "Søk i gjenstander, {{bins}}, personer...",
     "bulk": {
       "returnToOriginal": "Returner til opprinnelig",
-      "returnToBin": "Returner til boks"
+      "returnToBin": "Returner til {{bin}}"
     },
     "empty": {
       "noMatchesTitle": "Ingen treff",
       "title": "Ingen gjenstander er sjekket ut",
       "noMatchesSubtitle": "Prøv et annet søk",
-      "subtitle": "Gjenstander du sjekker ut fra bokser, vises her"
+      "subtitle": "Gjenstander du sjekker ut fra {{bins}}, vises her"
     },
     "columns": {
       "item": "Gjenstand",
-      "bin": "Boks",
+      "bin": "{{Bin}}",
       "by": "Av",
       "time": "Tid"
     },

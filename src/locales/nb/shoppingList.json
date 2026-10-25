@@ -6,7 +6,7 @@
   "toasts": {
     "addFailed": "Kunne ikke legge til",
     "addedBackTo": "Lagt tilbake i {{bin}}",
-    "addedBack": "Lagt tilbake i boksen",
+    "addedBack": "Lagt tilbake i {{bin}}",
     "markedBought": "Merket som kjøpt",
     "markBoughtFailed": "Kunne ikke merke som kjøpt",
     "removeFailed": "Kunne ikke fjerne"
@@ -15,11 +15,11 @@
     "noMatchesTitle": "Ingen varer samsvarer med søket",
     "title": "Handlelisten er tom",
     "noMatchesSubtitle": "Prøv et annet søkeord",
-    "subtitle": "Når du fjerner en gjenstand fra en boks, tilbyr angre-varslingen en snarvei for å legge den på listen. Varer du legger til her, vises også."
+    "subtitle": "Når du fjerner en gjenstand fra en {{bin}}, tilbyr angre-varslingen en snarvei for å legge den på listen. Varer du legger til her, vises også."
   },
   "columns": {
     "item": "Vare",
-    "bin": "Boks"
+    "bin": "{{Bin}}"
   },
   "markBought": "Merk som kjøpt",
   "markBoughtLabel": "Merk {{name}} som kjøpt",

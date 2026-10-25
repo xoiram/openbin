@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { getCommandInputRef } from '@/features/tour/TourProvider';
+import { useTerminology } from '@/lib/terminology';
 import { cn, flatCard } from '@/lib/utils';
 import { ChecklistItem } from './ChecklistItem';
 import { type ChecklistStepId, checklistStepText } from './checklistSteps';
@@ -16,6 +17,7 @@ interface DashboardChecklistProps {
 
 export function DashboardChecklist({ totalBins, setCreateOpen, onUpgradeClick }: DashboardChecklistProps) {
   const { t } = useTranslation('checklist');
+  const term = useTerminology();
   const navigate = useNavigate();
   const { steps, completedCount, isHidden, dismiss } = useChecklist({ totalBins });
 
@@ -73,7 +75,7 @@ export function DashboardChecklist({ totalBins, setCreateOpen, onUpgradeClick }:
       <div className="flex flex-col gap-1">
         {steps.map((step) => {
           const { primary, secondary } = buildActions(step.id, step.gated);
-          const { title, description } = checklistStepText(step.id, t);
+          const { title, description } = checklistStepText(step.id, t, term);
           return (
             <ChecklistItem
               key={step.id}

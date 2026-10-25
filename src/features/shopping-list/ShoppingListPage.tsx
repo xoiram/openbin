@@ -18,6 +18,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
+import { useTerminology } from '@/lib/terminology';
 import { useDebounce } from '@/lib/useDebounce';
 import { usePermissions } from '@/lib/usePermissions';
 import { useTableSearchParams } from '@/lib/useTableSearchParams';
@@ -52,6 +53,7 @@ function sortEntries(
 
 export function ShoppingListPage() {
   const { t } = useTranslation('shoppingList');
+  const term = useTerminology();
   const { activeLocationId } = useAuth();
   const { canWrite } = usePermissions();
   const { showToast } = useToast();
@@ -92,7 +94,7 @@ export function ShoppingListPage() {
         showToast({
           message: entry.origin_bin_name
             ? t('toasts.addedBackTo', { defaultValue: 'Added back to {{bin}}', bin: entry.origin_bin_name })
-            : t('toasts.addedBack', { defaultValue: 'Added back to bin' }),
+            : t('toasts.addedBack', { defaultValue: 'Added back to {{bin}}', bin: term.bin }),
           variant: 'success',
         });
       } else {
@@ -201,7 +203,8 @@ export function ShoppingListPage() {
                 ? t('empty.noMatchesSubtitle', { defaultValue: 'Try a different search term' })
                 : t('empty.subtitle', {
                     defaultValue:
-                      "When you remove an item from a bin, the undo toast offers an 'Add to list' shortcut. Items you add here also show up.",
+                      "When you remove an item from a {{bin}}, the undo toast offers an 'Add to list' shortcut. Items you add here also show up.",
+                    bin: term.bin,
                   })
             }
             variant={search ? 'search' : undefined}
@@ -218,7 +221,7 @@ export function ShoppingListPage() {
                 className="flex-[2]"
               />
               <SortHeader
-                label={t('columns.bin', { defaultValue: 'Bin' })}
+                label={t('columns.bin', { defaultValue: '{{Bin}}', Bin: term.Bin })}
                 column="bin"
                 currentColumn={sortColumn}
                 currentDirection={sortDirection}

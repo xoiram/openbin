@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useTerminology } from '@/lib/terminology';
 
 interface BulkReturnOriginalDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export function BulkReturnOriginalDialog({
   onConfirm,
 }: BulkReturnOriginalDialogProps) {
   const { t } = useTranslation(['checkouts', 'common']);
+  const term = useTerminology();
   const [loading, setLoading] = useState(false);
   async function handle() {
     setLoading(true);
@@ -41,8 +43,10 @@ export function BulkReturnOriginalDialog({
           <DialogTitle>
             {t('bulkReturnOriginal.title', {
               count,
-              defaultValue_one: 'Return {{count}} item to its original bin?',
-              defaultValue_other: 'Return {{count}} items to their original bins?',
+              bin: term.bin,
+              bins: term.bins,
+              defaultValue_one: 'Return {{count}} item to its original {{bin}}?',
+              defaultValue_other: 'Return {{count}} items to their original {{bins}}?',
             })}
           </DialogTitle>
           <DialogDescription>

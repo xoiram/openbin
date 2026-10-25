@@ -3,6 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 // Real react-i18next + real locale JSON (see src/test/__tests__/i18n.test.tsx).
 vi.unmock('react-i18next');
+vi.mock('@/lib/terminology', () => ({
+  useTerminology: () => ({
+    bin: 'boks', bins: 'bokser', Bin: 'Boks', Bins: 'Bokser',
+    area: 'area', areas: 'areas', Area: 'Area', Areas: 'Areas',
+    location: 'location', locations: 'locations', Location: 'Location', Locations: 'Locations',
+  }),
+}));
 
 const { renderWithI18n } = await import('@/test/i18nTestUtils');
 const { BulkDeleteItemsDialog } = await import('../BulkDeleteItemsDialog');
@@ -28,7 +35,7 @@ describe('items/checkouts i18n', () => {
     renderWithI18n(<BulkReturnOriginalDialog open onOpenChange={vi.fn()} count={1} onConfirm={vi.fn()} />, {
       language: 'nb',
     });
-    expect(screen.getByText('Returnere 1 gjenstand til den opprinnelige boksen?')).toBeTruthy();
+    expect(screen.getByText('Returnere 1 gjenstand til opprinnelig boks?')).toBeTruthy();
     expect(screen.getByText('Returner')).toBeTruthy();
   });
 });

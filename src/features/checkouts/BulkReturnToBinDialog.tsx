@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BinPickerList } from '@/components/ui/bin-picker-list';
 import { useBinList } from '@/features/bins/useBins';
 import { BulkUpdateDialog } from '@/lib/bulk/BulkUpdateDialog';
+import { useTerminology } from '@/lib/terminology';
 import type { ItemCheckoutWithContext } from '@/types';
 
 interface BulkReturnToBinDialogProps {
@@ -19,6 +20,7 @@ export function BulkReturnToBinDialog({
   onApply,
 }: BulkReturnToBinDialogProps) {
   const { t } = useTranslation('checkouts');
+  const term = useTerminology();
   const [search, setSearch] = useState('');
   const [targetId, setTargetId] = useState<string | null>(null);
   const { bins } = useBinList(undefined, 'name', undefined, !open);
@@ -42,13 +44,16 @@ export function BulkReturnToBinDialog({
       }}
       title={t('bulkReturnToBin.title', {
         count: ids.length,
-        defaultValue_one: 'Return {{count}} item to chosen bin',
-        defaultValue_other: 'Return {{count}} items to chosen bin',
+        bin: term.bin,
+        defaultValue_one: 'Return {{count}} item to chosen {{bin}}',
+        defaultValue_other: 'Return {{count}} items to chosen {{bin}}',
       })}
       description={t('bulkReturnToBin.description', {
         count: originBinCount,
-        defaultValue_one: "Items currently span {{count}} bin. They'll all move to the picked destination.",
-        defaultValue_other: "Items currently span {{count}} bins. They'll all move to the picked destination.",
+        bin: term.bin,
+        bins: term.bins,
+        defaultValue_one: "Items currently span {{count}} {{bin}}. They'll all move to the picked destination.",
+        defaultValue_other: "Items currently span {{count}} {{bins}}. They'll all move to the picked destination.",
       })}
       selectedIds={ids}
       onApply={async (checkoutIds) => {

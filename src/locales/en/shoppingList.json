@@ -6,7 +6,7 @@
   "toasts": {
     "addFailed": "Failed to add",
     "addedBackTo": "Added back to {{bin}}",
-    "addedBack": "Added back to bin",
+    "addedBack": "Added back to {{bin}}",
     "markedBought": "Marked bought",
     "markBoughtFailed": "Failed to mark bought",
     "removeFailed": "Failed to remove"
@@ -15,11 +15,11 @@
     "noMatchesTitle": "No items match your search",
     "title": "No items on your shopping list",
     "noMatchesSubtitle": "Try a different search term",
-    "subtitle": "When you remove an item from a bin, the undo toast offers an 'Add to list' shortcut. Items you add here also show up."
+    "subtitle": "When you remove an item from a {{bin}}, the undo toast offers an 'Add to list' shortcut. Items you add here also show up."
   },
   "columns": {
     "item": "Item",
-    "bin": "Bin"
+    "bin": "{{Bin}}"
   },
   "markBought": "Mark bought",
   "markBoughtLabel": "Mark {{name}} bought",
