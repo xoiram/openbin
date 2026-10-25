@@ -247,9 +247,9 @@ describe('pg-engine: transactions', () => {
       );
       // This item references the bin we just inserted in the same transaction
       await txQuery(
-        `INSERT INTO bin_items (id, bin_id, name, position)
-         VALUES ($1, $2, 'TxItem', 0)`,
-        [itemId, binId],
+        `INSERT INTO bin_items (id, bin_id, location_id, name, position)
+         VALUES ($1, $2, $3, 'TxItem', 0)`,
+        [itemId, binId, locationId],
       );
       const result = await txQuery<{ name: string }>(
         'SELECT name FROM bin_items WHERE bin_id = $1',

@@ -261,9 +261,9 @@ describe('pg-types: DEFERRABLE FK behavior', () => {
     const itemId = crypto.randomUUID();
     await expect(
       pool.query(
-        `INSERT INTO bin_items (id, bin_id, name, position)
-         VALUES ($1, $2, 'Screwdriver', 0)`,
-        [itemId, binId],
+        `INSERT INTO bin_items (id, bin_id, location_id, name, position)
+         VALUES ($1, $2, $3, 'Screwdriver', 0)`,
+        [itemId, binId, locationId],
       ),
     ).resolves.toBeDefined();
   });

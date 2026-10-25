@@ -62,9 +62,9 @@ beforeAll(async () => {
 
   // Add items to first bin
   await pool.query(
-    `INSERT INTO bin_items (id, bin_id, name, quantity, position)
-     VALUES ($1, $2, 'Phillips #2', 5, 0), ($3, $2, 'Flathead Small', 3, 1)`,
-    [crypto.randomUUID(), binIds[0], crypto.randomUUID()],
+    `INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position)
+     VALUES ($1, $2, $4, 'Phillips #2', 5, 0), ($3, $2, $4, 'Flathead Small', 3, 1)`,
+    [crypto.randomUUID(), binIds[0], crypto.randomUUID(), locationId],
   );
 
   // Add a custom field
