@@ -707,6 +707,10 @@ describe('export format version', () => {
 // Loose items in the export formats
 // ---------------------------------------------------------------------------
 
+/** Loose items created within the same second have no meaningful order: compare by name. */
+const byItemName = (items: Array<string | { name: string }> | undefined) =>
+  [...(items ?? [])].sort((a, b) => (typeof a === 'string' ? a : a.name).localeCompare(typeof b === 'string' ? b : b.name));
+
 describe('loose items in exports', () => {
   it('JSON export carries area items and unassignedItems; ZIP manifest the same', async () => {
     const { token } = await createTestUser(app);
@@ -719,7 +723,7 @@ describe('loose items in exports', () => {
 
     const res = await request(app).get(`/api/locations/${location.id}/export`).set('Authorization', `Bearer ${token}`);
     const byPath = Object.fromEntries(res.body.areas.map((a: { path: string; items?: unknown[] }) => [a.path, a.items]));
-    expect(byPath.Garage).toEqual([{ name: 'Tape', quantity: 3 }, 'Glue']);
+    expect(byItemName(byPath.Garage as Array<string | { name: string }>)).toEqual(['Glue', { name: 'Tape', quantity: 3 }]);
     expect(byPath.Empty).toBeUndefined();
     expect(res.body.areas.map((a: { path: string }) => a.path).sort()).toEqual(['Empty', 'Garage']);
     expect(res.body.unassignedItems).toEqual(['Batteries']);
@@ -738,7 +742,7 @@ describe('loose items in exports', () => {
     const manifest = JSON.parse(new TextDecoder().decode(files['manifest.json']));
     expect(manifest.version).toBe(4);
     expect(manifest.unassignedItems).toEqual(['Batteries']);
-    expect(manifest.areas.find((a: { path: string }) => a.path === 'Garage').items).toEqual([{ name: 'Tape', quantity: 3 }, 'Glue']);
+    expect(byItemName(manifest.areas.find((a: { path: string }) => a.path === 'Garage').items)).toEqual(['Glue', { name: 'Tape', quantity: 3 }]);
   });
 
   it('does not export loose items that were deleted', async () => {

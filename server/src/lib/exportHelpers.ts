@@ -168,7 +168,7 @@ export async function fetchLooseItems(locationId: string, userId: string): Promi
     `SELECT bi.area_id, bi.name, bi.quantity
      FROM ${ITEM_FROM}
      WHERE ${itemScopePredicate(1, 2)} AND bi.bin_id IS NULL
-     ORDER BY bi.position, bi.created_at, bi.id`,
+     ORDER BY bi.position, bi.created_at, bi.name, bi.id`,
     [locationId, userId],
   );
   const byArea = new Map<string, ExportItem[]>();
