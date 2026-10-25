@@ -187,10 +187,6 @@
     "hardcoded: Retention & Roles": 1,
     "hardcoded: Settings": 2
   },
-  "src/features/attachments/AttachmentsList.tsx": {
-    "hardcoded: Add File": 1,
-    "hardcoded: Uploading…": 1
-  },
   "src/features/bins/AiBadge.tsx": {
     "hardcoded: AI": 1,
     "hardcoded: Undo AI suggestion": 1
@@ -557,21 +553,6 @@
   "src/features/capture/ThumbnailItem.tsx": {
     "hardcoded: Remove photo": 1
   },
-  "src/features/checklist/DashboardChecklist.tsx": {
-    "hardcoded: Dismiss checklist": 1,
-    "hardcoded: Get started": 1,
-    "hardcoded: of": 1
-  },
-  "src/features/checkouts/BulkReturnOriginalDialog.tsx": {
-    "hardcoded: Cancel": 1
-  },
-  "src/features/checkouts/CheckoutsPage.tsx": {
-    "hardcoded: Bin": 1,
-    "hardcoded: By": 1
-  },
-  "src/features/checkouts/ReturnItemDialog.tsx": {
-    "hardcoded: Cancel": 1
-  },
   "src/features/dashboard/DashboardActivityFeed.tsx": {
     "hardcoded: No activity yet": 1
   },
@@ -598,15 +579,6 @@
     "hardcoded: Reset to defaults": 1,
     "hardcoded: Sections": 1,
     "hardcoded: Timestamps": 1
-  },
-  "src/features/items/BulkCheckoutItemsDialog.tsx": {
-    "hardcoded: Cancel": 1
-  },
-  "src/features/items/BulkDeleteItemsDialog.tsx": {
-    "hardcoded: Cancel": 1
-  },
-  "src/features/items/ItemsPage.tsx": {
-    "hardcoded: Browse": 1
   },
   "src/features/locations/LocationDialogs.tsx": {
     "hardcoded: Cancel": 4,
@@ -834,9 +806,6 @@
   },
   "src/features/settings/dialogs/RecoverAccountDialog.tsx": {
     "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 1
-  },
-  "src/features/shopping-list/ShoppingListPage.tsx": {
-    "hardcoded: Add": 1
   },
   "src/features/tags/BulkDeleteTagsDialog.tsx": {
     "hardcoded: Cancel": 1

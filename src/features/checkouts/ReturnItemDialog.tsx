@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BinPickerList } from '@/components/ui/bin-picker-list';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +23,7 @@ interface ReturnItemDialogProps {
 }
 
 export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, originBinName }: ReturnItemDialogProps) {
+  const { t } = useTranslation(['checkouts', 'common']);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'origin' | 'different'>('origin');
   const [targetId, setTargetId] = useState<string | null>(null);
@@ -43,9 +45,9 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
       const target = mode === 'different' && targetId ? targetId : undefined;
       await returnItem(binId, itemId, target);
       handleOpenChange(false);
-      showToast({ message: `${itemName} returned` });
+      showToast({ message: t('returnItem.returned', { defaultValue: '{{name}} returned', name: itemName }) });
     } catch {
-      showToast({ message: 'Failed to return item' });
+      showToast({ message: t('returnItem.failed', { defaultValue: 'Failed to return item' }) });
     } finally {
       setLoading(false);
     }
@@ -57,20 +59,22 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Return &ldquo;{itemName}&rdquo;</DialogTitle>
+          <DialogTitle>
+            {t('returnItem.title', { defaultValue: 'Return “{{name}}”', name: itemName })}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-2">
           <RadioOption
             selected={mode === 'origin'}
             onClick={() => { setMode('origin'); setTargetId(null); }}
-            label="Original bin"
+            label={t('returnItem.originalBin', { defaultValue: 'Original bin' })}
             description={originBinName}
           />
           <RadioOption
             selected={mode === 'different'}
             onClick={() => setMode('different')}
-            label="Different bin"
+            label={t('returnItem.differentBin', { defaultValue: 'Different bin' })}
           />
         </div>
 
@@ -88,9 +92,13 @@ export function ReturnItemDialog({ open, onOpenChange, itemName, binId, itemId, 
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => handleOpenChange(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => handleOpenChange(false)}>
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
+          </Button>
           <Button onClick={handleReturn} disabled={loading || !canSubmit}>
-            {loading ? 'Returning…' : 'Return'}
+            {loading
+              ? t('return.submitting', { defaultValue: 'Returning…' })
+              : t('return.submit', { defaultValue: 'Return' })}
           </Button>
         </DialogFooter>
       </DialogContent>

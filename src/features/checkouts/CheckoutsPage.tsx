@@ -1,5 +1,6 @@
 import { ArrowRightLeft, PackageSearch, Undo2 } from 'lucide-react';
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,6 +39,7 @@ const BulkReturnToBinDialog = lazy(() =>
 type CheckoutSortColumn = 'alpha' | 'time';
 
 export function CheckoutsPage() {
+  const { t } = useTranslation('checkouts');
   const { activeLocationId } = useAuth();
   const { checkouts, isLoading } = useLocationCheckouts(activeLocationId ?? undefined);
   const { canWrite } = usePermissions();
@@ -92,14 +94,14 @@ export function CheckoutsPage() {
     {
       id: 'return-orig',
       icon: Undo2,
-      label: 'Return to original',
+      label: t('page.bulk.returnToOriginal', { defaultValue: 'Return to original' }),
       onClick: () => setOpenBulk('original'),
       group: 'primary',
     },
     {
       id: 'return-tobin',
       icon: ArrowRightLeft,
-      label: 'Return to bin',
+      label: t('page.bulk.returnToBin', { defaultValue: 'Return to bin' }),
       onClick: () => setOpenBulk('tobin'),
       group: 'primary',
     },
@@ -107,14 +109,14 @@ export function CheckoutsPage() {
 
   return (
     <div className="page-content-wide">
-      <PageHeader title="Checked Out" />
+      <PageHeader title={t('page.title', { defaultValue: 'Checked Out' })} />
 
       {(checkouts.length > 0 || search) && (
         <SearchInput
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={search ? () => setSearch('') : undefined}
-          placeholder="Search items, bins, people..."
+          placeholder={t('page.searchPlaceholder', { defaultValue: 'Search items, bins, people...' })}
         />
       )}
 
@@ -150,18 +152,24 @@ export function CheckoutsPage() {
         {filtered.length === 0 ? (
           <EmptyState
             icon={PackageSearch}
-            title={search ? 'No matches' : 'No items checked out'}
-            subtitle={search ? 'Try a different search' : 'Items you check out from bins will appear here'}
+            title={search
+              ? t('page.empty.noMatchesTitle', { defaultValue: 'No matches' })
+              : t('page.empty.title', { defaultValue: 'No items checked out' })}
+            subtitle={search
+              ? t('page.empty.noMatchesSubtitle', { defaultValue: 'Try a different search' })
+              : t('page.empty.subtitle', { defaultValue: 'Items you check out from bins will appear here' })}
           />
         ) : (
           <div className={cn(selectable && 'pb-16')}>
             <Table>
               <TableHeader>
                 <span className="w-6 shrink-0" aria-hidden />
-                <SortHeader label="Item" column="alpha" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleSort} className="flex-[2]" />
-                <span className="flex-1 ui-col-header">Bin</span>
-                <span className="hidden md:block flex-1 ui-col-header">By</span>
-                <SortHeader label="Time" column="time" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleSort} defaultDirection="desc" className="w-20 justify-end" />
+                <SortHeader label={t('page.columns.item', { defaultValue: 'Item' })} column="alpha" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleSort} className="flex-[2]" />
+                <span className="flex-1 ui-col-header">{t('page.columns.bin', { defaultValue: 'Bin' })}</span>
+                <span className="hidden md:block flex-1 ui-col-header">
+                  {t('page.columns.by', { defaultValue: 'By' })}
+                </span>
+                <SortHeader label={t('page.columns.time', { defaultValue: 'Time' })} column="time" currentColumn={sortColumn} currentDirection={sortDirection} onSort={handleSort} defaultDirection="desc" className="w-20 justify-end" />
                 {canWrite && <span className="w-10 shrink-0" />}
               </TableHeader>
 
@@ -200,7 +208,11 @@ export function CheckoutsPage() {
           onClear={clearSelection}
           isBusy={isBusy}
           actions={bulkActions}
-          selectionLabel={`${selectedIds.size} item${selectedIds.size === 1 ? '' : 's'} selected`}
+          selectionLabel={t('page.selectionLabel', {
+            count: selectedIds.size,
+            defaultValue_one: '{{count}} item selected',
+            defaultValue_other: '{{count}} items selected',
+          })}
         />
       )}
       {origMounted && (
@@ -246,6 +258,7 @@ function CheckoutRow({
   onSelect: (id: string, index: number, shiftKey: boolean) => void;
   onReturnOne: (co: ItemCheckoutWithContext) => void;
 }) {
+  const { t } = useTranslation('checkouts');
   const navigate = useNavigate();
   const { handleClick, handleKeyDown, longPress } = useEntitySelectionInteraction({
     id: co.id,
@@ -261,7 +274,11 @@ function CheckoutRow({
       tabIndex={0}
       role={selectable ? 'option' : 'button'}
       aria-selected={selectable ? selected : undefined}
-      aria-label={`${co.item_name} checked out from ${co.origin_bin_name}`}
+      aria-label={t('page.rowLabel', {
+        defaultValue: '{{name}} checked out from {{bin}}',
+        name: co.item_name,
+        bin: co.origin_bin_name,
+      })}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onTouchStart={longPress.onTouchStart}
@@ -299,12 +316,12 @@ function CheckoutRow({
       {canWrite && !selectable && (
         // biome-ignore lint/a11y/noStaticElementInteractions: stops row click propagation to return button
         <div className="w-10 shrink-0 flex justify-end" onClick={(e) => e.stopPropagation()} role="presentation">
-          <Tooltip content="Return item">
+          <Tooltip content={t('page.returnTooltip', { defaultValue: 'Return item' })}>
             <button
               type="button"
               onClick={() => onReturnOne(co)}
               className="shrink-0 p-2 rounded-[var(--radius-sm)] text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)] transition-colors"
-              aria-label={`Return ${co.item_name}`}
+              aria-label={t('page.returnLabel', { defaultValue: 'Return {{name}}', name: co.item_name })}
             >
               <Undo2 className="h-4 w-4" />
             </button>

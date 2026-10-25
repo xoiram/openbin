@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,7 +42,8 @@ export function ItemTableView({
   selectedIds,
   onSelect,
 }: ItemTableViewProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('items');
+  const term = useTerminology();
 
   return (
     <>
@@ -49,9 +51,9 @@ export function ItemTableView({
         {/* Header */}
         <TableHeader>
           <span className="w-6 shrink-0" aria-hidden />
-          <SortHeader label="Item" column="alpha" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-[2]" />
-          <SortHeader label="Qty" column="qty" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-14 justify-end" />
-          <SortHeader label={t.Bin} column="bin" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-1" />
+          <SortHeader label={t('table.item', { defaultValue: 'Item' })} column="alpha" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-[2]" />
+          <SortHeader label={t('table.qty', { defaultValue: 'Qty' })} column="qty" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-14 justify-end" />
+          <SortHeader label={term.Bin} column="bin" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-1" />
         </TableHeader>
 
         {/* Rows */}
@@ -87,13 +89,14 @@ function ItemRow({
   selected?: boolean;
   onSelect?: (id: string, index: number, shiftKey: boolean) => void;
 }) {
+  const { t } = useTranslation('items');
   const navigate = useNavigate();
   const { handleClick, handleKeyDown, longPress } = useEntitySelectionInteraction({
     id: entry.id,
     index,
     selectable,
     onSelect,
-    onActivate: () => navigate(`/bin/${entry.bin_id}`, { state: { backLabel: 'Items', backPath: '/items' } }),
+    onActivate: () => navigate(`/bin/${entry.bin_id}`, { state: { backLabel: t('page.title', { defaultValue: 'Items' }), backPath: '/items' } }),
   });
   const BinIcon = resolveIcon(entry.bin_icon);
   const colorPreset = resolveColor(entry.bin_color);
@@ -103,7 +106,14 @@ function ItemRow({
       tabIndex={0}
       role={selectable ? 'option' : 'button'}
       aria-selected={selectable ? selected : undefined}
-      aria-label={`${entry.name}${entry.quantity != null ? ` (${entry.quantity})` : ''} in ${entry.bin_name}`}
+      aria-label={entry.quantity != null
+        ? t('table.rowLabelWithQuantity', {
+            defaultValue: '{{name}} ({{quantity}}) in {{bin}}',
+            name: entry.name,
+            quantity: entry.quantity,
+            bin: entry.bin_name,
+          })
+        : t('table.rowLabel', { defaultValue: '{{name}} in {{bin}}', name: entry.name, bin: entry.bin_name })}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onTouchStart={longPress.onTouchStart}

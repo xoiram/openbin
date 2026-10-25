@@ -1,0 +1,88 @@
+{
+  "actions": {
+    "requestFailed": "Request failed"
+  },
+  "bulkCheckout": {
+    "title_one": "Check out {{count}} item?",
+    "title_other": "Check out {{count}} items?",
+    "description": "Already-checked-out items will be skipped.",
+    "submit": "Check out",
+    "submitting": "Checking out…"
+  },
+  "bulkDelete": {
+    "title_one": "Delete {{count}} item?",
+    "title_other": "Delete {{count}} items?",
+    "description": "You can undo this immediately after.",
+    "submitting": "Deleting…"
+  },
+  "bulkMove": {
+    "title_one": "Move {{count}} item",
+    "title_other": "Move {{count}} items",
+    "description": "Select a {{bin}} to move the items into.",
+    "submit": "Move",
+    "submitting": "Moving…"
+  },
+  "bulkQuantity": {
+    "title_one": "Update quantity for {{count}} item",
+    "title_other": "Update quantity for {{count}} items",
+    "submit": "Apply",
+    "submitting": "Applying…",
+    "newQuantity": "New quantity",
+    "amount": "Amount",
+    "ops": {
+      "set": {
+        "label": "Set to",
+        "description": "Sets the quantity on every selected item."
+      },
+      "inc": {
+        "label": "Increment by",
+        "description": "Adds to the existing quantity on every selected item."
+      },
+      "dec": {
+        "label": "Decrement by",
+        "description": "Subtracts from the existing quantity. Items reaching zero will have their quantity cleared."
+      },
+      "clear": {
+        "label": "Clear quantity",
+        "description": "Removes the quantity from every selected item."
+      }
+    }
+  },
+  "bulkToasts": {
+    "deleted_one": "Deleted {{count}} item",
+    "deleted_other": "Deleted {{count}} items",
+    "undo": "Undo",
+    "checkedOut_one": "Checked out {{count}} item",
+    "checkedOut_other": "Checked out {{count}} items",
+    "withFailures": "{{main}}. {{failed}} failed.",
+    "moved_one": "Moved {{count}} item to {{name}}",
+    "moved_other": "Moved {{count}} items to {{name}}",
+    "updated_one": "Updated {{count}} item",
+    "updated_other": "Updated {{count}} items",
+    "withRemoved": "{{main}}. {{removed}} removed."
+  },
+  "page": {
+    "title": "Items",
+    "searchPlaceholder": "Search items...",
+    "bulk": {
+      "checkout": "Checkout",
+      "move": "Move",
+      "setQuantity": "Set quantity"
+    },
+    "empty": {
+      "noMatchesTitle": "No items match your search",
+      "title": "No items yet",
+      "noMatchesSubtitle": "Try a different search term",
+      "subtitle": "Items added to {{bins}} will appear here",
+      "browse": "Browse {{bins}}"
+    },
+    "selectionLabel_one": "{{count}} item selected",
+    "selectionLabel_other": "{{count}} items selected"
+  },
+  "table": {
+    "item": "Item",
+    "qty": "Qty",
+    "rowLabel": "{{name}} in {{bin}}",
+    "rowLabelWithQuantity": "{{name}} ({{quantity}}) in {{bin}}"
+  }
+}

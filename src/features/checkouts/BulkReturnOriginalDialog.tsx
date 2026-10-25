@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,6 +23,7 @@ export function BulkReturnOriginalDialog({
   count,
   onConfirm,
 }: BulkReturnOriginalDialogProps) {
+  const { t } = useTranslation(['checkouts', 'common']);
   const [loading, setLoading] = useState(false);
   async function handle() {
     setLoading(true);
@@ -37,18 +39,26 @@ export function BulkReturnOriginalDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Return {count} item{count === 1 ? '' : 's'} to original bin{count === 1 ? '' : 's'}?
+            {t('bulkReturnOriginal.title', {
+              count,
+              defaultValue_one: 'Return {{count}} item to its original bin?',
+              defaultValue_other: 'Return {{count}} items to their original bins?',
+            })}
           </DialogTitle>
           <DialogDescription>
-            Each item goes back to where it was checked out from.
+            {t('bulkReturnOriginal.description', {
+              defaultValue: 'Each item goes back to where it was checked out from.',
+            })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button onClick={handle} disabled={loading}>
-            {loading ? 'Returning...' : 'Return'}
+            {loading
+              ? t('return.submitting', { defaultValue: 'Returning…' })
+              : t('return.submit', { defaultValue: 'Return' })}
           </Button>
         </DialogFooter>
       </DialogContent>
