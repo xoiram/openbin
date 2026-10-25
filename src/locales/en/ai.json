@@ -60,7 +60,8 @@
   },
   "chat": {
     "dialogTitle": "Ask AI",
-    "newChat": "New chat"
+    "newChat": "New chat",
+    "newMessage": "New message"
   },
   "commandActions": {
     "addItems": "Add {{items}} to \"{{bin}}\"",
@@ -101,14 +102,15 @@
     "updateBin": "Update \"{{bin}}\": {{fields}}"
   },
   "commandExecution": {
-    "executionFailed": "Execution failed"
+    "executionFailed": "Execution failed",
+    "deletedBin": "Deleted \"{{name}}\"",
+    "undo": "Undo",
+    "partialComplete": "{{completed}} of {{total}} actions completed"
   },
   "commandList": {
-    "action": "action",
-    "actions": "actions",
-    "destructive": "destructive",
     "noMatches": "No matching {{bins}} found, or the command was ambiguous. Try using exact {{bin}} names.",
-    "selectedConfirmSuffix": "selected. Click apply again to confirm."
+    "destructiveConfirm_one": "{{count}} destructive action selected. Click apply again to confirm.",
+    "destructiveConfirm_other": "{{count}} destructive actions selected. Click apply again to confirm."
   },
   "composer": {
     "addAttachment": "Add attachment",
@@ -278,7 +280,15 @@
     "resetToDefault": "Reset to default"
   },
   "transcription": {
-    "failed": "Transcription failed. Try again."
+    "failed": "Transcription failed. Try again.",
+    "noAudio": "No audio recorded",
+    "noSpeech": "No speech detected. Try again.",
+    "retry": "Retry",
+    "startFailed": "Could not start recording",
+    "micDenied": "Microphone access was denied by the browser",
+    "noMic": "No microphone found on this device",
+    "micInUse": "Microphone is in use by another application",
+    "recordingError": "Recording error: {{name}}"
   },
   "turnError": {
     "retry": "Retry"

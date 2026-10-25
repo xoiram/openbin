@@ -71,13 +71,20 @@ export function useCommandExecution({
           actions: turn.actions,
           selectedIndices,
           locationId,
-          onUndoToast: (message, undo) =>
-            showToast({ message, action: { label: 'Undo', onClick: undo } }),
+          onUndoToast: (binName, undo) =>
+            showToast({
+              message: t('commandExecution.deletedBin', { defaultValue: 'Deleted "{{name}}"', name: binName }),
+              action: { label: t('commandExecution.undo', { defaultValue: 'Undo' }), onClick: undo },
+            }),
         });
         setExecuting({ turnId, current: selectedIndices.length, total: selectedIndices.length });
         if (result.failedCount > 0) {
           showToast({
-            message: `${result.completedActions.length} of ${selectedIndices.length} actions completed`,
+            message: t('commandExecution.partialComplete', {
+              defaultValue: '{{completed}} of {{total}} actions completed',
+              completed: result.completedActions.length,
+              total: selectedIndices.length,
+            }),
           });
         }
         setTurns((curr) =>

@@ -6,6 +6,9 @@ vi.mock('../usePlan', () => ({ usePlan: vi.fn() }));
 import { CreditCost, computeCreditEstimate, formatCreditCompactSuffix, formatCreditSuffix, reorganizeWeight, useCreditCostLabel, visionWeight } from '../aiCreditCost';
 import { usePlan } from '../usePlan';
 
+// Minimal stand-in for i18next's t(): echoes the English defaultValue.
+const t = (_key: string, opts?: Record<string, unknown>) => String(opts?.defaultValue ?? _key);
+
 describe('visionWeight (client mirror)', () => {
   it('charges 5 credits for 1 image', () => {
     expect(visionWeight(1)).toBe(5);
@@ -123,38 +126,38 @@ describe('computeCreditEstimate', () => {
 
 describe('formatCreditSuffix', () => {
   it('returns empty string for null estimate (self-host fallback)', () => {
-    expect(formatCreditSuffix(null)).toBe('');
+    expect(formatCreditSuffix(null, t)).toBe('');
   });
 
   it('returns parenthesized percent for normal estimate', () => {
     const e = computeCreditEstimate(24, { used: 0, limit: 100, resetsAt: '2026-06-01' }, 'active');
-    expect(formatCreditSuffix(e)).toBe(' (24%)');
+    expect(formatCreditSuffix(e, t)).toBe(' (24%)');
   });
 
   it('returns "would exceed monthly limit" for over-limit, non-trial', () => {
     const e = computeCreditEstimate(50, { used: 90, limit: 100, resetsAt: '2026-06-01' }, 'active');
-    expect(formatCreditSuffix(e)).toBe(' (would exceed monthly limit)');
+    expect(formatCreditSuffix(e, t)).toBe(' (would exceed monthly limit)');
   });
 
   it('returns "would exceed trial credits" for over-limit on trial', () => {
     const e = computeCreditEstimate(20, { used: 70, limit: 75, resetsAt: null }, 'trial');
-    expect(formatCreditSuffix(e)).toBe(' (would exceed trial credits)');
+    expect(formatCreditSuffix(e, t)).toBe(' (would exceed trial credits)');
   });
 });
 
 describe('formatCreditCompactSuffix', () => {
   it('returns empty string for null estimate', () => {
-    expect(formatCreditCompactSuffix(null)).toBe('');
+    expect(formatCreditCompactSuffix(null, t)).toBe('');
   });
 
   it('returns " · X%" for normal estimate', () => {
     const e = computeCreditEstimate(24, { used: 0, limit: 100, resetsAt: '2026-06-01' }, 'active');
-    expect(formatCreditCompactSuffix(e)).toBe(' · 24%');
+    expect(formatCreditCompactSuffix(e, t)).toBe(' · 24%');
   });
 
   it('returns " · over" for over-limit estimate', () => {
     const e = computeCreditEstimate(50, { used: 90, limit: 100, resetsAt: '2026-06-01' }, 'active');
-    expect(formatCreditCompactSuffix(e)).toBe(' · over');
+    expect(formatCreditCompactSuffix(e, t)).toBe(' · over');
   });
 });
 

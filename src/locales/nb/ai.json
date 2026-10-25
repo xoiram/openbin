@@ -60,7 +60,8 @@
   },
   "chat": {
     "dialogTitle": "Spør AI",
-    "newChat": "Ny samtale"
+    "newChat": "Ny samtale",
+    "newMessage": "Ny melding"
   },
   "commandActions": {
     "addItems": "Legg til {{items}} i \"{{bin}}\"",
@@ -101,14 +102,15 @@
     "updateBin": "Oppdater \"{{bin}}\": {{fields}}"
   },
   "commandExecution": {
-    "executionFailed": "Utførelse mislyktes"
+    "executionFailed": "Utførelse mislyktes",
+    "deletedBin": "Slettet «{{name}}»",
+    "undo": "Angre",
+    "partialComplete": "{{completed}} av {{total}} handlinger fullført"
   },
   "commandList": {
-    "action": "handling",
-    "actions": "handlinger",
-    "destructive": "ødeleggende",
     "noMatches": "Fant ingen samsvarende {{bins}}, eller kommandoen var tvetydig. Prøv å bruke eksakte {{bin}}-navn.",
-    "selectedConfirmSuffix": "valgt. Klikk bruk igjen for å bekrefte."
+    "destructiveConfirm_one": "{{count}} ødeleggende handling valgt. Klikk bruk igjen for å bekrefte.",
+    "destructiveConfirm_other": "{{count}} ødeleggende handlinger valgt. Klikk bruk igjen for å bekrefte."
   },
   "composer": {
     "addAttachment": "Legg til vedlegg",
@@ -278,7 +280,15 @@
     "resetToDefault": "Tilbakestill til standard"
   },
   "transcription": {
-    "failed": "Transkribering mislyktes. Prøv igjen."
+    "failed": "Transkribering mislyktes. Prøv igjen.",
+    "noAudio": "Ingen lyd ble tatt opp",
+    "noSpeech": "Fant ingen tale. Prøv igjen.",
+    "retry": "Prøv igjen",
+    "startFailed": "Kunne ikke starte opptaket",
+    "micDenied": "Nettleseren nektet tilgang til mikrofonen",
+    "noMic": "Fant ingen mikrofon på denne enheten",
+    "micInUse": "Mikrofonen brukes av et annet program",
+    "recordingError": "Opptaksfeil: {{name}}"
   },
   "turnError": {
     "retry": "Prøv igjen"

@@ -1,5 +1,6 @@
 import { AlertCircle, ChevronLeft, Home, RefreshCw } from 'lucide-react';
 import React, { Suspense, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { LanguageSync } from '@/components/LanguageSync';
 import { Button } from '@/components/ui/button';
@@ -153,6 +154,61 @@ function LoadingFallback() {
   );
 }
 
+// Class error boundaries can't call hooks, so their fallback UIs are function
+// components that read translations via useTranslation().
+function AppErrorFallback() {
+  const { t } = useTranslation('common');
+  return (
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-5 px-6 bg-[var(--bg-base)] text-[var(--text-primary)]">
+      <AlertCircle className="h-16 w-16 text-[var(--destructive)] opacity-60" />
+      <h1 className="font-heading text-[22px] font-bold">
+        {t('errorBoundary.title', { defaultValue: 'Something went wrong' })}
+      </h1>
+      <p className="text-[15px] text-[var(--text-secondary)] text-center max-w-sm">
+        {t('errorBoundary.appDescription', { defaultValue: 'An unexpected error occurred. Please reload the app to continue.' })}
+      </p>
+      <Button
+        onClick={() => window.location.reload()}
+        className="mt-2"
+      >
+        {t('errorBoundary.reloadApp', { defaultValue: 'Reload App' })}
+      </Button>
+    </div>
+  );
+}
+
+function RouteErrorFallback({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation('common');
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-24 px-6 text-[var(--text-primary)]">
+      <AlertCircle className="h-12 w-12 text-[var(--destructive)] opacity-60" />
+      <h2 className="font-heading text-[18px] font-bold">
+        {t('errorBoundary.title', { defaultValue: 'Something went wrong' })}
+      </h2>
+      <p className="text-[14px] text-[var(--text-secondary)] text-center max-w-sm">
+        {t('errorBoundary.routeDescription', { defaultValue: 'This page encountered an error. You can try again or go back to the home page.' })}
+      </p>
+      <div className="flex items-center gap-3 mt-1">
+        <Button
+          onClick={onRetry}
+          className="gap-1.5"
+        >
+          <RefreshCw className="h-4 w-4" />
+          {t('errorBoundary.tryAgain', { defaultValue: 'Try Again' })}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => { window.location.href = '/'; }}
+          className="gap-1.5"
+        >
+          <Home className="h-4 w-4" />
+          {t('errorBoundary.goHome', { defaultValue: 'Go Home' })}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean }
@@ -172,21 +228,7 @@ class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="min-h-dvh flex flex-col items-center justify-center gap-5 px-6 bg-[var(--bg-base)] text-[var(--text-primary)]">
-          <AlertCircle className="h-16 w-16 text-[var(--destructive)] opacity-60" />
-          <h1 className="font-heading text-[22px] font-bold">Something went wrong</h1>
-          <p className="text-[15px] text-[var(--text-secondary)] text-center max-w-sm">
-            An unexpected error occurred. Please reload the app to continue.
-          </p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-2"
-          >
-            Reload App
-          </Button>
-        </div>
-      );
+      return <AppErrorFallback />;
     }
     return this.props.children;
   }
@@ -212,32 +254,7 @@ class RouteErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
-      return (
-        <div className="flex flex-col items-center justify-center gap-4 py-24 px-6 text-[var(--text-primary)]">
-          <AlertCircle className="h-12 w-12 text-[var(--destructive)] opacity-60" />
-          <h2 className="font-heading text-[18px] font-bold">Something went wrong</h2>
-          <p className="text-[14px] text-[var(--text-secondary)] text-center max-w-sm">
-            This page encountered an error. You can try again or go back to the home page.
-          </p>
-          <div className="flex items-center gap-3 mt-1">
-            <Button
-              onClick={() => this.setState({ hasError: false })}
-              className="gap-1.5"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Try Again
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => { window.location.href = '/'; }}
-              className="gap-1.5"
-            >
-              <Home className="h-4 w-4" />
-              Go Home
-            </Button>
-          </div>
-        </div>
-      );
+      return <RouteErrorFallback onRetry={() => this.setState({ hasError: false })} />;
     }
     return this.props.children;
   }
@@ -257,6 +274,7 @@ let controllerChangeReloaded = false;
 
 function SWUpdateNotifier() {
   const { showToast } = useToast();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
@@ -281,10 +299,10 @@ function SWUpdateNotifier() {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             showToast({
-              message: 'New version available',
+              message: t('swUpdate.available', { defaultValue: 'New version available' }),
               duration: 10000,
               action: {
-                label: 'Refresh',
+                label: t('swUpdate.refresh', { defaultValue: 'Refresh' }),
                 onClick: () => window.location.reload(),
               },
             });
@@ -296,13 +314,14 @@ function SWUpdateNotifier() {
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
     };
-  }, [showToast]);
+  }, [showToast, t]);
 
   return null;
 }
 
 function PlanErrorNotifier() {
   const { showToast } = useToast();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -310,14 +329,14 @@ function PlanErrorNotifier() {
       let message: string;
       let actionLabel: string;
       if (code === 'SUBSCRIPTION_EXPIRED') {
-        message = 'Your subscription has expired';
-        actionLabel = 'Resubscribe';
+        message = t('planError.subscriptionExpired', { defaultValue: 'Your subscription has expired' });
+        actionLabel = t('planError.resubscribe', { defaultValue: 'Resubscribe' });
       } else if (code === 'OVER_LIMIT') {
-        message = serverMessage || 'You\'ve exceeded a plan limit';
-        actionLabel = 'Upgrade';
+        message = serverMessage || t('planError.overLimit', { defaultValue: 'You\'ve exceeded a plan limit' });
+        actionLabel = t('actions.upgrade', { defaultValue: 'Upgrade' });
       } else {
-        message = 'This feature requires a Pro plan';
-        actionLabel = 'Upgrade';
+        message = t('planError.requiresPro', { defaultValue: 'This feature requires a Pro plan' });
+        actionLabel = t('actions.upgrade', { defaultValue: 'Upgrade' });
       }
 
       let onClick: (() => void) | undefined;
@@ -355,7 +374,7 @@ function PlanErrorNotifier() {
     };
     window.addEventListener('openbin-plan-restricted', handler);
     return () => window.removeEventListener('openbin-plan-restricted', handler);
-  }, [showToast]);
+  }, [showToast, t]);
 
   return null;
 }
@@ -368,13 +387,16 @@ function ScanRedirect() {
 
 function NotFoundPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
   return (
     <div className="flex flex-col items-center justify-center gap-5 py-24 text-[var(--text-tertiary)]">
       <p className="font-heading text-[48px] font-bold text-[var(--text-primary)]">404</p>
-      <p className="text-[17px] font-semibold text-[var(--text-secondary)]">Page not found</p>
+      <p className="text-[17px] font-semibold text-[var(--text-secondary)]">
+        {t('notFound.title', { defaultValue: 'Page not found' })}
+      </p>
       <Button variant="outline" onClick={() => navigate('/')}>
         <ChevronLeft className="h-4 w-4 mr-1" />
-        Back to home
+        {t('notFound.backHome', { defaultValue: 'Back to home' })}
       </Button>
     </div>
   );

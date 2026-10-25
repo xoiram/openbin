@@ -23,7 +23,7 @@ const namespaces = [...new Set(Object.values(resources).flatMap((r) => Object.ke
  * instance only through the <I18nextProvider> context below, regardless of
  * whether src/lib/i18n.ts has been imported elsewhere in the same test run.
  */
-function createTestI18n() {
+export function createTestI18n() {
   const instance = i18next.createInstance();
   instance.use(initReactI18next).init({
     lng: 'en',

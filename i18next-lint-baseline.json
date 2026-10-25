@@ -1,43 +1,4 @@
 {
-  "src/App.tsx": {
-    "hardcoded: An unexpected error occurred. Please reload the app to continue.": 1,
-    "hardcoded: Back to home": 1,
-    "hardcoded: Go Home": 1,
-    "hardcoded: Page not found": 1,
-    "hardcoded: Reload App": 1,
-    "hardcoded: Something went wrong": 2,
-    "hardcoded: This page encountered an error. You can try again or go back to the home page.": 1,
-    "hardcoded: Try Again": 1
-  },
-  "src/components/ui/command-palette.tsx": {
-    "hardcoded: Commands": 1,
-    "hardcoded: No matching commands": 1
-  },
-  "src/components/ui/dialog.tsx": {
-    "hardcoded: Close": 1
-  },
-  "src/components/ui/page-header.tsx": {
-    "hardcoded: Go back": 2
-  },
-  "src/components/ui/pagination.tsx": {
-    "hardcoded: Items per page": 1,
-    "hardcoded: Next page": 1,
-    "hardcoded: Page": 1,
-    "hardcoded: Pagination": 1,
-    "hardcoded: Previous page": 1,
-    "hardcoded: Showing": 1,
-    "hardcoded: of": 2,
-    "hardcoded: per page": 1
-  },
-  "src/components/ui/shortcuts-help.tsx": {
-    "hardcoded: then": 1
-  },
-  "src/components/ui/stepper.tsx": {
-    "hardcoded: Progress": 1
-  },
-  "src/components/ui/toast.tsx": {
-    "hardcoded: Dismiss": 1
-  },
   "src/features/activity/ActivityFilterBar.tsx": {
     "hardcoded: All users": 1
   },
@@ -141,12 +102,6 @@
   },
   "src/features/admin/AdminUsersTable.tsx": {
     "hardcoded: Role": 1
-  },
-  "src/features/ai/CommandActionList.tsx": {
-    "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 1
-  },
-  "src/features/ai/ConversationThread.tsx": {
-    "hardcoded: New message": 1
   },
   "src/features/areas/AreaActionMenu.tsx": {
     "hardcoded: Delete": 1,
@@ -848,15 +803,5 @@
   "src/features/usage/YearChipPager.tsx": {
     "hardcoded: Next year": 1,
     "hardcoded: Previous year": 1
-  },
-  "src/lib/aiCreditCost.tsx": {
-    "hardcoded: Uses": 1
-  },
-  "src/lib/bulk/BulkActionBar.tsx": {
-    "hardcoded: Clear selection": 1,
-    "hardcoded: More actions": 1
-  },
-  "src/lib/bulk/BulkUpdateDialog.tsx": {
-    "hardcoded: Cancel": 1
   }
 }

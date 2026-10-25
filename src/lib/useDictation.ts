@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
 import { useTextStructuring } from '@/features/ai/useTextStructuring';
 import { addItemsToBin } from '@/features/bins/useBins';
@@ -25,6 +26,7 @@ interface UseDictationOptions {
 
 export function useDictation(options: UseDictationOptions) {
   const { binId, binName, existingItems, locationId, onAdd } = options;
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
 
   const existingItemsKey = existingItems.join('\0');
@@ -62,7 +64,10 @@ export function useDictation(options: UseDictationOptions) {
         if (items && items.length > 0) {
           setItemState('preview');
         } else {
-          showToast({ message: 'No items found in transcription', variant: 'warning' });
+          showToast({
+            message: t('dictation.noItemsFound', { defaultValue: 'No items found in transcription' }),
+            variant: 'warning',
+          });
           setItemState('idle');
           setTranscript(null);
           clearStructured();
@@ -73,7 +78,7 @@ export function useDictation(options: UseDictationOptions) {
         setTranscript(null);
       });
     },
-    [structure, binName, stableExistingItems, locationId, showToast, clearStructured],
+    [structure, binName, stableExistingItems, locationId, showToast, clearStructured, t],
   );
 
   const handleTranscribed = useCallback((text: string) => {
@@ -145,16 +150,20 @@ export function useDictation(options: UseDictationOptions) {
           await addItemsToBin(binId, items);
         }
         showToast({
-          message: `Added ${selected.length} item${selected.length !== 1 ? 's' : ''} from dictation`,
+          message: t('dictation.added', {
+            count: selected.length,
+            defaultValue_one: 'Added {{count}} item from dictation',
+            defaultValue_other: 'Added {{count}} items from dictation',
+          }),
         });
       } catch {
-        showToast({ message: 'Failed to add items', variant: 'error' });
+        showToast({ message: t('dictation.addFailed', { defaultValue: 'Failed to add items' }), variant: 'error' });
       }
       setItemState('idle');
       setTranscript(null);
       clearStructured();
     },
-    [binId, onAdd, showToast, clearStructured],
+    [binId, onAdd, showToast, clearStructured, t],
   );
 
   return {

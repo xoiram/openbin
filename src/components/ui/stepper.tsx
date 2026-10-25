@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface StepDef {
@@ -13,8 +14,9 @@ interface StepIndicatorProps {
 }
 
 function StepIndicator({ steps, currentStepIndex, className }: StepIndicatorProps) {
+  const { t } = useTranslation('common');
   return (
-    <nav aria-label="Progress" className={cn('w-full', className)}>
+    <nav aria-label={t('stepper.progress', { defaultValue: 'Progress' })} className={cn('w-full', className)}>
       <ol className="flex items-start">
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;

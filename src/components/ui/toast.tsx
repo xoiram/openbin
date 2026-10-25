@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 type ToastVariant = 'default' | 'success' | 'error' | 'warning';
@@ -73,6 +74,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) {
+  const { t } = useTranslation('common');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -119,7 +121,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number)
           setVisible(false);
           setTimeout(() => onDismiss(toast.id), 300);
         }}
-        aria-label="Dismiss"
+        aria-label={t('toast.dismiss', { defaultValue: 'Dismiss' })}
         className="p-2.5 -mr-1.5 rounded-[var(--radius-lg)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
       >
         <X className="h-3.5 w-3.5" />

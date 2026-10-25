@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useBinList } from '@/features/bins/useBins';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
@@ -25,8 +26,9 @@ export function BinPickerList({
   search,
   onSearchChange,
   paused,
-  emptyText = 'No other bins available',
+  emptyText,
 }: BinPickerListProps) {
+  const { t } = useTranslation('common');
   const { bins } = useBinList(undefined, 'name', undefined, paused);
 
   const filtered = useMemo(() => {
@@ -46,12 +48,14 @@ export function BinPickerList({
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         onClear={search ? () => onSearchChange('') : undefined}
-        placeholder="Search bins..."
+        placeholder={t('binPicker.searchPlaceholder', { defaultValue: 'Search bins...' })}
       />
       <div className="max-h-52 overflow-y-auto flex flex-col gap-1">
         {filtered.length === 0 ? (
           <p className="text-[13px] text-[var(--text-tertiary)] text-center py-4">
-            {search ? 'No matching bins' : emptyText}
+            {search
+              ? t('binPicker.noMatches', { defaultValue: 'No matching bins' })
+              : emptyText ?? t('binPicker.empty', { defaultValue: 'No other bins available' })}
           </p>
         ) : (
           filtered.map((b) => {
