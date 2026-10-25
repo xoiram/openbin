@@ -1,6 +1,7 @@
 import type { TxQueryFn } from '../../db.js';
 import { d, generateUuid, isUniqueViolation } from '../../db.js';
 import { requireAdmin } from '../binAccess.js';
+import { assertParentNotTrashed, loadBinNode, restoreChildBins, trashChildBins } from '../binHierarchy.js';
 import type { ActionResult } from '../commandExecutor.js';
 import type { CommandAction } from '../commandParser.js';
 import { replaceCustomFieldValues } from '../customFieldHelpers.js';
@@ -65,7 +66,7 @@ export async function handleCreateBin(action: Extract<CommandAction, { type: 'cr
     const item = createItems[i];
     const itemName = typeof item === 'string' ? item : item.name;
     const qty = typeof item === 'object' && typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : null;
-    await tx('INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)', [generateUuid(), binId, itemName, qty, i]);
+    await tx('INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)', [generateUuid(), binId, ctx.locationId, itemName, qty, i]);
   }
 
   // Insert custom field values
@@ -86,6 +87,8 @@ export async function handleDeleteBin(action: Extract<CommandAction, { type: 'de
   if (bin.rows.length === 0) throw new Error(`Bin not found: ${action.bin_name}`);
   assertBinVisible(bin.rows[0], ctx.userId);
   await tx(`UPDATE bins SET deleted_at = ${d.now()}, updated_at = ${d.now()} WHERE id = $1`, [action.bin_id]);
+  const trashed = await loadBinNode(tx, action.bin_id);
+  await trashChildBins(tx, action.bin_id, trashed!.deleted_at!);
   ctx.pendingActivities.push({
     locationId: ctx.locationId, userId: ctx.userId, userName: ctx.userName, authMethod: ctx.authMethod, apiKeyId: ctx.apiKeyId,
     action: 'delete', entityType: 'bin', entityId: action.bin_id, entityName: action.bin_name,
@@ -99,7 +102,10 @@ export async function handleRestoreBin(action: Extract<CommandAction, { type: 'r
   const bin = await tx<{ id: string; name: string; visibility: string; created_by: string }>('SELECT id, name, visibility, created_by FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NOT NULL', [action.bin_id, ctx.locationId]);
   if (bin.rows.length === 0) throw new Error(`Bin not found in trash: ${action.bin_name}`);
   assertBinVisible(bin.rows[0], ctx.userId);
+  const node = await loadBinNode(tx, action.bin_id);
+  await assertParentNotTrashed(tx, node!);
   await tx(`UPDATE bins SET deleted_at = NULL, updated_at = ${d.now()} WHERE id = $1`, [action.bin_id]);
+  await restoreChildBins(tx, action.bin_id, node!.deleted_at!);
   ctx.pendingActivities.push({
     locationId: ctx.locationId, userId: ctx.userId, userName: ctx.userName, authMethod: ctx.authMethod, apiKeyId: ctx.apiKeyId,
     action: 'restore', entityType: 'bin', entityId: action.bin_id, entityName: action.bin_name,
@@ -110,8 +116,8 @@ export async function handleRestoreBin(action: Extract<CommandAction, { type: 'r
 export async function handleDuplicateBin(action: Extract<CommandAction, { type: 'duplicate_bin' }>, ctx: ActionContext, tx: TxQueryFn): Promise<ActionResult> {
   await assertBinCreationAllowedTx(ctx.userId, tx);
 
-  const src = await tx<{ id: string; name: string; area_id: string | null; notes: string; tags: string[]; icon: string; color: string; card_style: string; visibility: string; created_by: string }>(
-    'SELECT id, name, area_id, notes, tags, icon, color, card_style, visibility, created_by FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL',
+  const src = await tx<{ id: string; name: string; area_id: string | null; notes: string; tags: string[]; icon: string; color: string; card_style: string; visibility: string; created_by: string; parent_bin_id: string | null }>(
+    'SELECT id, name, area_id, notes, tags, icon, color, card_style, visibility, created_by, parent_bin_id FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL',
     [action.bin_id, ctx.locationId]
   );
   if (src.rows.length === 0) throw new Error(`Bin not found: ${action.bin_name}`);
@@ -126,9 +132,9 @@ export async function handleDuplicateBin(action: Extract<CommandAction, { type: 
     const code = attempt === 0 ? shortCode : generateShortCode(newName);
     try {
       await tx(
-        `INSERT INTO bins (id, short_code, location_id, name, area_id, notes, tags, icon, color, card_style, visibility, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        [binId, code, ctx.locationId, newName, s.area_id, s.notes, s.tags, s.icon, s.color, s.card_style, s.visibility, ctx.userId]
+        `INSERT INTO bins (id, short_code, location_id, name, area_id, notes, tags, icon, color, card_style, visibility, created_by, parent_bin_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        [binId, code, ctx.locationId, newName, s.area_id, s.notes, s.tags, s.icon, s.color, s.card_style, s.visibility, ctx.userId, s.parent_bin_id]
       );
       shortCode = code;
       break;
@@ -141,7 +147,7 @@ export async function handleDuplicateBin(action: Extract<CommandAction, { type: 
   // Copy items
   const srcItems = await tx<{ name: string; quantity: number | null }>('SELECT name, quantity FROM bin_items WHERE bin_id = $1 AND deleted_at IS NULL ORDER BY position', [action.bin_id]);
   for (let i = 0; i < srcItems.rows.length; i++) {
-    await tx('INSERT INTO bin_items (id, bin_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5)', [generateUuid(), binId, srcItems.rows[i].name, srcItems.rows[i].quantity, i]);
+    await tx('INSERT INTO bin_items (id, bin_id, location_id, name, quantity, position) VALUES ($1, $2, $3, $4, $5, $6)', [generateUuid(), binId, ctx.locationId, srcItems.rows[i].name, srcItems.rows[i].quantity, i]);
   }
 
   ctx.pendingActivities.push({
