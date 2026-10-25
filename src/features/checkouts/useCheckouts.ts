@@ -96,3 +96,32 @@ export async function returnItem(binId: string, itemId: string, targetBinId?: st
   notify(Events.BINS);
   return result.checkout;
 }
+
+/** Location-scoped checkout: works for items in a box and for items that have no box. */
+export async function checkoutItemInLocation(locationId: string, itemId: string): Promise<ItemCheckout> {
+  const result = await apiFetch<{ checkout: ItemCheckout }>(
+    `/api/locations/${encodeURIComponent(locationId)}/items/${encodeURIComponent(itemId)}/checkout`,
+    { method: 'POST' },
+  );
+  notify(Events.CHECKOUTS);
+  notify(Events.BINS);
+  return result.checkout;
+}
+
+/**
+ * Location-scoped return, for checkouts whose origin is not a box. With no target the
+ * server returns the item to where it came from (or leaves it unassigned).
+ */
+export async function returnItemInLocation(
+  locationId: string,
+  itemId: string,
+  targetBinId?: string,
+): Promise<ItemCheckout> {
+  const result = await apiFetch<{ checkout: ItemCheckout }>(
+    `/api/locations/${encodeURIComponent(locationId)}/items/${encodeURIComponent(itemId)}/return`,
+    { method: 'POST', body: targetBinId ? { targetBinId } : {} },
+  );
+  notify(Events.CHECKOUTS);
+  notify(Events.BINS);
+  return result.checkout;
+}

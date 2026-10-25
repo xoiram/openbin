@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { ItemTableView } from '../ItemTableView';
 import type { ItemEntry } from '../useItems';
@@ -17,6 +17,8 @@ function makeItem(overrides: Partial<ItemEntry> = {}): ItemEntry {
     bin_name: 'Tools',
     bin_icon: 'Wrench',
     bin_color: '30:3',
+    area_id: null,
+    area_name: null,
     ...overrides,
   };
 }
@@ -116,5 +118,59 @@ describe('ItemTableView selection', () => {
     );
     fireEvent.click(screen.getAllByRole('checkbox')[0]);
     expect(onSelect).toHaveBeenCalledWith('a', 0, false);
+  });
+});
+
+describe('ItemTableView items without a box', () => {
+  const boxless = {
+    bin_id: null, bin_name: null, bin_icon: null, bin_color: null,
+  } as const;
+
+  it('shows the area name and no box badge for an item in an area', () => {
+    render(
+      <MemoryRouter>
+        <ItemTableView items={[makeItem({ ...boxless, area_id: 'a1', area_name: 'Garage' })]} {...defaultProps} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Garage')).toBeInTheDocument();
+    expect(screen.queryByTestId('bin-icon-badge')).toBeNull();
+  });
+
+  it('shows Unassigned for an item with neither box nor area', () => {
+    render(
+      <MemoryRouter>
+        <ItemTableView items={[makeItem({ ...boxless })]} {...defaultProps} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Unassigned')).toBeInTheDocument();
+  });
+
+  it('does not navigate when a boxless row is activated', () => {
+    render(
+      <MemoryRouter initialEntries={['/items']}>
+        <Routes>
+          <Route path="/items" element={<ItemTableView items={[makeItem({ ...boxless })]} {...defaultProps} />} />
+          <Route path="/bin/:id" element={<div>BIN PAGE</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const row = screen.getByLabelText('Hammer (3), unassigned');
+    fireEvent.click(row);
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(screen.queryByText('BIN PAGE')).toBeNull();
+    expect(screen.getByText('Hammer')).toBeInTheDocument();
+  });
+
+  it('still navigates to the box for an item in a box', () => {
+    render(
+      <MemoryRouter initialEntries={['/items']}>
+        <Routes>
+          <Route path="/items" element={<ItemTableView items={[makeItem()]} {...defaultProps} />} />
+          <Route path="/bin/:id" element={<div>BIN PAGE</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByLabelText('Hammer (3) in Tools'));
+    expect(screen.getByText('BIN PAGE')).toBeInTheDocument();
   });
 });

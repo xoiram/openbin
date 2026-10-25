@@ -253,6 +253,8 @@ describe('ItemList checkout row subline', () => {
     id: 'c1',
     item_id: '1',
     origin_bin_id: 'bin1',
+    origin_area_id: null,
+    origin_area_name: null,
     location_id: 'loc1',
     checked_out_by: 'user1',
     checked_out_by_name: 'Jane',

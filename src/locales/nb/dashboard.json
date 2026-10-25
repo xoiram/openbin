@@ -8,7 +8,9 @@
     "returnItem": "Lever tilbake gjenstand",
     "returnNamed": "Lever tilbake {{item}}",
     "rowLabel": "{{item}} sjekket ut av {{user}} fra {{bin}}",
-    "title": "Utsjekket ({{n}})"
+    "title": "Utsjekket ({{n}})",
+    "unassigned": "Ikke tildelt",
+    "rowLabelUnassigned": "{{item}} utlånt av {{user}}, ikke tildelt"
   },
   "dialogs": {
     "binCount_one": "{{count}} {{bin}}",

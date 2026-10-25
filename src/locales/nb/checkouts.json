@@ -12,14 +12,16 @@
     "title_one": "Returner {{count}} gjenstand til valgt {{bin}}",
     "title_other": "Returner {{count}} gjenstander til valgt {{bin}}",
     "description_one": "Gjenstandene kommer nå fra {{count}} {{bin}}. Alle flyttes til det valgte målet.",
-    "description_other": "Gjenstandene kommer nå fra {{count}} {{bins}}. Alle flyttes til det valgte målet."
+    "description_other": "Gjenstandene kommer nå fra {{count}} {{bins}}. Alle flyttes til det valgte målet.",
+    "descriptionNoBin": "Ingen av disse tingene kom fra en {{bin}}. De flyttes alle til valgt mål."
   },
   "returnItem": {
     "title": "Returner «{{name}}»",
     "returned": "{{name}} er returnert",
     "failed": "Kunne ikke returnere gjenstanden",
     "originalBin": "Opprinnelig {{bin}}",
-    "differentBin": "Annen {{bin}}"
+    "differentBin": "Annen {{bin}}",
+    "originalPlace": "Opprinnelig plassering"
   },
   "bulkToasts": {
     "returned_one": "Returnerte {{count}} gjenstand",
@@ -51,6 +53,8 @@
     "selectionLabel_other": "{{count}} gjenstander valgt",
     "rowLabel": "{{name}} sjekket ut fra {{bin}}",
     "returnTooltip": "Returner gjenstand",
-    "returnLabel": "Returner {{name}}"
+    "returnLabel": "Returner {{name}}",
+    "unassigned": "Ikke tildelt",
+    "rowLabelUnassigned": "{{name}} utlånt, ikke tildelt"
   }
 }

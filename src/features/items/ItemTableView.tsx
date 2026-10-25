@@ -96,24 +96,36 @@ function ItemRow({
     index,
     selectable,
     onSelect,
-    onActivate: () => navigate(`/bin/${entry.bin_id}`, { state: { backLabel: t('page.title', { defaultValue: 'Items' }), backPath: '/items' } }),
+    onActivate: () => {
+      // Items without a box have nowhere to navigate to.
+      if (!entry.bin_id) return;
+      navigate(`/bin/${entry.bin_id}`, { state: { backLabel: t('page.title', { defaultValue: 'Items' }), backPath: '/items' } });
+    },
   });
-  const BinIcon = resolveIcon(entry.bin_icon);
-  const colorPreset = resolveColor(entry.bin_color);
+  const hasBin = entry.bin_id != null;
+  const BinIcon = resolveIcon(entry.bin_icon ?? '');
+  const colorPreset = resolveColor(entry.bin_color ?? '');
+  const unassignedLabel = t('table.unassigned', { defaultValue: 'Unassigned' });
+  const placeName = entry.bin_name ?? entry.area_name;
+  const placeLabel = placeName ?? unassignedLabel;
+  let ariaLabel: string;
+  if (entry.quantity != null) {
+    ariaLabel = placeName
+      ? t('table.rowLabelWithQuantity', { defaultValue: '{{name}} ({{quantity}}) in {{bin}}', name: entry.name, quantity: entry.quantity, bin: placeName })
+      : t('table.rowLabelWithQuantityUnassigned', { defaultValue: '{{name}} ({{quantity}}), unassigned', name: entry.name, quantity: entry.quantity });
+  } else {
+    ariaLabel = placeName
+      ? t('table.rowLabel', { defaultValue: '{{name}} in {{bin}}', name: entry.name, bin: placeName })
+      : t('table.rowLabelUnassigned', { defaultValue: '{{name}}, unassigned', name: entry.name });
+  }
 
   return (
     <TableRow
       tabIndex={0}
-      role={selectable ? 'option' : 'button'}
+      role={selectable ? 'option' : hasBin ? 'button' : 'row'}
       aria-selected={selectable ? selected : undefined}
-      aria-label={entry.quantity != null
-        ? t('table.rowLabelWithQuantity', {
-            defaultValue: '{{name}} ({{quantity}}) in {{bin}}',
-            name: entry.name,
-            quantity: entry.quantity,
-            bin: entry.bin_name,
-          })
-        : t('table.rowLabel', { defaultValue: '{{name}} in {{bin}}', name: entry.name, bin: entry.bin_name })}
+      aria-label={ariaLabel}
+      className={cn(!hasBin && !selectable && 'cursor-default')}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onTouchStart={longPress.onTouchStart}
@@ -141,9 +153,9 @@ function ItemRow({
         {entry.quantity != null ? entry.quantity : '—'}
       </span>
       <div className="flex-1 min-w-0 row">
-        <BinIconBadge icon={BinIcon} colorPreset={colorPreset} />
-        <span className="truncate text-[13px] text-[var(--text-tertiary)]">
-          <Highlight text={entry.bin_name} query={searchQuery} />
+        {hasBin && <BinIconBadge icon={BinIcon} colorPreset={colorPreset} />}
+        <span className={cn('truncate text-[13px] text-[var(--text-tertiary)]', !placeName && 'italic')}>
+          <Highlight text={placeLabel} query={searchQuery} />
         </span>
       </div>
     </TableRow>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ItemCheckoutWithContext } from '@/types';
@@ -23,10 +23,11 @@ vi.mock('@/lib/usePermissions', () => ({
 vi.mock('../useCheckouts', () => ({
   useLocationCheckouts: vi.fn(() => ({ checkouts: [], isLoading: false })),
   returnItem: vi.fn().mockResolvedValue(undefined),
+  returnItemInLocation: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { CheckoutsPage } from '../CheckoutsPage';
-import { useLocationCheckouts } from '../useCheckouts';
+import { returnItem, returnItemInLocation, useLocationCheckouts } from '../useCheckouts';
 
 const mockUseLocationCheckouts = vi.mocked(useLocationCheckouts);
 
@@ -49,6 +50,8 @@ const sampleCheckouts: ItemCheckoutWithContext[] = [
     origin_bin_name: 'Tool Box',
     origin_bin_icon: '',
     origin_bin_color: '',
+    origin_area_id: null,
+    origin_area_name: null,
     location_id: 'loc-1',
     checked_out_by: 'user-1',
     checked_out_by_name: 'Alice',
@@ -65,6 +68,8 @@ const sampleCheckouts: ItemCheckoutWithContext[] = [
     origin_bin_name: 'Garage Shelf',
     origin_bin_icon: '',
     origin_bin_color: '',
+    origin_area_id: null,
+    origin_area_name: null,
     location_id: 'loc-1',
     checked_out_by: 'user-2',
     checked_out_by_name: 'Bob',
@@ -163,5 +168,68 @@ describe('CheckoutsPage', () => {
 
     // Restore default
     vi.mocked(usePermissions).mockReturnValue({ canWrite: true } as ReturnType<typeof usePermissions>);
+  });
+});
+
+describe('CheckoutsPage boxless checkouts', () => {
+  const areaCheckout: ItemCheckoutWithContext = {
+    ...sampleCheckouts[0],
+    id: 'co-3',
+    item_id: 'item-3',
+    item_name: 'Ladder',
+    origin_bin_id: null,
+    origin_bin_name: null,
+    origin_bin_icon: null,
+    origin_bin_color: null,
+    origin_area_id: 'area-1',
+    origin_area_name: 'Garage',
+  };
+  const looseCheckout: ItemCheckoutWithContext = {
+    ...areaCheckout,
+    id: 'co-4',
+    item_id: 'item-4',
+    item_name: 'Tape',
+    origin_area_id: null,
+    origin_area_name: null,
+  };
+
+  it('shows the area name or Unassigned and tolerates search/sort without a box', () => {
+    mockUseLocationCheckouts.mockReturnValue({ checkouts: [areaCheckout, looseCheckout], isLoading: false });
+    renderPage();
+    expect(screen.getByText('Garage')).toBeInTheDocument();
+    expect(screen.getByText('Unassigned')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Search items, bins, people...'), { target: { value: 'garage' } });
+    expect(screen.getByText('Ladder')).toBeInTheDocument();
+    expect(screen.queryByText('Tape')).not.toBeInTheDocument();
+  });
+
+  it('does not navigate to /bin/null when a boxless row is activated', () => {
+    mockUseLocationCheckouts.mockReturnValue({ checkouts: [looseCheckout], isLoading: false });
+    const { container } = renderPage();
+    const row = container.querySelector('[role="row"][tabindex="0"]') as HTMLElement;
+    expect(row).toBeTruthy();
+    fireEvent.click(row);
+    fireEvent.keyDown(row, { key: 'Enter' });
+    // Still on the page, no crash, row still rendered
+    expect(screen.getByText('Tape')).toBeInTheDocument();
+  });
+
+  it('returns a boxless checkout through the location-scoped endpoint', async () => {
+    mockUseLocationCheckouts.mockReturnValue({ checkouts: [looseCheckout], isLoading: false });
+    renderPage();
+    fireEvent.click(screen.getByLabelText('Return Tape'));
+    fireEvent.click(screen.getByRole('button', { name: 'Return' }));
+    await waitFor(() => expect(returnItemInLocation).toHaveBeenCalledWith('loc-1', 'item-4', undefined));
+    expect(returnItem).not.toHaveBeenCalled();
+  });
+
+  it('still returns a box checkout through the box-nested endpoint', async () => {
+    mockUseLocationCheckouts.mockReturnValue({ checkouts: sampleCheckouts, isLoading: false });
+    renderPage();
+    fireEvent.click(screen.getByLabelText('Return Hammer'));
+    fireEvent.click(screen.getByRole('button', { name: 'Return' }));
+    await waitFor(() => expect(returnItem).toHaveBeenCalledWith('bin-1', 'item-1', undefined));
+    expect(returnItemInLocation).not.toHaveBeenCalled();
   });
 });
