@@ -26,6 +26,7 @@
 - **Natural language commands** — "Add batteries to the tools bin" or "Create a bin with widgets x, y, and z".
 - **AI reorganization** — Let the assistant suggest how to restructure an entire location's bins, areas, and tags in bulk.
 - **Print & scan QR labels** — Generate customizable QR label sheets or name cards, stick them on bins, scan to see contents.
+- **Nested boxes and loose items** — Put a box inside another box, or keep items directly in an area without a box.
 - **MCP server included** — Connect AI assistants directly to your inventory via Model Context Protocol
 - **Data portability** — Full JSON/CSV/ZIP export with photos.
 
