@@ -36,7 +36,7 @@ import { BinListDialogs } from './BinListDialogs';
 import { BinListSkeleton } from './BinListSkeleton';
 import { BinSearchBar } from './BinSearchBar';
 import { BinTableView } from './BinTableView';
-import { buildBinBulkActions } from './buildBinBulkActions';
+import { buildBinBulkActions, type Translate } from './buildBinBulkActions';
 import { DeleteBinDialog } from './DeleteBinDialog';
 import { SearchBarOverflowMenu } from './SearchBarOverflowMenu';
 import { useBinCreateFromCapture } from './useBinCreateFromCapture';
@@ -411,6 +411,8 @@ export function BinListPage() {
           onClear={clearSelection}
           isBusy={isBusy}
           actions={buildBinBulkActions({
+            t: t as Translate,
+            term,
             isAdmin,
             pinLabel,
             aiEnabled,

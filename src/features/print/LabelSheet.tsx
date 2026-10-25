@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { batchGenerateQRDataURLs } from '@/lib/qr';
 import type { Bin } from '@/types';
 import { LabelCell } from './LabelCell';
@@ -22,6 +23,7 @@ interface LabelSheetProps {
 }
 
 export function LabelSheet({ bins, format, labelDirection, showColorSwatch, iconSize, showQrCode, showBinName, showIcon, showBinCode, textAlign, qrStyle }: LabelSheetProps) {
+  const { t } = useTranslation('print');
   const labelFormat = format ?? getLabelFormat(DEFAULT_LABEL_FORMAT);
   const qrPixelSize = Math.round(parseFloat(labelFormat.qrSize) * 150);
   const [qrMap, setQrMap] = useState<Map<string, string>>(new Map());
@@ -68,7 +70,7 @@ export function LabelSheet({ bins, format, labelDirection, showColorSwatch, icon
   if (loading || (bins.length > 0 && qrMap.size === 0)) {
     return (
       <div className="flex items-center justify-center py-8 text-[var(--text-tertiary)] text-[13px]">
-        Generating labels…
+        {t('labelSheet.generating', { defaultValue: 'Generating labels…' })}
       </div>
     );
   }

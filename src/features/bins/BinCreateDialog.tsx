@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,8 @@ interface BinCreateDialogProps {
 
 export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allTagsProp, initialPhotos, initialGroups, onInitialPhotosConsumed }: BinCreateDialogProps) {
   const { activeLocationId } = useAuth();
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const allTagsFetched = useAllTagsFetch(allTagsProp !== undefined);
   const allTags = allTagsProp ?? allTagsFetched;
   const { showToast } = useToast();
@@ -76,7 +78,14 @@ export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allT
         );
         const failCount = results.filter((ok) => !ok).length;
         if (failCount > 0) {
-          showToast({ message: `${failCount} photo${failCount > 1 ? 's' : ''} failed to upload`, variant: 'error' });
+          showToast({
+            message: t('createDialog.photosFailed', {
+              count: failCount,
+              defaultValue_one: '{{count}} photo failed to upload',
+              defaultValue_other: '{{count}} photos failed to upload',
+            }),
+            variant: 'error',
+          });
         }
       }
       setSuccessInfo([{
@@ -87,7 +96,7 @@ export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allT
         itemCount: data.items.length,
       }]);
     } catch {
-      showToast({ message: `Failed to create ${t.bin}`, variant: 'error' });
+      showToast({ message: t('createDialog.createFailed', { defaultValue: 'Failed to create {{bin}}', bin: term.bin }), variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -98,8 +107,10 @@ export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allT
         <DialogContent flush className="sm:max-w-lg h-[min(720px,85vh)]">
           {!successInfo && (
             <DialogHeader className="shrink-0 px-5 pt-4 pb-3 mb-0 text-left border-b border-[var(--border-subtle)]">
-              <DialogTitle>New {t.Bin}</DialogTitle>
-              <DialogDescription className="text-[13px]">Add a new storage {t.bin} to your inventory.</DialogDescription>
+              <DialogTitle>{t('createDialog.title', { defaultValue: 'New {{Bin}}', Bin: term.Bin })}</DialogTitle>
+              <DialogDescription className="text-[13px]">
+                {t('createDialog.description', { defaultValue: 'Add a new storage {{bin}} to your inventory.', bin: term.bin })}
+              </DialogDescription>
             </DialogHeader>
           )}
           {activeLocationId && (

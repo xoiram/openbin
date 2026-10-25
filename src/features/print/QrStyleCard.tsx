@@ -1,5 +1,6 @@
 import { ChevronDown, QrCode, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Disclosure } from '@/components/ui/disclosure';
@@ -12,27 +13,7 @@ import { cn } from '@/lib/utils';
 import type { QrStyleOptions } from './usePrintSettings';
 import { DEFAULT_QR_STYLE, isDefaultQrStyle } from './usePrintSettings';
 
-const DOT_TYPES: { key: QrStyleOptions['dotType']; label: string }[] = [
-  { key: 'square', label: 'Square' },
-  { key: 'rounded', label: 'Rounded' },
-  { key: 'dots', label: 'Dots' },
-  { key: 'classy', label: 'Classy' },
-  { key: 'classy-rounded', label: 'Classy R.' },
-  { key: 'extra-rounded', label: 'Extra R.' },
-];
-
-const CORNER_SQUARE_TYPES: { key: string; label: string }[] = [
-  { key: '', label: 'Auto' },
-  { key: 'square', label: 'Square' },
-  { key: 'dot', label: 'Rounded' },
-  { key: 'extra-rounded', label: 'Extra R.' },
-];
-
-const CORNER_DOT_TYPES: { key: string; label: string }[] = [
-  { key: '', label: 'Auto' },
-  { key: 'square', label: 'Square' },
-  { key: 'dot', label: 'Rounded' },
-];
+const ROTATION_TICKS = [0, 90, 180, 270, 360];
 
 const ERROR_LEVELS: { key: QrStyleOptions['errorCorrection']; label: string }[] = [
   { key: 'L', label: 'L' },
@@ -53,6 +34,7 @@ const QR_PREVIEW_PAD = 6;
 const QR_PREVIEW_RADIUS = 4;
 
 function MiniPreview({ style }: { style: QrStyleOptions }) {
+  const { t } = useTranslation('print');
   const [dataUrl, setDataUrl] = useState<string>('');
   const [prevUrl, setPrevUrl] = useState<string>('');
   const [transitioning, setTransitioning] = useState(false);
@@ -113,7 +95,7 @@ function MiniPreview({ style }: { style: QrStyleOptions }) {
         {dataUrl ? (
           <img
             src={dataUrl}
-            alt="QR preview"
+            alt={t('qrStyle.previewAlt', { defaultValue: 'QR preview' })}
             className="transition-opacity duration-250"
             style={{
               width: QR_PREVIEW_SIZE,
@@ -195,6 +177,35 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange }: QrStyleCardProps) {
+  const { t } = useTranslation('print');
+  const shapeLabels = {
+    auto: t('qrStyle.shapes.auto', { defaultValue: 'Auto' }),
+    square: t('qrStyle.shapes.square', { defaultValue: 'Square' }),
+    rounded: t('qrStyle.shapes.rounded', { defaultValue: 'Rounded' }),
+    dots: t('qrStyle.shapes.dots', { defaultValue: 'Dots' }),
+    classy: t('qrStyle.shapes.classy', { defaultValue: 'Classy' }),
+    classyRounded: t('qrStyle.shapes.classyRounded', { defaultValue: 'Classy R.' }),
+    extraRounded: t('qrStyle.shapes.extraRounded', { defaultValue: 'Extra R.' }),
+  };
+  const dotTypes: { key: QrStyleOptions['dotType']; label: string }[] = [
+    { key: 'square', label: shapeLabels.square },
+    { key: 'rounded', label: shapeLabels.rounded },
+    { key: 'dots', label: shapeLabels.dots },
+    { key: 'classy', label: shapeLabels.classy },
+    { key: 'classy-rounded', label: shapeLabels.classyRounded },
+    { key: 'extra-rounded', label: shapeLabels.extraRounded },
+  ];
+  const cornerSquareTypes: { key: string; label: string }[] = [
+    { key: '', label: shapeLabels.auto },
+    { key: 'square', label: shapeLabels.square },
+    { key: 'dot', label: shapeLabels.rounded },
+    { key: 'extra-rounded', label: shapeLabels.extraRounded },
+  ];
+  const cornerDotTypes: { key: string; label: string }[] = [
+    { key: '', label: shapeLabels.auto },
+    { key: 'square', label: shapeLabels.square },
+    { key: 'dot', label: shapeLabels.rounded },
+  ];
   function update<K extends keyof QrStyleOptions>(key: K, value: QrStyleOptions[K]) {
     onUpdateStyle({ ...qrStyle, [key]: value });
   }
@@ -212,7 +223,7 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
         >
           <div className="row">
             <QrCode className="h-4 w-4 text-[var(--text-tertiary)]" />
-            <Label className="text-[15px] font-semibold text-[var(--text-primary)] pointer-events-none">QR Style</Label>
+            <Label className="text-[15px] font-semibold text-[var(--text-primary)] pointer-events-none">{t('qrStyle.title', { defaultValue: 'QR Style' })}</Label>
           </div>
           <ChevronDown className={cn(
             'h-5 w-5 text-[var(--text-tertiary)] transition-transform duration-200',
@@ -226,9 +237,9 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
 
             {/* Dot Style */}
             <div className="px-1">
-              <SectionLabel>Dot Style</SectionLabel>
+              <SectionLabel>{t('qrStyle.dotStyle', { defaultValue: 'Dot Style' })}</SectionLabel>
               <OptionGroup
-                options={DOT_TYPES}
+                options={dotTypes}
                 value={qrStyle.dotType}
                 onChange={(v) => update('dotType', v)}
                 size="sm"
@@ -237,25 +248,25 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
 
             {/* Dot Color */}
             <div className="px-1">
-              <QrColorPicker value={qrStyle.dotColor} onChange={(v) => update('dotColor', v)} label="Dot Color" />
+              <QrColorPicker value={qrStyle.dotColor} onChange={(v) => update('dotColor', v)} label={t('qrStyle.dotColor', { defaultValue: 'Dot Color' })} />
             </div>
 
             {/* Advanced */}
             <div className="px-1">
-              <Disclosure label="Advanced" indicator={advancedModified}>
+              <Disclosure label={t('qrStyle.advanced', { defaultValue: 'Advanced' })} indicator={advancedModified}>
                 <div className="space-y-3">
                   {/* Corner Square Style */}
                   <div>
-                    <SectionLabel>Corner Square Style</SectionLabel>
+                    <SectionLabel>{t('qrStyle.cornerSquareStyle', { defaultValue: 'Corner Square Style' })}</SectionLabel>
                     <OptionGroup
-                      options={CORNER_SQUARE_TYPES}
+                      options={cornerSquareTypes}
                       value={qrStyle.cornerSquareType}
                       onChange={(v) => update('cornerSquareType', v as QrStyleOptions['cornerSquareType'])}
                       size="sm"
                     />
                     {qrStyle.cornerSquareType && (
                       <div className="mt-3">
-                        <QrColorPicker value={qrStyle.cornerSquareColor} onChange={(v) => update('cornerSquareColor', v)} label="Corner Square Color" />
+                        <QrColorPicker value={qrStyle.cornerSquareColor} onChange={(v) => update('cornerSquareColor', v)} label={t('qrStyle.cornerSquareColor', { defaultValue: 'Corner Square Color' })} />
                       </div>
                     )}
                   </div>
@@ -264,16 +275,16 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
 
                   {/* Corner Dot Style */}
                   <div>
-                    <SectionLabel>Corner Dot Style</SectionLabel>
+                    <SectionLabel>{t('qrStyle.cornerDotStyle', { defaultValue: 'Corner Dot Style' })}</SectionLabel>
                     <OptionGroup
-                      options={CORNER_DOT_TYPES}
+                      options={cornerDotTypes}
                       value={qrStyle.cornerDotType}
                       onChange={(v) => update('cornerDotType', v as QrStyleOptions['cornerDotType'])}
                       size="sm"
                     />
                     {qrStyle.cornerDotType && (
                       <div className="mt-3">
-                        <QrColorPicker value={qrStyle.cornerDotColor} onChange={(v) => update('cornerDotColor', v)} label="Corner Dot Color" />
+                        <QrColorPicker value={qrStyle.cornerDotColor} onChange={(v) => update('cornerDotColor', v)} label={t('qrStyle.cornerDotColor', { defaultValue: 'Corner Dot Color' })} />
                       </div>
                     )}
                   </div>
@@ -283,25 +294,25 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
                   {/* Gradient */}
                   <div>
                     <div className="row-spread mb-2">
-                      <SectionLabel>Gradient</SectionLabel>
+                      <SectionLabel>{t('qrStyle.gradient', { defaultValue: 'Gradient' })}</SectionLabel>
                       <Switch checked={qrStyle.useGradient} onCheckedChange={(v) => update('useGradient', v)} />
                     </div>
                     {qrStyle.useGradient && (
                       <div className="space-y-3 mt-1">
                         <OptionGroup
                           options={[
-                            { key: 'linear' as const, label: 'Linear' },
-                            { key: 'radial' as const, label: 'Radial' },
+                            { key: 'linear' as const, label: t('qrStyle.linear', { defaultValue: 'Linear' }) },
+                            { key: 'radial' as const, label: t('qrStyle.radial', { defaultValue: 'Radial' }) },
                           ]}
                           value={qrStyle.gradientType}
                           onChange={(v) => update('gradientType', v)}
                           size="sm"
                         />
-                        <QrColorPicker value={qrStyle.gradientColor1} onChange={(v) => update('gradientColor1', v)} label="Start Color" />
-                        <QrColorPicker value={qrStyle.gradientColor2} onChange={(v) => update('gradientColor2', v)} label="End Color" />
+                        <QrColorPicker value={qrStyle.gradientColor1} onChange={(v) => update('gradientColor1', v)} label={t('qrStyle.startColor', { defaultValue: 'Start Color' })} />
+                        <QrColorPicker value={qrStyle.gradientColor2} onChange={(v) => update('gradientColor2', v)} label={t('qrStyle.endColor', { defaultValue: 'End Color' })} />
                         <div>
                           <div className="row-spread mb-1.5">
-                            <span className="text-[12px] text-[var(--text-secondary)] font-medium">Rotation</span>
+                            <span className="text-[12px] text-[var(--text-secondary)] font-medium">{t('qrStyle.rotation', { defaultValue: 'Rotation' })}</span>
                             <span className="text-[12px] text-[var(--text-tertiary)] tabular-nums font-medium">{qrStyle.gradientRotation}°</span>
                           </div>
                           <input
@@ -311,19 +322,19 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
                             step={15}
                             value={qrStyle.gradientRotation}
                             onChange={(e) => update('gradientRotation', parseInt(e.target.value, 10))}
-                            aria-label="Gradient rotation angle"
+                            aria-label={t('qrStyle.rotationAria', { defaultValue: 'Gradient rotation angle' })}
                             className="qr-range-slider w-full"
                             list="rotation-ticks"
                           />
                           <datalist id="rotation-ticks">
-                            <option value="0" label="0°" />
-                            <option value="90" label="90°" />
-                            <option value="180" label="180°" />
-                            <option value="270" label="270°" />
-                            <option value="360" label="360°" />
+                            {ROTATION_TICKS.map((deg) => (
+                              <option key={deg} value={deg} label={`${deg}°`} />
+                            ))}
                           </datalist>
                           <div className="flex justify-between text-[10px] text-[var(--text-tertiary)] mt-0.5 px-0.5" aria-hidden>
-                            <span>0°</span><span>90°</span><span>180°</span><span>270°</span><span>360°</span>
+                            {ROTATION_TICKS.map((deg) => (
+                              <span key={deg}>{`${deg}°`}</span>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -334,7 +345,7 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
 
                   {/* Error Correction */}
                   <div>
-                    <SectionLabel>Error Correction</SectionLabel>
+                    <SectionLabel>{t('qrStyle.errorCorrection', { defaultValue: 'Error Correction' })}</SectionLabel>
                     <OptionGroup
                       options={ERROR_LEVELS}
                       value={qrStyle.errorCorrection}
@@ -356,7 +367,7 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
                   className="w-full"
                 >
                   <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                  Reset QR Style
+                  {t('qrStyle.reset', { defaultValue: 'Reset QR Style' })}
                 </Button>
               </div>
             )}

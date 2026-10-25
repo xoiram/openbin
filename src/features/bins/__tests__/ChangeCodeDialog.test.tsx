@@ -2,6 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChangeCodeDialog } from '../ChangeCodeDialog';
 
+vi.mock('@/lib/terminology', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/terminology')>();
+  return { ...actual, useTerminology: () => actual.DEFAULT_TERMINOLOGY };
+});
+
 vi.mock('@/lib/api', () => ({
   apiFetch: vi.fn(),
   ApiError: class ApiError extends Error {

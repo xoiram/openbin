@@ -1,5 +1,6 @@
 import { GripVertical, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
+import { useTerminology } from '@/lib/terminology';
 import { getErrorMessage } from '@/lib/utils';
 import {
   addCustomField,
@@ -25,6 +27,8 @@ interface CustomFieldsDialogProps {
 }
 
 export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFieldsDialogProps) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const { fields } = useCustomFields(open ? locationId : null);
   const { showToast } = useToast();
   const [newName, setNewName] = useState('');
@@ -47,7 +51,7 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
       await addCustomField(locationId, newName.trim());
       setNewName('');
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to add field'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('customFields.addFailed', { defaultValue: 'Failed to add field' })), variant: 'error' });
     } finally {
       setAdding(false);
     }
@@ -59,7 +63,7 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
       await updateCustomField(locationId, fieldId, { name: editName.trim() });
       setEditingId(null);
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to rename field'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('customFields.renameFailed', { defaultValue: 'Failed to rename field' })), variant: 'error' });
     }
   }
 
@@ -67,9 +71,9 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
     if (!locationId) return;
     try {
       await deleteCustomField(locationId, fieldId);
-      showToast({ message: `Deleted "${fieldName}"`, variant: 'success' });
+      showToast({ message: t('customFields.deleted', { defaultValue: 'Deleted "{{name}}"', name: fieldName }), variant: 'success' });
     } catch (err) {
-      showToast({ message: getErrorMessage(err, 'Failed to delete field'), variant: 'error' });
+      showToast({ message: getErrorMessage(err, t('customFields.deleteFailed', { defaultValue: 'Failed to delete field' })), variant: 'error' });
     }
   }
 
@@ -77,16 +81,16 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Custom Fields</DialogTitle>
+          <DialogTitle>{t('customFields.title', { defaultValue: 'Custom Fields' })}</DialogTitle>
           <DialogDescription>
-            Define custom fields that appear on all bins in this location.
+            {t('customFields.description', { defaultValue: 'Define custom fields that appear on all {{bins}} in this {{location}}.', bins: term.bins, location: term.location })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           {fields.length === 0 && (
             <p className="text-[13px] text-[var(--text-tertiary)] py-2">
-              No custom fields yet. Add one below.
+              {t('customFields.empty', { defaultValue: 'No custom fields yet. Add one below.' })}
             </p>
           )}
 
@@ -105,10 +109,10 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
                     autoFocus
                     className="h-8 text-[14px]"
                   />
-                  <Button type="submit" size="icon-sm" variant="ghost" className="shrink-0" disabled={!editName.trim()}>
+                  <Button type="submit" size="icon-sm" variant="ghost" className="shrink-0" disabled={!editName.trim()} aria-label={t('customFields.saveName', { defaultValue: 'Save name' })}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button type="button" size="icon-sm" variant="ghost" className="shrink-0" onClick={() => setEditingId(null)}>
+                  <Button type="button" size="icon-sm" variant="ghost" className="shrink-0" onClick={() => setEditingId(null)} aria-label={t('customFields.cancelEdit', { defaultValue: 'Cancel editing' })}>
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 </form>
@@ -122,6 +126,7 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
                     variant="ghost"
                     className="shrink-0"
                     onClick={() => { setEditingId(field.id); setEditName(field.name); }}
+                    aria-label={t('customFields.rename', { defaultValue: 'Rename {{name}}', name: field.name })}
                   >
                     <Pencil className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
                   </Button>
@@ -130,6 +135,7 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
                     variant="ghost"
                     className="shrink-0"
                     onClick={() => handleDelete(field.id, field.name)}
+                    aria-label={t('customFields.delete', { defaultValue: 'Delete {{name}}', name: field.name })}
                   >
                     <Trash2 className="h-3.5 w-3.5 text-[var(--destructive)]" />
                   </Button>
@@ -142,13 +148,13 @@ export function CustomFieldsDialog({ locationId, open, onOpenChange }: CustomFie
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="New field name"
+              placeholder={t('customFields.newPlaceholder', { defaultValue: 'New field name' })}
               maxLength={100}
               className="h-8 text-[14px]"
             />
             <Button type="submit" size="sm" disabled={!newName.trim() || adding} className="shrink-0">
               <Plus className="h-3.5 w-3.5 mr-1" />
-              Add
+              {t('customFields.add', { defaultValue: 'Add' })}
             </Button>
           </form>
         </div>

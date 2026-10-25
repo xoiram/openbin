@@ -3,6 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Bin } from '@/types';
 import { useAutoSaveBin } from '../useAutoSaveBin';
 
+vi.mock('@/lib/terminology', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/terminology')>();
+  return { ...actual, useTerminology: () => actual.DEFAULT_TERMINOLOGY };
+});
+
 vi.mock('@/lib/api', () => ({ apiFetch: vi.fn() }));
 vi.mock('@/lib/auth', () => ({ useAuth: vi.fn(() => ({ activeLocationId: 'loc-1', token: 'test' })) }));
 vi.mock('@/components/ui/toast', () => ({ useToast: vi.fn(() => ({ showToast: vi.fn() })) }));

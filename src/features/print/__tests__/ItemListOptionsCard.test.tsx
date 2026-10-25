@@ -4,7 +4,7 @@ import { ItemListOptionsCard } from '../ItemListOptionsCard';
 import { DEFAULT_ITEM_LIST_OPTIONS } from '../usePrintSettings';
 
 vi.mock('@/lib/terminology', () => ({
-  useTerminology: () => ({ Bin: 'Bin', bin: 'bin' }),
+  useTerminology: () => ({ Bin: 'Bin', bin: 'bin', Area: 'Area', area: 'area' }),
 }));
 
 const defaultProps = {

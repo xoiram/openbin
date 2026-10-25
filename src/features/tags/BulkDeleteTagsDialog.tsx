@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useTerminology } from '@/lib/terminology';
 import type { TagEntry } from './useTags';
 
 interface BulkDeleteTagsDialogProps {
@@ -19,6 +21,8 @@ interface BulkDeleteTagsDialogProps {
 }
 
 export function BulkDeleteTagsDialog({ open, onOpenChange, tags, binsAffected, onConfirm }: BulkDeleteTagsDialogProps) {
+  const { t } = useTranslation(['tags', 'common']);
+  const term = useTerminology();
   const [loading, setLoading] = useState(false);
   async function handle() {
     setLoading(true);
@@ -29,25 +33,40 @@ export function BulkDeleteTagsDialog({ open, onOpenChange, tags, binsAffected, o
       setLoading(false);
     }
   }
+  const quoted = tags.slice(0, 5).map((tag) => `"${tag}"`).join(', ');
   const preview =
-    tags.slice(0, 5).map((t) => `"${t}"`).join(', ') + (tags.length > 5 ? `, +${tags.length - 5} more` : '');
+    tags.length > 5
+      ? t('bulkDelete.previewMore', { defaultValue: '{{tags}}, +{{count}} more', tags: quoted, count: tags.length - 5 })
+      : quoted;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Delete {tags.length} tag{tags.length === 1 ? '' : 's'}?
+            {t('bulkDelete.title', {
+              count: tags.length,
+              defaultValue_one: 'Delete {{count}} tag?',
+              defaultValue_other: 'Delete {{count}} tags?',
+            })}
           </DialogTitle>
           <DialogDescription>
-            Removes {preview} from this location. ~{binsAffected} bin{binsAffected === 1 ? '' : 's'} will be updated. Children become top-level.
+            {t('bulkDelete.description', {
+              count: binsAffected,
+              defaultValue_one: 'Removes {{tags}} from this {{location}}. ~{{count}} {{bin}} will be updated. Children become top-level.',
+              defaultValue_other: 'Removes {{tags}} from this {{location}}. ~{{count}} {{bins}} will be updated. Children become top-level.',
+              tags: preview,
+              location: term.location,
+              bin: term.bin,
+              bins: term.bins,
+            })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button variant="destructive" onClick={handle} disabled={loading}>
-            {loading ? 'Deleting…' : 'Delete'}
+            {loading ? t('bulkDelete.deleting', { defaultValue: 'Deleting…' }) : t('common:actions.delete', { defaultValue: 'Delete' })}
           </Button>
         </DialogFooter>
       </DialogContent>

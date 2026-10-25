@@ -1,6 +1,7 @@
 import { Palette } from 'lucide-react';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { useDialogPortal } from '@/components/ui/dialog';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -41,6 +42,7 @@ interface TagColorPickerBodyProps {
 
 /** Inline picker body — preview + swatch buttons + hue slider + shade swatches. */
 function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose }: TagColorPickerBodyProps) {
+  const { t } = useTranslation('tags');
   const { theme } = useTheme();
   const {
     barRef,
@@ -86,7 +88,7 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
       {/* Preview badge */}
       {tagName && (
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-medium text-[var(--text-quaternary)]">Preview</span>
+          <span className="text-[11px] font-medium text-[var(--text-quaternary)]">{t('colorPicker.preview', { defaultValue: 'Preview' })}</span>
           <Badge variant="secondary" className="text-[13px]" style={previewStyle}>
             {tagName}
           </Badge>
@@ -108,8 +110,8 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
               ? 'border-[var(--accent)] bg-[var(--bg-base)]'
               : 'border-[var(--border-flat)] bg-[var(--bg-base)] hover:border-[var(--text-tertiary)]'
           )}
-          aria-label="None"
-          title="None"
+          aria-label={t('colorPicker.none', { defaultValue: 'None' })}
+          title={t('colorPicker.none', { defaultValue: 'None' })}
         >
           {!currentColor && <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />}
         </button>
@@ -119,8 +121,8 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
             e.stopPropagation();
             onColorChange('black');
           }}
-          title="Black"
-          aria-label="Black"
+          title={t('colorPicker.black', { defaultValue: 'Black' })}
+          aria-label={t('colorPicker.black', { defaultValue: 'Black' })}
           className={cn(
             'h-8 w-8 rounded-full transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-flat)]',
             isBlack
@@ -135,8 +137,8 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
             e.stopPropagation();
             onColorChange('white');
           }}
-          title="White"
-          aria-label="White"
+          title={t('colorPicker.white', { defaultValue: 'White' })}
+          aria-label={t('colorPicker.white', { defaultValue: 'White' })}
           className={cn(
             'h-8 w-8 rounded-full border border-[var(--border-subtle)] transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-flat)]',
             isWhite
@@ -151,8 +153,8 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
             e.stopPropagation();
             onColorChange(buildColorKey('neutral', currentShade));
           }}
-          title="Gray"
-          aria-label="Gray"
+          title={t('colorPicker.gray', { defaultValue: 'Gray' })}
+          aria-label={t('colorPicker.gray', { defaultValue: 'Gray' })}
           className={cn(
             'h-8 w-8 rounded-full transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-flat)]',
             isNeutral
@@ -169,7 +171,7 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
           ref={barRef}
           role="slider"
           tabIndex={0}
-          aria-label="Hue"
+          aria-label={t('colorPicker.hue', { defaultValue: 'Hue' })}
           aria-valuemin={0}
           aria-valuemax={360}
           aria-valuenow={currentHue ?? 0}
@@ -216,7 +218,7 @@ function TagColorPickerBody({ currentColor, onColorChange, tagName, onClearClose
                   e.stopPropagation();
                   onColorChange(buildColorKey(activeHue, i));
                 }}
-                aria-label={`Shade ${i + 1} of ${SHADE_COUNT}`}
+                aria-label={t('colorPicker.shade', { defaultValue: 'Shade {{index}} of {{total}}', index: i + 1, total: SHADE_COUNT })}
                 className={cn(
                   'flex-1 h-10 transition-all cursor-pointer',
                   i === 0 && 'rounded-l-lg',
@@ -247,6 +249,7 @@ export function TagColorPicker({ currentColor, onColorChange, tagName, inline }:
 }
 
 function TagColorPickerPopover({ currentColor, onColorChange, tagName }: TagColorPickerProps) {
+  const { t } = useTranslation('tags');
   const dialogPortal = useDialogPortal();
   const { visible, animating, close, toggle } = usePopover();
   const ref = useRef<HTMLDivElement>(null);
@@ -303,7 +306,7 @@ function TagColorPickerPopover({ currentColor, onColorChange, tagName }: TagColo
 
   return (
     <div className="relative">
-      <Tooltip content="Pick tag color">
+      <Tooltip content={t('colorPicker.pick', { defaultValue: 'Pick tag color' })}>
         <button
           ref={triggerRef}
           type="button"
@@ -312,7 +315,7 @@ function TagColorPickerPopover({ currentColor, onColorChange, tagName }: TagColo
             toggle();
           }}
           className="h-9 w-9 rounded-[var(--radius-lg)] flex items-center justify-center hover:bg-[var(--bg-active)] transition-colors shrink-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"
-          aria-label="Pick tag color"
+          aria-label={t('colorPicker.pick', { defaultValue: 'Pick tag color' })}
         >
           {currentPreset ? (
             <span className="h-[18px] w-[18px] rounded-full" style={{ backgroundColor: currentPreset.bgCss }} />

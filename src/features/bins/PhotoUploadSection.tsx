@@ -1,5 +1,6 @@
 import { Camera, Image, Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MAX_AI_PHOTOS } from '@/features/ai/aiConstants';
 import { cn, focusRing } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ export function PhotoUploadSection({
 	analyzing,
 	fileInputRef,
 }: PhotoUploadSectionProps) {
+	const { t } = useTranslation('bins');
 	const [isDragging, setIsDragging] = useState(false);
 
 	function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
@@ -78,7 +80,7 @@ export function PhotoUploadSection({
 				<div
 					role="button"
 					tabIndex={0}
-					aria-label="Add photos"
+					aria-label={t('photoUpload.addPhotos', { defaultValue: 'Add photos' })}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}
@@ -100,11 +102,11 @@ export function PhotoUploadSection({
 					<Image className="h-6 w-6" />
 					<div>
 						<p className="text-[14px] font-medium">
-							<span className="sm:hidden">Tap to add photos</span>
-							<span className="hidden sm:inline">Drag &amp; drop or click to add photos</span>
+							<span className="sm:hidden">{t('photoUpload.tapToAdd', { defaultValue: 'Tap to add photos' })}</span>
+							<span className="hidden sm:inline">{t('photoUpload.dragOrClick', { defaultValue: 'Drag & drop or click to add photos' })}</span>
 						</p>
 						<p className="text-[12px] mt-0.5 text-[var(--text-tertiary)]">
-							Multiple photos improve AI accuracy
+							{t('photoUpload.multipleHint', { defaultValue: 'Multiple photos improve AI accuracy' })}
 						</p>
 					</div>
 					{onCameraClick && (
@@ -122,7 +124,7 @@ export function PhotoUploadSection({
 							)}
 						>
 							<Camera className="h-4 w-4" />
-							Camera
+							{t('photoUpload.camera', { defaultValue: 'Camera' })}
 						</button>
 					)}
 				</div>
@@ -137,14 +139,14 @@ export function PhotoUploadSection({
 							>
 								<img
 									src={preview}
-									alt={`Preview ${i + 1}`}
+									alt={t('photoUpload.preview', { defaultValue: 'Preview {{n}}', n: i + 1 })}
 									className="h-full w-full object-cover rounded-[var(--radius-md)]"
 								/>
 								{!analyzing && (
 									<button
 										type="button"
 										onClick={() => onRemovePhoto(i)}
-										aria-label={`Remove photo ${i + 1}`}
+										aria-label={t('photoUpload.removePhoto', { defaultValue: 'Remove photo {{n}}', n: i + 1 })}
 										className="absolute top-1 right-1 size-9 flex items-center justify-center rounded-[var(--radius-xs)] bg-[var(--overlay-button)] text-white opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity hover:bg-[var(--overlay-button-hover)] hover:text-[var(--destructive)]"
 									>
 										<X className="h-3.5 w-3.5" />
@@ -157,7 +159,7 @@ export function PhotoUploadSection({
 								type="button"
 								onClick={() => fileInputRef.current?.click()}
 								className="aspect-square flex items-center justify-center rounded-[var(--radius-md)] border-2 border-dashed border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-								aria-label="Add more photos"
+								aria-label={t('photoUpload.addMore', { defaultValue: 'Add more photos' })}
 							>
 								<Plus className="h-5 w-5" />
 							</button>
@@ -171,7 +173,7 @@ export function PhotoUploadSection({
 								className="flex-1 flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-flat)] min-h-[44px] px-4 py-2.5 text-[12px] font-medium text-[var(--text-tertiary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
 							>
 								<Camera className="h-3.5 w-3.5" />
-								More photos
+								{t('photoUpload.morePhotos', { defaultValue: 'More photos' })}
 							</button>
 						)}
 						<button
@@ -180,7 +182,7 @@ export function PhotoUploadSection({
 							className="flex-1 flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-flat)] min-h-[44px] px-4 py-2.5 text-[12px] font-medium text-[var(--text-tertiary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
 						>
 							<Image className="h-3.5 w-3.5" />
-							Add from gallery
+							{t('photoUpload.addFromGallery', { defaultValue: 'Add from gallery' })}
 						</button>
 					</div>
 				</div>

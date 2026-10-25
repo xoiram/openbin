@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronUp, ImageIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { OptionGroup } from '@/components/ui/option-group';
 import { getPhotoThumbUrl } from '@/features/photos/usePhotos';
 import type { BorderStyle, BorderWidth, CardStyle, CardStyleVariant, StripePosition, StripeWidth } from '@/lib/cardStyle';
@@ -16,31 +17,9 @@ interface StylePickerProps {
   photos?: Photo[];
 }
 
-const VARIANTS: { key: CardStyleVariant; label: string }[] = [
-  { key: 'default', label: 'Flat' },
-  { key: 'border', label: 'Border' },
-  { key: 'gradient', label: 'Gradient' },
-  { key: 'stripe', label: 'Stripe' },
-  { key: 'photo', label: 'Photo' },
-];
-
-const STRIPE_POSITIONS: { key: StripePosition; label: string }[] = [
-  { key: 'left', label: 'Left' },
-  { key: 'right', label: 'Right' },
-  { key: 'top', label: 'Top' },
-  { key: 'bottom', label: 'Bottom' },
-];
-
 const STRIPE_WIDTHS: StripeWidth[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 const BORDER_WIDTHS: BorderWidth[] = ['1', '2', '3', '4', '5', '6', '7', '8'];
-const BORDER_STYLES: { key: BorderStyle; label: string }[] = [
-  { key: 'solid', label: 'Solid' },
-  { key: 'dashed', label: 'Dashed' },
-  { key: 'dotted', label: 'Dotted' },
-  { key: 'double', label: 'Double' },
-];
-
 function VariantPreview({ variant, color, rectangular }: { variant: CardStyleVariant; color: string; rectangular?: boolean }) {
   const baseClass = cn(rectangular ? 'aspect-[16/9]' : 'aspect-square', 'w-full rounded-[var(--radius-sm)] transition-all');
 
@@ -72,10 +51,39 @@ function VariantPreview({ variant, color, rectangular }: { variant: CardStyleVar
 }
 
 export function StylePicker({ value, color, onChange, photos }: StylePickerProps) {
+  const { t } = useTranslation('bins');
+  const variants = useMemo<{ key: CardStyleVariant; label: string }[]>(
+    () => [
+      { key: 'default', label: t('stylePicker.variants.default', { defaultValue: 'Flat' }) },
+      { key: 'border', label: t('stylePicker.variants.border', { defaultValue: 'Border' }) },
+      { key: 'gradient', label: t('stylePicker.variants.gradient', { defaultValue: 'Gradient' }) },
+      { key: 'stripe', label: t('stylePicker.variants.stripe', { defaultValue: 'Stripe' }) },
+      { key: 'photo', label: t('stylePicker.variants.photo', { defaultValue: 'Photo' }) },
+    ],
+    [t],
+  );
+  const stripePositions = useMemo<{ key: StripePosition; label: string }[]>(
+    () => [
+      { key: 'left', label: t('stylePicker.positions.left', { defaultValue: 'Left' }) },
+      { key: 'right', label: t('stylePicker.positions.right', { defaultValue: 'Right' }) },
+      { key: 'top', label: t('stylePicker.positions.top', { defaultValue: 'Top' }) },
+      { key: 'bottom', label: t('stylePicker.positions.bottom', { defaultValue: 'Bottom' }) },
+    ],
+    [t],
+  );
+  const borderStyles = useMemo<{ key: BorderStyle; label: string }[]>(
+    () => [
+      { key: 'solid', label: t('stylePicker.borders.solid', { defaultValue: 'Solid' }) },
+      { key: 'dashed', label: t('stylePicker.borders.dashed', { defaultValue: 'Dashed' }) },
+      { key: 'dotted', label: t('stylePicker.borders.dotted', { defaultValue: 'Dotted' }) },
+      { key: 'double', label: t('stylePicker.borders.double', { defaultValue: 'Double' }) },
+    ],
+    [t],
+  );
   const [open, setOpen] = useState(false);
   const parsed = parseCardStyle(value);
   const currentVariant = parsed?.variant ?? 'default';
-  const displayLabel = VARIANTS.find((v) => v.key === currentVariant)?.label ?? 'Flat';
+  const displayLabel = variants.find((v) => v.key === currentVariant)?.label ?? t('stylePicker.variants.default', { defaultValue: 'Flat' });
   const hasPhotos = photos && photos.length > 0;
 
   function updateStyle(patch: Partial<CardStyle>) {
@@ -117,9 +125,7 @@ export function StylePicker({ value, color, onChange, photos }: StylePickerProps
         <div className="space-y-3 p-3 rounded-[var(--radius-sm)] border border-[var(--border-flat)] bg-[var(--bg-elevated)]">
           {/* Variant buttons */}
           <OptionGroup
-            options={VARIANTS.map((v) => ({
-              ...v,
-            }))}
+            options={variants}
             value={currentVariant}
             onChange={selectVariant}
             size="sm"
@@ -135,15 +141,15 @@ export function StylePicker({ value, color, onChange, photos }: StylePickerProps
           {currentVariant === 'border' && (
             <div className="space-y-2.5">
               <div className="space-y-1.5">
-                <p className="text-[12px] text-[var(--text-tertiary)]">Border Style</p>
+                <p className="text-[12px] text-[var(--text-tertiary)]">{t('stylePicker.borderStyle', { defaultValue: 'Border Style' })}</p>
                 <OptionGroup
-                  options={BORDER_STYLES}
+                  options={borderStyles}
                   value={(parsed?.borderStyle ?? 'solid') as BorderStyle}
                   onChange={(borderStyle) => updateStyle({ borderStyle })}
                 />
               </div>
               <div className="space-y-1.5">
-                <p className="text-[12px] text-[var(--text-tertiary)]">Thickness</p>
+                <p className="text-[12px] text-[var(--text-tertiary)]">{t('stylePicker.thickness', { defaultValue: 'Thickness' })}</p>
                 <OptionGroup
                   options={BORDER_WIDTHS.map((w) => ({ key: w, label: `${w}px` }))}
                   value={(parsed?.borderWidth ?? '2') as BorderWidth}
@@ -158,15 +164,15 @@ export function StylePicker({ value, color, onChange, photos }: StylePickerProps
           {currentVariant === 'stripe' && (
             <div className="space-y-2.5">
               <div className="space-y-1.5">
-                <p className="text-[12px] text-[var(--text-tertiary)]">Position</p>
+                <p className="text-[12px] text-[var(--text-tertiary)]">{t('stylePicker.position', { defaultValue: 'Position' })}</p>
                 <OptionGroup
-                  options={STRIPE_POSITIONS}
+                  options={stripePositions}
                   value={(parsed?.stripePosition ?? 'left') as StripePosition}
                   onChange={(stripePosition) => updateStyle({ stripePosition })}
                 />
               </div>
               <div className="space-y-1.5">
-                <p className="text-[12px] text-[var(--text-tertiary)]">Thickness</p>
+                <p className="text-[12px] text-[var(--text-tertiary)]">{t('stylePicker.thickness', { defaultValue: 'Thickness' })}</p>
                 <OptionGroup
                   options={STRIPE_WIDTHS.map((w) => ({ key: w, label: `${w}px` }))}
                   value={(parsed?.stripeWidth ?? '4') as StripeWidth}
@@ -183,7 +189,7 @@ export function StylePicker({ value, color, onChange, photos }: StylePickerProps
               {/* Premade backgrounds — always visible when assets have src */}
               {PREMADE_BACKGROUNDS.some((bg) => bg.src) && (
                 <div className="space-y-1.5">
-                  <p className="text-[12px] text-[var(--text-tertiary)]">Backgrounds</p>
+                  <p className="text-[12px] text-[var(--text-tertiary)]">{t('stylePicker.backgrounds', { defaultValue: 'Backgrounds' })}</p>
                   <div className="grid grid-cols-4 gap-1.5">
                     {PREMADE_BACKGROUNDS.filter((bg) => bg.src).map((bg) => {
                       const isSelected = parsed?.coverAssetId === bg.id;
@@ -216,7 +222,7 @@ export function StylePicker({ value, color, onChange, photos }: StylePickerProps
               {/* User-uploaded photos */}
               {hasPhotos && (
                 <div className="space-y-1.5">
-                  <p className="text-[12px] text-[var(--text-tertiary)]">Your photos</p>
+                  <p className="text-[12px] text-[var(--text-tertiary)]">{t('stylePicker.yourPhotos', { defaultValue: 'Your photos' })}</p>
                   <div className="grid grid-cols-4 gap-1.5">
                     {photos?.map((photo) => {
                       const isSelected = !parsed?.coverAssetId && parsed?.coverPhotoId === photo.id;

@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -25,10 +26,9 @@ interface PreviewPanelProps {
 }
 
 export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdfLoading, onDownloadPDF, labelSheetProps, printMode, itemSheetProps, nameSheetProps }: PreviewPanelProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('print');
+  const term = useTerminology();
   const hasSelection = selectedBins.length > 0;
-  const noun = printMode === 'items' ? 'List' : printMode === 'names' ? 'Name' : 'Label';
-  const printLabel = expandedBinCount !== 1 ? `${noun}s` : noun;
 
   const effectiveFormat = printMode === 'names'
     ? nameSheetProps.format
@@ -74,7 +74,20 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
     return () => observer.disconnect();
   }, [pageWidthPx, hasSelection]);
 
-  const pageCountLabel = pageCount > 0 ? ` (${pageCount} ${pageCount !== 1 ? 'pages' : 'page'})` : '';
+  const printAction =
+    printMode === 'items'
+      ? t('preview.printLists', { count: expandedBinCount, defaultValue_one: 'Print {{count}} List', defaultValue_other: 'Print {{count}} Lists' })
+      : printMode === 'names'
+        ? t('preview.printNames', { count: expandedBinCount, defaultValue_one: 'Print {{count}} Name', defaultValue_other: 'Print {{count}} Names' })
+        : t('preview.printLabels', { count: expandedBinCount, defaultValue_one: 'Print {{count}} Label', defaultValue_other: 'Print {{count}} Labels' });
+  const printButtonLabel =
+    pageCount > 0
+      ? t('preview.printWithPages', {
+          defaultValue: '{{action}} ({{pages}})',
+          action: printAction,
+          pages: t('preview.pageCount', { count: pageCount, defaultValue_one: '{{count}} page', defaultValue_other: '{{count}} pages' }),
+        })
+      : printAction;
 
   return (
     <>
@@ -85,9 +98,7 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
           className="flex-1 rounded-[var(--radius-md)] h-12 text-[17px]"
         >
           <Printer className="h-5 w-5 mr-2.5" />
-          {hasSelection
-            ? `Print ${expandedBinCount} ${printLabel}${pageCountLabel}`
-            : 'Print'}
+          {hasSelection ? printButtonLabel : t('preview.print', { defaultValue: 'Print' })}
         </Button>
         {(printMode === 'labels' || printMode === 'names') && (
           <Button
@@ -97,7 +108,7 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
             className="rounded-[var(--radius-md)] h-12 px-4 text-[15px]"
           >
             <Download className={cn('h-5 w-5 mr-1.5', pdfLoading && 'animate-pulse')} />
-            PDF
+            {t('preview.pdf', { defaultValue: 'PDF' })}
           </Button>
         )}
       </div>
@@ -106,14 +117,14 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
         <Card>
           <CardContent>
             <div className="row-spread mb-3">
-              <Label className="text-[15px] font-semibold text-[var(--text-primary)]">Preview</Label>
+              <Label className="text-[15px] font-semibold text-[var(--text-primary)]">{t('preview.title', { defaultValue: 'Preview' })}</Label>
               {pageCount > 1 && (
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setCurrentPage(safePage - 1)}
                     disabled={!canPrev}
-                    aria-label="Previous page"
+                    aria-label={t('preview.previousPage', { defaultValue: 'Previous page' })}
                     className={cn(
                       'p-1 rounded-[var(--radius-xs)] transition-colors',
                       canPrev ? 'hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]' : 'text-[var(--text-tertiary)] opacity-40',
@@ -122,13 +133,13 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <span className="text-[12px] text-[var(--text-tertiary)] tabular-nums min-w-[4.5rem] text-center">
-                    Page {safePage + 1} of {pageCount}
+                    {t('preview.pageOf', { defaultValue: 'Page {{page}} of {{total}}', page: safePage + 1, total: pageCount })}
                   </span>
                   <button
                     type="button"
                     onClick={() => setCurrentPage(safePage + 1)}
                     disabled={!canNext}
-                    aria-label="Next page"
+                    aria-label={t('preview.nextPage', { defaultValue: 'Next page' })}
                     className={cn(
                       'p-1 rounded-[var(--radius-xs)] transition-colors',
                       canNext ? 'hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]' : 'text-[var(--text-tertiary)] opacity-40',
@@ -139,7 +150,7 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
                 </div>
               )}
               {pageCount === 1 && (
-                <span className="text-[12px] text-[var(--text-tertiary)] tabular-nums">1 page</span>
+                <span className="text-[12px] text-[var(--text-tertiary)] tabular-nums">{t('preview.pageCount', { count: 1, defaultValue_one: '{{count}} page', defaultValue_other: '{{count}} pages' })}</span>
               )}
             </div>
             <div ref={previewRef} className="bg-[var(--bg-print-surface)] rounded-[var(--radius-md)] px-4 py-6 overflow-hidden shadow-[inset_0_0_0_1px_var(--border-preview)]">
@@ -167,8 +178,8 @@ export function PreviewPanel({ selectedBins, expandedBins, expandedBinCount, pdf
           <div className="rounded-[var(--radius-xl)] bg-[var(--bg-input)] p-3.5 mb-4">
             <FileText className="h-6 w-6 text-[var(--text-tertiary)]" />
           </div>
-          <p className="text-[15px] font-medium text-[var(--text-secondary)] mb-1">No {t.bins} selected</p>
-          <p className="text-[13px] text-[var(--text-tertiary)]">Choose {t.bins} to preview and print labels</p>
+          <p className="text-[15px] font-medium text-[var(--text-secondary)] mb-1">{t('preview.emptyTitle', { defaultValue: 'No {{bins}} selected', bins: term.bins })}</p>
+          <p className="text-[13px] text-[var(--text-tertiary)]">{t('preview.emptyDescription', { defaultValue: 'Choose {{bins}} to preview and print labels', bins: term.bins })}</p>
         </div>
       )}
     </>

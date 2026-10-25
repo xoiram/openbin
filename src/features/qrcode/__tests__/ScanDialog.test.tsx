@@ -30,6 +30,10 @@ vi.mock('@/lib/terminology', () => ({
   useTerminology: () => ({
     bin: 'bin',
     Bin: 'Bin',
+    location: 'location',
+    Location: 'Location',
+    bins: 'bins',
+    Bins: 'Bins',
   }),
 }));
 

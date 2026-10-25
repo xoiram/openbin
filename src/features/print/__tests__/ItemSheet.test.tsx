@@ -4,6 +4,12 @@ import type { Area, Bin } from '@/types';
 import { ItemSheet } from '../ItemSheet';
 import { DEFAULT_ITEM_LIST_OPTIONS, DEFAULT_QR_STYLE } from '../usePrintSettings';
 
+vi.mock('@/lib/terminology', async () => {
+  const { DEFAULT_TERMINOLOGY } = await vi.importActual<typeof import('@/lib/terminology')>('@/lib/terminology');
+  return { useTerminology: () => DEFAULT_TERMINOLOGY };
+});
+
+
 vi.mock('../itemSheetQr', () => ({
   generateItemSheetQrMap: vi.fn(async (binIds: string[]) => {
     const map = new Map<string, string>();
