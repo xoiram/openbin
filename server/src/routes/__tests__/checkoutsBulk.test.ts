@@ -55,21 +55,21 @@ describe('POST /api/locations/:locationId/checkouts/bulk-return', () => {
     expect(next.mock.calls[0][0].statusCode).toBe(422);
   });
 
-  it('returns N items to their origins (no targetBinId)', async () => {
-    mockWithTransaction.mockImplementation(async (fn: any) => {
-      const tx = vi.fn();
-      // Lookup active checkouts in this location
-      tx.mockResolvedValueOnce({ rows: [
-        { id: 'co-1', item_id: 'i-1', origin_bin_id: 'bin-A', location_id: 'loc-1' },
-        { id: 'co-2', item_id: 'i-2', origin_bin_id: 'bin-B', location_id: 'loc-1' },
-      ]});
-      // Close checkout updates
-      tx.mockResolvedValueOnce({ rows: [{ id: 'co-1' }] });
-      tx.mockResolvedValueOnce({ rows: [{ id: 'co-2' }] });
-      // Bin touches
-      tx.mockResolvedValueOnce({ rows: [] });
-      return fn(tx);
+  /** SQL-aware tx mock: answers by statement instead of call order. */
+  function sqlAwareTx(activeRows: any[]) {
+    return vi.fn(async (sql: string) => {
+      if (sql.includes('FROM item_checkouts ic')) return { rows: activeRows };
+      if (sql.includes('FROM bins WHERE id')) return { rows: [{ id: 'bin-x', location_id: 'loc-1', name: 'Bin', visibility: 'location', created_by: 'user-1' }] };
+      if (sql.includes('UPDATE item_checkouts')) return { rows: [{ id: 'closed' }] };
+      return { rows: [] };
     });
+  }
+
+  it('returns N items to their origins (no targetBinId)', async () => {
+    mockWithTransaction.mockImplementation(async (fn: any) => fn(sqlAwareTx([
+      { id: 'co-1', item_id: 'i-1', origin_bin_id: 'bin-A', origin_area_id: null, cur_bin_id: 'bin-A', cur_area_id: null },
+      { id: 'co-2', item_id: 'i-2', origin_bin_id: 'bin-B', origin_area_id: null, cur_bin_id: 'bin-B', cur_area_id: null },
+    ])));
     const handler = findHandler('post', '/:locationId/checkouts/bulk-return');
     const req = makeReq({ checkoutIds: ['co-1', 'co-2'] }, { locationId: 'loc-1' });
     const res = makeRes();
@@ -106,15 +106,9 @@ describe('POST /api/locations/:locationId/checkouts/bulk-return', () => {
   });
 
   it('skips already-returned checkouts via errors', async () => {
-    mockWithTransaction.mockImplementation(async (fn: any) => {
-      const tx = vi.fn();
-      tx.mockResolvedValueOnce({ rows: [
-        { id: 'co-1', item_id: 'i-1', origin_bin_id: 'bin-A', location_id: 'loc-1' },
-      ]});
-      tx.mockResolvedValueOnce({ rows: [{ id: 'co-1' }] });
-      tx.mockResolvedValueOnce({ rows: [] });
-      return fn(tx);
-    });
+    mockWithTransaction.mockImplementation(async (fn: any) => fn(sqlAwareTx([
+      { id: 'co-1', item_id: 'i-1', origin_bin_id: 'bin-A', origin_area_id: null, cur_bin_id: 'bin-A', cur_area_id: null },
+    ])));
     const handler = findHandler('post', '/:locationId/checkouts/bulk-return');
     const req = makeReq({ checkoutIds: ['co-1', 'co-missing'] }, { locationId: 'loc-1' });
     const res = makeRes();

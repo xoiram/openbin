@@ -1,9 +1,21 @@
 import { Router } from 'express';
-import { d, generateUuid, query, withTransaction } from '../db.js';
+import { d, generateUuid, query, type TxQueryFn, withTransaction } from '../db.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 import { requireMemberOrAbove, verifyBinAccess } from '../lib/binAccess.js';
 import { validateBulkIds } from '../lib/bulkValidation.js';
-import { ConflictError, NotFoundError, ValidationError } from '../lib/httpErrors.js';
+import { ConflictError, NotFoundError } from '../lib/httpErrors.js';
+import {
+  describeHome,
+  ITEM_FROM,
+  type ItemTarget,
+  itemScopePredicate,
+  parseItemTarget,
+  type ResolvedTarget,
+  resolveDefaultReturnHome,
+  resolveItemTarget,
+  setItemHome,
+  touchBins,
+} from '../lib/itemQueries.js';
 import { logRouteActivity } from '../lib/routeHelpers.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireLocationMember } from '../middleware/locationAccess.js';
@@ -117,32 +129,24 @@ router.post('/:id/items/:itemId/return', asyncHandler(async (req, res) => {
 
   // Close the checkout
   await query(
-    `UPDATE item_checkouts SET returned_at = ${d.now()}, returned_by = $1, return_bin_id = $2 WHERE id = $3`,
+    `UPDATE item_checkouts SET returned_at = ${d.now()}, returned_by = $1, return_bin_id = $2, return_area_id = NULL WHERE id = $3`,
     [userId, returnBinId, checkoutRow.id]
   );
+
+  // The item may have been moved (e.g. bulk move into an area) while it was checked out:
+  // compare the target with where it is NOW, not with the origin.
+  const current = await query<{ bin_id: string | null }>('SELECT bin_id FROM bin_items WHERE id = $1', [itemId]);
+  const currentBinId = current.rows[0]?.bin_id ?? null;
 
   // Get item name for activity logging (used in both branches)
   const itemResult = await query<{ name: string }>('SELECT name FROM bin_items WHERE id = $1 AND deleted_at IS NULL', [itemId]);
   const itemName = itemResult.rows[0]?.name ?? 'Unknown item';
 
-  // If returning to a different bin, move the item
-  if (returnBinId !== checkoutRow.origin_bin_id) {
-    const maxResult = await query<{ max_pos: number | null }>(
-      'SELECT MAX(position) as max_pos FROM bin_items WHERE bin_id = $1 AND deleted_at IS NULL',
-      [returnBinId]
-    );
-    const nextPos = (maxResult.rows[0]?.max_pos ?? -1) + 1;
-
-    await query(
-      'UPDATE bin_items SET bin_id = $1, position = $2 WHERE id = $3',
-      [returnBinId, nextPos, itemId]
-    );
-
-    const [, targetBinResult] = await Promise.all([
-      query(`UPDATE bins SET updated_at = ${d.now()} WHERE id = $1`, [checkoutRow.origin_bin_id]),
-      query<{ name: string }>('SELECT name FROM bins WHERE id = $1', [returnBinId]),
-    ]);
-    await query(`UPDATE bins SET updated_at = ${d.now()} WHERE id = $1`, [returnBinId]);
+  // If the item is not already in the return bin, move it there
+  if (returnBinId !== currentBinId) {
+    await setItemHome(query, itemId, { binId: returnBinId, areaId: null });
+    await touchBins(query, [checkoutRow.origin_bin_id, currentBinId, returnBinId]);
+    const targetBinResult = await query<{ name: string }>('SELECT name FROM bins WHERE id = $1', [returnBinId]);
 
     logRouteActivity(req, {
       locationId: access.locationId,
@@ -227,6 +231,17 @@ export const locationCheckoutsRouter = Router();
 
 locationCheckoutsRouter.use(authenticate);
 
+/** Shape returned by the location checkouts list: bin and area origin fields are nullable. */
+const CHECKOUT_LIST_SELECT = `SELECT ic.*, bi.name AS item_name,
+       b.name AS origin_bin_name, b.icon AS origin_bin_icon, b.color AS origin_bin_color,
+       a.name AS origin_area_name,
+       u.display_name AS checked_out_by_name
+     FROM item_checkouts ic
+     JOIN bin_items bi ON bi.id = ic.item_id
+     LEFT JOIN bins b ON b.id = ic.origin_bin_id
+     LEFT JOIN areas a ON a.id = ic.origin_area_id
+     JOIN users u ON u.id = ic.checked_out_by`;
+
 // GET /api/locations/:locationId/checkouts — active checkouts across location
 locationCheckoutsRouter.get('/:locationId/checkouts', requireLocationMember('locationId'), asyncHandler(async (req, res) => {
   const { locationId } = req.params;
@@ -235,20 +250,18 @@ locationCheckoutsRouter.get('/:locationId/checkouts', requireLocationMember('loc
     id: string;
     item_id: string;
     item_name: string;
-    origin_bin_id: string;
-    origin_bin_name: string;
-    origin_bin_icon: string;
-    origin_bin_color: string;
+    origin_bin_id: string | null;
+    origin_bin_name: string | null;
+    origin_bin_icon: string | null;
+    origin_bin_color: string | null;
+    origin_area_id: string | null;
+    origin_area_name: string | null;
     location_id: string;
     checked_out_by: string;
     checked_out_by_name: string;
     checked_out_at: string;
   }>(
-    `SELECT ic.*, bi.name AS item_name, b.name AS origin_bin_name, b.icon AS origin_bin_icon, b.color AS origin_bin_color, u.display_name AS checked_out_by_name
-     FROM item_checkouts ic
-     JOIN bin_items bi ON bi.id = ic.item_id
-     JOIN bins b ON b.id = ic.origin_bin_id
-     JOIN users u ON u.id = ic.checked_out_by
+    `${CHECKOUT_LIST_SELECT}
      WHERE ic.location_id = $1 AND ic.returned_at IS NULL AND bi.deleted_at IS NULL
      ORDER BY ic.checked_out_at DESC`,
     [locationId]
@@ -257,40 +270,171 @@ locationCheckoutsRouter.get('/:locationId/checkouts', requireLocationMember('loc
   res.json({ results: result.rows, count: result.rows.length });
 }));
 
+interface ScopedItem {
+  id: string;
+  name: string;
+  bin_id: string | null;
+  area_id: string | null;
+}
+
+async function loadScopedItem(txQuery: TxQueryFn, locationId: string, itemId: string, userId: string): Promise<ScopedItem> {
+  const r = await txQuery<ScopedItem>(
+    `SELECT bi.id, bi.name, bi.bin_id, bi.area_id
+       FROM ${ITEM_FROM}
+      WHERE bi.id = $1 AND ${itemScopePredicate(2, 3)}`,
+    [itemId, locationId, userId],
+  );
+  if (r.rows.length === 0) throw new NotFoundError('Item not found');
+  return r.rows[0];
+}
+
+// POST /api/locations/:locationId/items/:itemId/checkout — check out any item (box or loose)
+locationCheckoutsRouter.post(
+  '/:locationId/items/:itemId/checkout',
+  requireLocationMember('locationId'),
+  asyncHandler(async (req, res) => {
+    const { locationId, itemId } = req.params;
+    const userId = req.user!.id;
+    await requireMemberOrAbove(locationId, userId, 'check out items');
+
+    const item = await loadScopedItem(query, locationId, itemId, userId);
+
+    const existing = await query('SELECT id FROM item_checkouts WHERE item_id = $1 AND returned_at IS NULL', [itemId]);
+    if (existing.rows.length > 0) throw new ConflictError('Item is already checked out');
+
+    const checkoutId = generateUuid();
+    await query(
+      `INSERT INTO item_checkouts (id, item_id, origin_bin_id, origin_area_id, location_id, checked_out_by, checked_out_at)
+       VALUES ($1, $2, $3, $4, $5, $6, ${d.now()})`,
+      [checkoutId, itemId, item.bin_id, item.area_id, locationId, userId],
+    );
+    const checkout = await query('SELECT * FROM item_checkouts WHERE id = $1', [checkoutId]);
+
+    const entity = await describeHome(query, { binId: item.bin_id, areaId: item.area_id }, locationId);
+    logRouteActivity(req, {
+      locationId,
+      action: 'update',
+      ...entity,
+      changes: { item_checked_out: { old: null, new: item.name } },
+    });
+
+    res.status(201).json({ checkout: checkout.rows[0] });
+  }),
+);
+
+/**
+ * Close one active checkout and put the item in its return place (moving it when that differs
+ * from where it is now). Returns the resolved place and whether the item moved.
+ */
+async function closeCheckout(
+  txQuery: TxQueryFn,
+  co: { id: string; item_id: string; origin_bin_id: string | null; origin_area_id: string | null },
+  cur: { bin_id: string | null; area_id: string | null },
+  home: ResolvedTarget,
+  userId: string,
+): Promise<{ moved: boolean } | null> {
+  const upd = await txQuery<{ id: string }>(
+    `UPDATE item_checkouts
+        SET returned_at = ${d.now()}, returned_by = $1, return_bin_id = $2, return_area_id = $3
+      WHERE id = $4 AND returned_at IS NULL
+    RETURNING id`,
+    [userId, home.binId, home.areaId, co.id],
+  );
+  if (upd.rows.length === 0) return null;
+  const moved = (cur.bin_id ?? null) !== home.binId || (cur.area_id ?? null) !== home.areaId;
+  if (moved) await setItemHome(txQuery, co.item_id, home);
+  await touchBins(txQuery, [co.origin_bin_id, cur.bin_id, home.binId]);
+  return { moved };
+}
+
+// POST /api/locations/:locationId/items/:itemId/return — return a checked-out item
+// Body (all optional, at most one): { targetBinId } | { targetAreaId } | { unassigned: true }.
+// Default: back to the original bin/area; if that no longer exists (or is trashed) the item becomes unassigned.
+locationCheckoutsRouter.post(
+  '/:locationId/items/:itemId/return',
+  requireLocationMember('locationId'),
+  asyncHandler(async (req, res) => {
+    const { locationId, itemId } = req.params;
+    const userId = req.user!.id;
+    const target: ItemTarget | null = parseItemTarget(req.body);
+    await requireMemberOrAbove(locationId, userId, 'return items');
+
+    const out = await withTransaction(async (txQuery) => {
+      const item = await loadScopedItem(txQuery, locationId, itemId, userId);
+      const active = await txQuery<{ id: string; item_id: string; origin_bin_id: string | null; origin_area_id: string | null }>(
+        'SELECT id, item_id, origin_bin_id, origin_area_id FROM item_checkouts WHERE item_id = $1 AND returned_at IS NULL',
+        [itemId],
+      );
+      if (active.rows.length === 0) throw new NotFoundError('Item is not checked out');
+      const co = active.rows[0];
+
+      const home = target
+        ? await resolveItemTarget(txQuery, target, userId, locationId)
+        : await resolveDefaultReturnHome(txQuery, co, locationId, userId);
+
+      const result = await closeCheckout(txQuery, co, item, home, userId);
+      const updated = await txQuery('SELECT * FROM item_checkouts WHERE id = $1', [co.id]);
+      const homeEntity = await describeHome(txQuery, home, locationId);
+      const fromEntity = result?.moved
+        ? await describeHome(txQuery, { binId: item.bin_id, areaId: item.area_id }, locationId)
+        : null;
+      return { checkout: updated.rows[0], moved: result?.moved ?? false, item, homeEntity, fromEntity };
+    });
+
+    if (out.moved && out.fromEntity) {
+      logRouteActivity(req, {
+        locationId,
+        action: 'update',
+        ...out.fromEntity,
+        changes: { item_returned_to: { old: null, new: out.homeEntity.entityName ?? null } },
+      });
+      logRouteActivity(req, {
+        locationId,
+        action: 'update',
+        ...out.homeEntity,
+        changes: { item_received: { old: null, new: out.item.name } },
+      });
+    } else {
+      logRouteActivity(req, {
+        locationId,
+        action: 'update',
+        ...out.homeEntity,
+        changes: { item_returned: { old: null, new: out.item.name } },
+      });
+    }
+
+    res.json({ checkout: out.checkout });
+  }),
+);
+
 // POST /api/locations/:locationId/checkouts/bulk-return — return N items
+// Body: { checkoutIds, targetBinId? | targetAreaId? | unassigned? } (at most one target; default = original place)
 locationCheckoutsRouter.post(
   '/:locationId/checkouts/bulk-return',
   requireLocationMember('locationId'),
   asyncHandler(async (req, res) => {
     const { locationId } = req.params;
-    const { checkoutIds, targetBinId } = req.body ?? {};
+    const { checkoutIds } = req.body ?? {};
     const validIds = validateBulkIds(checkoutIds, 'checkoutIds');
-    if (targetBinId !== undefined && (typeof targetBinId !== 'string' || targetBinId.length === 0)) {
-      throw new ValidationError('targetBinId must be a non-empty string when provided');
-    }
+    const target = parseItemTarget(req.body);
     await requireMemberOrAbove(locationId, req.user!.id, 'bulk-return checkouts');
 
     const { returned, errors } = await withTransaction(async (txQuery) => {
-      let targetRow: { id: string; location_id: string; name: string } | null = null;
-      if (targetBinId) {
-        const tg = await txQuery<{ id: string; location_id: string; name: string }>(
-          `SELECT id, location_id, name FROM bins WHERE id = $1 AND deleted_at IS NULL`,
-          [targetBinId],
-        );
-        if (tg.rows.length === 0 || tg.rows[0].location_id !== locationId) {
-          throw new NotFoundError('Target bin not found in this location');
-        }
-        targetRow = tg.rows[0];
-      }
+      const explicit = target ? await resolveItemTarget(txQuery, target, req.user!.id, locationId) : null;
 
       // Find active checkouts in this location matching the requested IDs
       const placeholders = validIds.map((_, i) => `$${i + 2}`).join(', ');
-      const active = await txQuery<{ id: string; item_id: string; origin_bin_id: string; location_id: string }>(
-        `SELECT id, item_id, origin_bin_id, location_id
-           FROM item_checkouts
-          WHERE returned_at IS NULL
-            AND location_id = $1
-            AND id IN (${placeholders})`,
+      const active = await txQuery<{
+        id: string; item_id: string; origin_bin_id: string | null; origin_area_id: string | null;
+        cur_bin_id: string | null; cur_area_id: string | null;
+      }>(
+        `SELECT ic.id, ic.item_id, ic.origin_bin_id, ic.origin_area_id,
+                bi.bin_id AS cur_bin_id, bi.area_id AS cur_area_id
+           FROM item_checkouts ic
+           JOIN bin_items bi ON bi.id = ic.item_id
+          WHERE ic.returned_at IS NULL
+            AND ic.location_id = $1
+            AND ic.id IN (${placeholders})`,
         [locationId, ...validIds],
       );
       const activeSet = new Set(active.rows.map((r) => r.id));
@@ -299,44 +443,21 @@ locationCheckoutsRouter.post(
 
       if (active.rows.length === 0) return { returned: 0, errors: errs };
 
-      const affectedBinIds = new Set<string>();
-      let nextPos = 0;
-      if (targetRow) {
-        const maxRes = await txQuery<{ max_pos: number | null }>(
-          `SELECT MAX(position) AS max_pos FROM bin_items WHERE bin_id = $1`,
-          [targetRow.id],
-        );
-        nextPos = (maxRes.rows[0]?.max_pos ?? -1) + 1;
-      }
-
+      const defaults = new Map<string, ResolvedTarget>();
       let returnedCount = 0;
       for (const co of active.rows) {
-        const returnBinId = targetRow?.id ?? co.origin_bin_id;
-        if (targetRow) {
-          await txQuery(
-            `UPDATE bin_items SET bin_id = $1, position = $2 WHERE id = $3`,
-            [targetRow.id, nextPos++, co.item_id],
-          );
+        let home = explicit;
+        if (!home) {
+          const key = `${co.origin_bin_id ?? ''}|${co.origin_area_id ?? ''}`;
+          let cached = defaults.get(key);
+          if (!cached) {
+            cached = await resolveDefaultReturnHome(txQuery, co, locationId, req.user!.id);
+            defaults.set(key, cached);
+          }
+          home = cached;
         }
-        const upd = await txQuery<{ id: string }>(
-          `UPDATE item_checkouts
-              SET returned_at = ${d.now()}, returned_by = $1, return_bin_id = $2
-            WHERE id = $3 AND returned_at IS NULL
-          RETURNING id`,
-          [req.user!.id, returnBinId, co.id],
-        );
-        if (upd.rows.length > 0) {
-          returnedCount += 1;
-          affectedBinIds.add(co.origin_bin_id);
-          affectedBinIds.add(returnBinId);
-        }
-      }
-
-      // Touch bins
-      const ids = [...affectedBinIds];
-      if (ids.length > 0) {
-        const ph = ids.map((_, i) => `$${i + 1}`).join(', ');
-        await txQuery(`UPDATE bins SET updated_at = ${d.now()} WHERE id IN (${ph})`, ids);
+        const done = await closeCheckout(txQuery, co, { bin_id: co.cur_bin_id, area_id: co.cur_area_id }, home, req.user!.id);
+        if (done) returnedCount += 1;
       }
 
       return { returned: returnedCount, errors: errs };
@@ -348,7 +469,17 @@ locationCheckoutsRouter.post(
       action: 'bulk_return',
       entityId: undefined,
       entityName: undefined,
-      changes: { counts: { old: null, new: { affected: returned, targetBinId: targetBinId ?? null } } },
+      changes: {
+        counts: {
+          old: null,
+          new: {
+            affected: returned,
+            targetBinId: target?.kind === 'bin' ? target.id : null,
+            targetAreaId: target?.kind === 'area' ? target.id : null,
+            unassigned: target?.kind === 'unassigned',
+          },
+        },
+      },
     });
 
     res.json({ returned, errors });
