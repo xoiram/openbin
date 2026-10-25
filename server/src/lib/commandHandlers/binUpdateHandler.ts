@@ -1,6 +1,7 @@
 import type { TxQueryFn } from '../../db.js';
 import { d, generateUuid } from '../../db.js';
 import { getMemberRole } from '../binAccess.js';
+import { assertAreaSettable, assertVisibilityAllowed, syncChildrenArea, syncChildrenVisibility, type Visibility } from '../binHierarchy.js';
 import type { ActionResult } from '../commandExecutor.js';
 import type { CommandAction } from '../commandParser.js';
 import { replaceCustomFieldValues } from '../customFieldHelpers.js';
@@ -8,8 +9,8 @@ import { ForbiddenError } from '../httpErrors.js';
 import { type ActionContext, assertBinVisible } from './types.js';
 
 export async function handleUpdateBin(action: Extract<CommandAction, { type: 'update_bin' }>, ctx: ActionContext, tx: TxQueryFn): Promise<ActionResult> {
-  const bin = await tx<{ id: string; name: string; notes: string; tags: string[]; area_id: string | null; icon: string; color: string; card_style: string; visibility: string; created_by: string }>(
-    'SELECT id, name, notes, tags, area_id, icon, color, card_style, visibility, created_by FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL',
+  const bin = await tx<{ id: string; name: string; notes: string; tags: string[]; area_id: string | null; icon: string; color: string; card_style: string; visibility: string; created_by: string; parent_bin_id: string | null }>(
+    'SELECT id, name, notes, tags, area_id, icon, color, card_style, visibility, created_by, parent_bin_id FROM bins WHERE id = $1 AND location_id = $2 AND deleted_at IS NULL',
     [action.bin_id, ctx.locationId]
   );
   if (bin.rows.length === 0) throw new Error(`Bin not found: ${action.bin_name}`);
@@ -66,6 +67,7 @@ export async function handleUpdateBin(action: Extract<CommandAction, { type: 'up
     changes.card_style = { old: old.card_style, new: action.card_style };
   }
   if (action.visibility !== undefined && action.visibility !== old.visibility) {
+    await assertVisibilityAllowed(tx, old, action.visibility);
     updates.push(`visibility = $${paramIdx++}`);
     params.push(action.visibility);
     changes.visibility = { old: old.visibility, new: action.visibility };
@@ -95,6 +97,7 @@ export async function handleUpdateBin(action: Extract<CommandAction, { type: 'up
       }
     }
     if (areaId !== old.area_id) {
+      assertAreaSettable(old);
       updates.push(`area_id = $${paramIdx++}`);
       params.push(areaId);
       // Resolve old area name for change tracking
@@ -111,6 +114,15 @@ export async function handleUpdateBin(action: Extract<CommandAction, { type: 'up
     updates.push(`updated_at = ${d.now()}`);
     params.push(action.bin_id);
     await tx(`UPDATE bins SET ${updates.join(', ')} WHERE id = $${paramIdx}`, params);
+  }
+
+  // A parent's area and privacy carry over to its children
+  if (!old.parent_bin_id) {
+    if (changes.area) {
+      const newArea = await tx<{ area_id: string | null }>('SELECT area_id FROM bins WHERE id = $1', [action.bin_id]);
+      await syncChildrenArea(tx, action.bin_id, newArea.rows[0]?.area_id ?? null);
+    }
+    if (changes.visibility) await syncChildrenVisibility(tx, action.bin_id, action.visibility as Visibility);
   }
 
   // Handle custom fields

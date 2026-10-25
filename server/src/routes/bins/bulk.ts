@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { d, query, withTransaction } from '../../db.js';
 import { asyncHandler } from '../../lib/asyncHandler.js';
 import { getMemberRole, requireAdmin, requireMemberOrAbove, verifyBinAccess, verifyLocationMembership } from '../../lib/binAccess.js';
+import { assertNotChild, loadBinNode, syncChildrenLocation } from '../../lib/binHierarchy.js';
 import { fetchBinById } from '../../lib/binQueries.js';
 import { insertBinWithItems } from '../../lib/binUpdateHelpers.js';
 import { remapCustomFieldsForMove } from '../../lib/customFieldHelpers.js';
@@ -31,6 +32,10 @@ router.post('/:id/move', asyncHandler(async (req, res) => {
     throw new ValidationError('Bin is already in this location');
   }
 
+  // A bin inside another bin moves with its parent, never on its own
+  const node = await loadBinNode(query, id);
+  if (node) assertNotChild(node, 'moved');
+
   if (!await verifyLocationMembership(targetLocationId, req.user!.id)) {
     throw new ForbiddenError('Not a member of target location');
   }
@@ -53,6 +58,13 @@ router.post('/:id/move', asyncHandler(async (req, res) => {
       [targetLocationId, id],
     );
     await remapCustomFieldsForMove(id, access.locationId, targetLocationId, skipFieldCreation, tx);
+    // Children (and their items) follow the parent
+    const children = await tx<{ id: string }>('SELECT id FROM bins WHERE parent_bin_id = $1', [id]);
+    await syncChildrenLocation(tx, id, targetLocationId);
+    for (const child of children.rows) {
+      await remapCustomFieldsForMove(child.id, access.locationId, targetLocationId, skipFieldCreation, tx);
+    }
+    await tx('UPDATE bin_items SET location_id = $1 WHERE bin_id = $2 OR bin_id IN (SELECT id FROM bins WHERE parent_bin_id = $2)', [targetLocationId, id]);
   });
 
   // Re-fetch updated bin
@@ -103,7 +115,9 @@ router.post('/:id/duplicate', asyncHandler(async (req, res) => {
       ? (src.custom_fields as Record<string, string>)
       : undefined;
 
+  // A copy of a child is a sibling inside the same parent; anything else becomes a top-level copy (no children).
   const newBin = await insertBinWithItems({
+    parentBinId: src.parent_bin_id || null,
     locationId: src.location_id,
     name: newName,
     areaId: src.area_id || null,

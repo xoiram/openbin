@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { query } from '../../db.js';
+import { query, withTransaction } from '../../db.js';
 import { asyncHandler } from '../../lib/asyncHandler.js';
 import { getMemberRole, requireMemberOrAbove, verifyAreaInLocation, verifyBinAccess, verifyLocationMembership } from '../../lib/binAccess.js';
+import { assertAreaSettable, assertValidParent, assertVisibilityAllowed, childFieldsFromParent, syncChildrenArea, syncChildrenVisibility, type Visibility } from '../../lib/binHierarchy.js';
 import { BIN_SELECT_COLS, buildBinListQuery, fetchBinById } from '../../lib/binQueries.js';
-import { buildBinSetClauses, buildBinUpdateDiff, insertBinWithItems, replaceBinItems } from '../../lib/binUpdateHelpers.js';
+import { assertParentUsableBy, buildBinSetClauses, buildBinUpdateDiff, insertBinWithItems, replaceBinItems } from '../../lib/binUpdateHelpers.js';
 import { validateBinFields } from '../../lib/binValidation.js';
 import { replaceCustomFieldValues } from '../../lib/customFieldHelpers.js';
 import { ForbiddenError, NotFoundError, ValidationError } from '../../lib/httpErrors.js';
@@ -16,7 +17,7 @@ const router = Router();
 
 // POST /api/bins — create bin
 router.post('/', asyncHandler(async (req, res) => {
-  const { locationId, name, areaId, items, notes, tags, icon, color, visibility, cardStyle, customFields } = req.body;
+  const { locationId, name, areaId, items, notes, tags, icon, color, visibility, cardStyle, customFields, parentBinId } = req.body;
 
   if (!locationId) {
     throw new ValidationError('locationId is required');
@@ -24,6 +25,9 @@ router.post('/', asyncHandler(async (req, res) => {
 
   validateBinName(name);
   validateBinFields({ items, tags, notes, icon, color, cardStyle, visibility, customFields });
+  if (parentBinId !== undefined && parentBinId !== null && typeof parentBinId !== 'string') {
+    throw new ValidationError('parentBinId must be a string');
+  }
 
   await requireMemberOrAbove(locationId, req.user!.id, 'create bins');
 
@@ -46,6 +50,7 @@ router.post('/', asyncHandler(async (req, res) => {
     visibility: visibility || 'location',
     items: Array.isArray(items) ? items : [],
     customFields: customFields || undefined,
+    parentBinId: parentBinId || null,
   }, req.user!.id);
 
   logRouteActivity(req, { entityType: 'bin', locationId, action: 'create', entityId: bin.id, entityName: bin.name });
@@ -55,7 +60,7 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // GET /api/bins — list all (non-deleted) bins for a location
 // Optional query params: q, tag, tags, tag_mode, area_id, areas, colors,
-//   has_items, has_notes, needs_organizing, sort, sort_dir, limit, offset
+//   has_items, has_notes, needs_organizing, parent, top_level, sort, sort_dir, limit, offset
 router.get('/', asyncHandler(async (req, res) => {
   const locationId = req.query.location_id as string | undefined;
 
@@ -86,6 +91,8 @@ router.get('/', asyncHandler(async (req, res) => {
     hasNotes: req.query.has_notes as string | undefined,
     needsOrganizing: req.query.needs_organizing as string | undefined,
     unusedSince: req.query.unused_since as string | undefined,
+    parent: req.query.parent as string | undefined,
+    topLevel: (req.query.top_level ?? req.query.topLevel) as string | undefined,
     sort: req.query.sort as string | undefined,
     sortDir: req.query.sort_dir as string | undefined,
   });
@@ -156,12 +163,17 @@ router.put('/:id', asyncHandler(async (req, res) => {
     throw new ForbiddenError('Viewers cannot edit bins');
   }
 
-  const { name, areaId, items, notes, tags, icon, color, cardStyle, visibility, customFields } = req.body;
+  const { name, areaId, items, notes, tags, icon, color, cardStyle, visibility, customFields, parentBinId } = req.body;
+
+  if (parentBinId !== undefined && parentBinId !== null && typeof parentBinId !== 'string') {
+    throw new ValidationError('parentBinId must be a string or null');
+  }
 
   // Determine if this update contains metadata changes (anything besides items)
   const hasMetadataChanges = name !== undefined || areaId !== undefined || notes !== undefined
     || tags !== undefined || icon !== undefined || color !== undefined
-    || cardStyle !== undefined || visibility !== undefined || customFields !== undefined;
+    || cardStyle !== undefined || visibility !== undefined || customFields !== undefined
+    || parentBinId !== undefined;
 
   // Members can edit items on any bin, but metadata only on bins they created
   if (role === 'member' && hasMetadataChanges && access.createdBy !== req.user!.id) {
@@ -176,34 +188,76 @@ router.put('/:id', asyncHandler(async (req, res) => {
     throw new ForbiddenError('Only the bin creator can set visibility to private');
   }
 
-  // Fetch old state for activity log diff
-  const oldResult = await query(
-    'SELECT name, area_id, notes, tags, icon, color, card_style, visibility FROM bins WHERE id = $1',
-    [id]
-  );
-  const oldBin = oldResult.rows[0];
-
   if (areaId !== undefined && areaId) {
     await verifyAreaInLocation(areaId, access.locationId);
   }
 
-  const { setClauses, params, nextParamIdx } = buildBinSetClauses({ name, areaId, notes, tags, icon, color, cardStyle, visibility });
-  params.push(id);
+  const userId = req.user!.id;
+  const { oldBin, itemChanges, effective } = await withTransaction(async (tx) => {
+    // Fetch old state for activity log diff and nesting rules
+    const oldResult = await tx(
+      'SELECT name, area_id, notes, tags, icon, color, card_style, visibility, parent_bin_id FROM bins WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
+    const old = oldResult.rows[0];
+    if (!old) throw new NotFoundError('Bin not found');
 
-  await query(
-    `UPDATE bins SET ${setClauses.join(', ')} WHERE id = $${nextParamIdx} AND deleted_at IS NULL`,
-    params
-  );
+    const requestedArea: string | null | undefined = areaId === undefined ? undefined : (areaId || null);
+    let effArea = requestedArea;
+    let effVisibility: Visibility | undefined = visibility;
+    let effParent: string | null | undefined;
 
-  // Handle items separately — full replacement
-  const itemChanges = items !== undefined && Array.isArray(items)
-    ? await replaceBinItems(id, items)
-    : null;
+    if (typeof parentBinId === 'string' && parentBinId) {
+      // Nest inside a parent: area and visibility follow it.
+      const parent = await assertValidParent(tx, { binId: id, parentId: parentBinId, locationId: access.locationId });
+      assertParentUsableBy(parent, userId);
+      if (requestedArea !== undefined && requestedArea !== parent.area_id) {
+        assertAreaSettable({ parent_bin_id: parentBinId });
+      }
+      const inherited = childFieldsFromParent(parent, (visibility ?? old.visibility) as Visibility);
+      effArea = inherited.area_id;
+      effVisibility = inherited.visibility;
+      effParent = parentBinId;
+    } else if (parentBinId === null || parentBinId === '') {
+      // Take out of the parent (no-op for a top-level bin); keeps current area and visibility.
+      effParent = null;
+    } else if (old.parent_bin_id) {
+      // Stays a child: area is the parent's, and it can't be more public than the parent.
+      if (requestedArea !== undefined && requestedArea !== old.area_id) assertAreaSettable({ parent_bin_id: old.parent_bin_id });
+      effArea = undefined;
+      if (visibility !== undefined) await assertVisibilityAllowed(tx, { parent_bin_id: old.parent_bin_id }, visibility);
+    }
 
-  // Handle custom fields separately — full replacement
-  if (customFields !== undefined && typeof customFields === 'object' && customFields !== null) {
-    await replaceCustomFieldValues(id, customFields, access.locationId);
-  }
+    const { setClauses, params, nextParamIdx } = buildBinSetClauses({
+      name, areaId: effArea, notes, tags, icon, color, cardStyle, visibility: effVisibility,
+    });
+    let idx = nextParamIdx;
+    if (effParent !== undefined && effParent !== old.parent_bin_id) {
+      setClauses.push(`parent_bin_id = $${idx++}`);
+      params.push(effParent);
+    }
+    params.push(id);
+    await tx(`UPDATE bins SET ${setClauses.join(', ')} WHERE id = $${idx} AND deleted_at IS NULL`, params);
+
+    // A parent's area and privacy carry over to its children.
+    const finalParent = effParent === undefined ? old.parent_bin_id : effParent;
+    if (!finalParent) {
+      if (effArea !== undefined) await syncChildrenArea(tx, id, effArea);
+      if (effVisibility) await syncChildrenVisibility(tx, id, effVisibility);
+    }
+
+    // Handle items separately — full replacement
+    const changes = items !== undefined && Array.isArray(items)
+      ? await replaceBinItems(id, items, access.locationId, tx)
+      : null;
+
+    // Handle custom fields separately — full replacement
+    if (customFields !== undefined && typeof customFields === 'object' && customFields !== null) {
+      await replaceCustomFieldValues(id, customFields, access.locationId, tx);
+    }
+
+    return { oldBin: old, itemChanges: changes, effective: { areaId: effArea, visibility: effVisibility, parentBinId: effParent } };
+  });
 
   // Re-fetch with BIN_SELECT_COLS
   const bin = await fetchBinById(id, { userId: req.user!.id, excludeDeleted: true });
@@ -211,15 +265,13 @@ router.put('/:id', asyncHandler(async (req, res) => {
     throw new NotFoundError('Bin not found');
   }
 
-  if (oldBin) {
-    const changes = await buildBinUpdateDiff(
-      oldBin,
-      { name, areaId, notes, tags, icon, color, cardStyle, visibility },
-      itemChanges,
-    );
-    if (changes) {
-      logRouteActivity(req, { entityType: 'bin', locationId: access.locationId, action: 'update', entityId: id, entityName: bin.name, changes });
-    }
+  const changes = await buildBinUpdateDiff(
+    oldBin,
+    { name, areaId: effective.areaId, notes, tags, icon, color, cardStyle, visibility: effective.visibility, parentBinId: effective.parentBinId },
+    itemChanges,
+  );
+  if (changes) {
+    logRouteActivity(req, { entityType: 'bin', locationId: access.locationId, action: 'update', entityId: id, entityName: bin.name, changes });
   }
 
   res.json(bin);
