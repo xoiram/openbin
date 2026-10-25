@@ -5,6 +5,7 @@ import type bins from './locales/en/bins.json';
 import type bulkAdd from './locales/en/bulkAdd.json';
 import type capture from './locales/en/capture.json';
 import type common from './locales/en/common.json';
+import type errors from './locales/en/errors.json';
 import type onboarding from './locales/en/onboarding.json';
 import type photos from './locales/en/photos.json';
 import type print from './locales/en/print.json';
@@ -19,6 +20,7 @@ declare module 'i18next' {
     defaultNS: 'common';
     resources: {
       common: typeof common;
+      errors: typeof errors;
       auth: typeof auth;
       onboarding: typeof onboarding;
       tour: typeof tour;

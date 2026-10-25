@@ -1,0 +1,24 @@
+{
+  "codes": {
+    "RATE_LIMITED": "For mange forespørsler. Vent litt og prøv igjen.",
+    "UNAUTHORIZED": "Autentisering mislyktes. Sjekk opplysningene dine eller logg inn på nytt.",
+    "SESSION_REVOKED": "Økten din er avsluttet. Logg inn på nytt.",
+    "CSRF_INVALID": "Økten din kunne ikke verifiseres. Last inn siden på nytt og prøv igjen.",
+    "FORBIDDEN": "Du har ikke tilgang til å gjøre dette.",
+    "NOT_FOUND": "Fant det ikke. Det kan ha blitt flyttet eller slettet.",
+    "CONFLICT": "Dette er i konflikt med eksisterende data.",
+    "PAYLOAD_TOO_LARGE": "Dataene du sendte er for store.",
+    "MAINTENANCE": "Tjenesten er under vedlikehold. Prøv igjen om litt.",
+    "INTERNAL_ERROR": "Noe gikk galt på serveren. Prøv igjen.",
+    "SERVICE_UNAVAILABLE": "Tjenesten er midlertidig utilgjengelig. Prøv igjen senere.",
+    "SERVICE_NOT_CONFIGURED": "Denne tjenesten er ikke satt opp på denne serveren.",
+    "NOT_AVAILABLE": "Dette er ikke tilgjengelig akkurat nå.",
+    "AI_CONCURRENCY_LIMITED": "For mange AI-forespørsler pågår. Vent til en er ferdig og prøv igjen.",
+    "AI_RATE_LIMITED": "For mange AI-forespørsler. Vent litt og prøv igjen.",
+    "ACCOUNT_SUSPENDED": "Denne kontoen er suspendert.",
+    "ACCOUNT_DELETED": "Denne kontoen er slettet.",
+    "DEMO_RESTRICTION": "Denne handlingen er ikke tilgjengelig i demoen.",
+    "SUBSCRIPTION_EXPIRED": "Abonnementet ditt har utløpt.",
+    "PLAN_RESTRICTED": "Denne funksjonen er ikke inkludert i abonnementet ditt."
+  }
+}
