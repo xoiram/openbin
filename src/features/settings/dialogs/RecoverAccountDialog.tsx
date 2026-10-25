@@ -21,10 +21,6 @@ export interface RecoverAccountDialogProps {
   onRecovered: () => Promise<void> | void;
 }
 
-// The description below is split into prefix/suffix t() keys around
-// scheduledDate so the formatted date renders as its own React node — a test
-// asserts on the date substring directly. i18next-cli lint flags this as
-// "string concatenation"; it's intentional here — see docs/i18n.md.
 export function RecoverAccountDialog({
   open,
   onOpenChange,
@@ -34,7 +30,7 @@ export function RecoverAccountDialog({
   onRecovered,
 }: RecoverAccountDialogProps) {
   const { recoverAccount } = useAuth();
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,7 +48,7 @@ export function RecoverAccountDialog({
     }
   }
 
-  const scheduledDate = new Date(scheduledAt).toLocaleDateString(undefined, {
+  const scheduledDate = new Date(scheduledAt).toLocaleDateString(i18n.language, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -64,8 +60,10 @@ export function RecoverAccountDialog({
         <DialogHeader>
           <DialogTitle>{t('recoverDialog.title', { defaultValue: 'Account scheduled for deletion' })}</DialogTitle>
           <DialogDescription>
-            {t('recoverDialog.descPrefix', { defaultValue: 'This account is scheduled for permanent deletion on' })}{' '}
-            {scheduledDate}. {t('recoverDialog.descSuffix', { defaultValue: 'Recover it now to continue using your account.' })}
+            {t('recoverDialog.desc', {
+              defaultValue: 'This account is scheduled for permanent deletion on {{date}}. Recover it now to continue using your account.',
+              date: scheduledDate,
+            })}
           </DialogDescription>
         </DialogHeader>
         {error && (

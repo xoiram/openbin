@@ -1,8 +1,1 @@
-{
-  "src/features/settings/dialogs/DeleteAccountDialog.tsx": {
-    "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 5
-  },
-  "src/features/settings/dialogs/RecoverAccountDialog.tsx": {
-    "concatenation: Avoid splitting text across multiple translations (<Trans> or t()). Use a single translation with placeholders instead.": 1
-  }
-}
+{}

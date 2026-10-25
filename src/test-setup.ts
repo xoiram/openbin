@@ -37,9 +37,13 @@ vi.mock('react-i18next', () => ({
   // plain text. A plain-text version would let a test assert on the visible
   // words while silently never exercising (or noticing the breakage of) the
   // real link/element wiring passed via `components`.
-  Trans: ({ children, defaults, components }: { children?: ReactNode; defaults?: string; components?: Record<string, ReactElement> }) => {
+  Trans: ({ children, defaults: rawDefaults, components, values }: { children?: ReactNode; defaults?: string; components?: Record<string, ReactElement>; values?: Record<string, unknown> }) => {
     if (children) return children;
-    if (!defaults) return null;
+    if (!rawDefaults) return null;
+    // Fill {{var}} placeholders from `values` like the real <Trans> does.
+    const defaults = values
+      ? rawDefaults.replace(/\{\{\s*(\w+)\s*\}\}/g, (ph, name: string) => (name in values ? String(values[name]) : ph))
+      : rawDefaults;
     if (!components) return defaults.replace(/<\/?[^>]+>/g, '');
 
     const parts: ReactNode[] = [];
