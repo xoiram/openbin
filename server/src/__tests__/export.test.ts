@@ -2,8 +2,10 @@ import type { Express } from 'express';
 import { strToU8, zipSync } from 'fflate';
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { query } from '../db.js';
 import { createApp } from '../index.js';
 import { createTestArea, createTestBin, createTestLocation, createTestUser } from './helpers.js';
+import { addLoose } from './looseItemsHelpers.js';
 
 let app: Express;
 
@@ -16,7 +18,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('GET /api/locations/:id/export', () => {
-  it('exports V2 JSON with bins, tags, and areas', async () => {
+  it('exports v4 JSON with bins, tags, and areas', async () => {
     const { token } = await createTestUser(app);
     const location = await createTestLocation(app, token);
     const area = await createTestArea(app, token, location.id, 'Garage');
@@ -30,7 +32,7 @@ describe('GET /api/locations/:id/export', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.version).toBe(2);
+    expect(res.body.version).toBe(4);
     expect(res.body.bins).toHaveLength(1);
     expect(res.body.bins[0].name).toBe('Toolbox');
     expect(res.body.bins[0].items).toHaveLength(2);
@@ -48,7 +50,7 @@ describe('GET /api/locations/:id/export', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.version).toBe(2);
+    expect(res.body.version).toBe(4);
     expect(res.body.bins).toHaveLength(0);
   });
 
@@ -515,7 +517,7 @@ function buildTestZip(bins: unknown[], manifest?: Record<string, unknown>): Buff
   return Buffer.from(zipSync({
     'manifest.json': strToU8(JSON.stringify({
       format: 'openbin-zip',
-      version: 3,
+      version: 4,
       exportedAt: new Date().toISOString(),
       locationName: 'Test',
       binCount: bins.length,
@@ -615,5 +617,249 @@ describe('POST /api/locations/:id/import/zip', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(listRes.body.results).toHaveLength(1);
     expect(listRes.body.results[0].name).toBe('NewZipBin');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Format version
+// ---------------------------------------------------------------------------
+
+describe('export format version', () => {
+  const now = new Date().toISOString();
+  const oneBin = { id: 'v00001', name: 'VersionBin', items: ['x'], notes: '', tags: [], icon: '', color: '', createdAt: now, updatedAt: now, photos: [] };
+
+  async function jsonImport(version: unknown) {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    return request(app)
+      .post(`/api/locations/${location.id}/import`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...(version === undefined ? {} : { version }), bins: [oneBin], mode: 'merge' });
+  }
+
+  it.each([2, 3, 4])('JSON import accepts version %i', async (version) => {
+    const res = await jsonImport(version);
+    expect(res.status).toBe(200);
+    expect(res.body.binsImported).toBe(1);
+  });
+
+  it('JSON import accepts a file without a version (legacy)', async () => {
+    expect((await jsonImport(undefined)).status).toBe(200);
+  });
+
+  it.each([5, 99, 1, 0, 4.5, '4', true])('JSON import rejects version %j with 422', async (version) => {
+    const res = await jsonImport(version);
+    expect(res.status).toBe(422);
+    expect(res.body.error).toBe('VALIDATION_ERROR');
+    expect(res.body.message).toMatch(/version/i);
+  });
+
+  it('JSON dry run also rejects an unsupported version', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const res = await request(app)
+      .post(`/api/locations/${location.id}/import`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ version: 5, bins: [oneBin], dryRun: true });
+    expect(res.status).toBe(422);
+  });
+
+  async function zipImport(version: unknown, dryRun = false) {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const zip = buildTestZip([{ name: 'ZipVer', items: [] }], version === undefined ? { version: undefined } : { version });
+    const req = request(app).post(`/api/locations/${location.id}/import/zip`).set('Authorization', `Bearer ${token}`);
+    if (dryRun) req.field('dryRun', 'true');
+    return req.attach('file', zip, 'export.zip');
+  }
+
+  it.each([2, 3, 4])('ZIP import accepts manifest version %i', async (version) => {
+    expect((await zipImport(version)).status).toBe(200);
+  });
+
+  it('ZIP import accepts a manifest without a version', async () => {
+    expect((await zipImport(undefined)).status).toBe(200);
+  });
+
+  it.each([5, 1, 4.5, 'x'])('ZIP import rejects manifest version %j with 422', async (version) => {
+    expect((await zipImport(version)).status).toBe(422);
+    expect((await zipImport(version, true)).status).toBe(422);
+  });
+
+  it('an old v2 file with only active bins and areas still imports (no loose items, no children)', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const res = await request(app)
+      .post(`/api/locations/${location.id}/import`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        version: 2,
+        bins: [{ ...oneBin, location: 'Garage / Shelf' }],
+        areas: [{ path: 'Garage / Shelf' }, { path: 'Attic' }],
+        mode: 'merge',
+      });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ binsImported: 1, areasImported: 2, looseItemsImported: 0, looseItemsSkipped: 0, binsSkippedUnresolvedParent: 0 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Loose items in the export formats
+// ---------------------------------------------------------------------------
+
+/** Loose items created within the same second have no meaningful order: compare by name. */
+const byItemName = (items: Array<string | { name: string }> | undefined) =>
+  [...(items ?? [])].sort((a, b) => (typeof a === 'string' ? a : a.name).localeCompare(typeof b === 'string' ? b : b.name));
+
+describe('loose items in exports', () => {
+  it('JSON export carries area items and unassignedItems; ZIP manifest the same', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const garage = await createTestArea(app, token, location.id, 'Garage');
+    const empty = await createTestArea(app, token, location.id, 'Empty');
+    await addLoose(app, token, location.id, { name: 'Tape', quantity: 3, areaId: garage.id });
+    await addLoose(app, token, location.id, { name: 'Glue', areaId: garage.id });
+    await addLoose(app, token, location.id, { name: 'Batteries' });
+
+    const res = await request(app).get(`/api/locations/${location.id}/export`).set('Authorization', `Bearer ${token}`);
+    const byPath = Object.fromEntries(res.body.areas.map((a: { path: string; items?: unknown[] }) => [a.path, a.items]));
+    expect(byItemName(byPath.Garage as Array<string | { name: string }>)).toEqual(['Glue', { name: 'Tape', quantity: 3 }]);
+    expect(byPath.Empty).toBeUndefined();
+    expect(res.body.areas.map((a: { path: string }) => a.path).sort()).toEqual(['Empty', 'Garage']);
+    expect(res.body.unassignedItems).toEqual(['Batteries']);
+    expect(empty.id).toBeTruthy();
+
+    const zipRes = await request(app)
+      .get(`/api/locations/${location.id}/export/zip`)
+      .set('Authorization', `Bearer ${token}`)
+      .buffer(true)
+      .parse((r, cb) => {
+        const chunks: Buffer[] = [];
+        r.on('data', (c: Buffer) => chunks.push(c));
+        r.on('end', () => cb(null, Buffer.concat(chunks)));
+      });
+    const files = (await import('fflate')).unzipSync(zipRes.body as Buffer);
+    const manifest = JSON.parse(new TextDecoder().decode(files['manifest.json']));
+    expect(manifest.version).toBe(4);
+    expect(manifest.unassignedItems).toEqual(['Batteries']);
+    expect(byItemName(manifest.areas.find((a: { path: string }) => a.path === 'Garage').items)).toEqual(['Glue', { name: 'Tape', quantity: 3 }]);
+  });
+
+  it('does not export loose items that were deleted', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const item = await addLoose(app, token, location.id, { name: 'Gone' });
+    await request(app).delete(`/api/locations/${location.id}/items/${item.id}`).set('Authorization', `Bearer ${token}`);
+    const res = await request(app).get(`/api/locations/${location.id}/export`).set('Authorization', `Bearer ${token}`);
+    expect(res.body.unassignedItems).toBeUndefined();
+  });
+
+  it('JSON import validates loose items', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const post = (body: object) => request(app).post(`/api/locations/${location.id}/import`).set('Authorization', `Bearer ${token}`).send({ bins: [], ...body });
+    expect((await post({ unassignedItems: 'nope' })).status).toBe(422);
+    expect((await post({ unassignedItems: ['x'.repeat(501)] })).status).toBe(422);
+    expect((await post({ areas: [{ path: 'A', items: { not: 'an array' } }] })).status).toBe(422);
+    const ok = await post({ unassignedItems: ['', '  ', { name: 'Real', quantity: -4 }, { nope: 1 }] });
+    expect(ok.status).toBe(200);
+    expect(ok.body.looseItemsImported).toBe(1);
+  });
+
+  it('JSON dry run lists trashed bins and loose items', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const now = new Date().toISOString();
+    const bin = (name: string, extra = {}) => ({ id: name, name, shortCode: name.toUpperCase().slice(0, 6).padEnd(6, 'X'), items: ['a', 'b'], notes: '', tags: [], icon: '', color: '', createdAt: now, updatedAt: now, photos: [], ...extra });
+    const res = await request(app)
+      .post(`/api/locations/${location.id}/import`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        bins: [bin('Live')],
+        trashedBins: [bin('Trashed', { deletedAt: now })],
+        areas: [{ path: 'Garage', items: ['Tape', 'Glue'] }],
+        unassignedItems: ['Rope'],
+        dryRun: true,
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.totalBins).toBe(1);
+    expect(res.body.totalTrashedBins).toBe(1);
+    expect(res.body.totalItems).toBe(4);
+    expect(res.body.toCreate.map((c: { name: string; trashed: boolean }) => [c.name, c.trashed])).toEqual([['Live', false], ['Trashed', true]]);
+    expect(res.body).toMatchObject({ looseItemsTotal: 3, looseItemsToCreate: 3, looseItemsToSkip: 0, binsSkippedUnresolvedParent: 0, totalChildBins: 0 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CSV with loose items
+// ---------------------------------------------------------------------------
+
+describe('CSV import with loose items', () => {
+  const HEADER = 'Bin Name,Area,Item,Quantity,Tags\n';
+  async function csvImport(token: string, locationId: string, csv: string, fields: Record<string, string> = {}) {
+    const req = request(app).post(`/api/locations/${locationId}/import/csv`).set('Authorization', `Bearer ${token}`);
+    for (const [k, v] of Object.entries(fields)) req.field(k, v);
+    return req.attach('file', Buffer.from(csv), 'import.csv');
+  }
+
+  it('rows with an empty Bin Name become loose (Area set) or unassigned (Area empty) items', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const csv = `${HEADER}Box,,Hammer,,\n,Garage / Shelf,Tape,3,\n,,Rope,0,\n,,,,\n`;
+    const res = await csvImport(token, location.id, csv);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ binsImported: 1, itemsImported: 1, looseItemsImported: 2, looseItemsSkipped: 0 });
+    const rows = await query<{ name: string; quantity: number | null; area: string | null; bin_id: string | null }>(
+      `SELECT bi.name, bi.quantity, a.name AS area, bi.bin_id FROM bin_items bi LEFT JOIN areas a ON a.id = bi.area_id
+       WHERE bi.location_id = $1 AND bi.bin_id IS NULL ORDER BY bi.name`,
+      [location.id],
+    );
+    expect(rows.rows).toEqual([
+      { name: 'Rope', quantity: 1, area: null, bin_id: null },
+      { name: 'Tape', quantity: 3, area: 'Shelf', bin_id: null },
+    ]);
+  });
+
+  it('a loose row ends the current bin group', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const csv = `${HEADER}Box,,A,,\n,,Loose,,\nBox,,B,,\n`;
+    // replace mode: merge would skip the second "Box" (same name and area)
+    const res = await csvImport(token, location.id, csv, { mode: 'replace' });
+    expect(res.body.binsImported).toBe(2);
+    expect(res.body.looseItemsImported).toBe(1);
+  });
+
+  it('merge skips loose items that already exist; dry run agrees; replace clears old loose items', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const garage = await createTestArea(app, token, location.id, 'Garage');
+    await addLoose(app, token, location.id, { name: 'Tape', areaId: garage.id });
+    await addLoose(app, token, location.id, { name: 'Rope' });
+    const csv = `${HEADER},Garage,Tape,,\n,Garage,Saw,,\n,,Rope,,\n,,Twine,,\n`;
+
+    const dry = await csvImport(token, location.id, csv, { dryRun: 'true' });
+    expect(dry.body).toMatchObject({ looseItemsTotal: 4, looseItemsToCreate: 2, looseItemsToSkip: 2 });
+    const merged = await csvImport(token, location.id, csv);
+    expect(merged.body).toMatchObject({ looseItemsImported: 2, looseItemsSkipped: 2 });
+    const again = await csvImport(token, location.id, csv);
+    expect(again.body).toMatchObject({ looseItemsImported: 0, looseItemsSkipped: 4 });
+
+    const replaced = await csvImport(token, location.id, `${HEADER},,Only,,\n`, { mode: 'replace' });
+    expect(replaced.status).toBe(200);
+    const left = await query<{ name: string }>('SELECT name FROM bin_items WHERE location_id = $1', [location.id]);
+    expect(left.rows.map((r) => r.name)).toEqual(['Only']);
+  });
+
+  it('validates bin names and fields (422) in import and dry run', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const tooLong = `${HEADER}${'n'.repeat(256)},,Item,,\n`;
+    expect((await csvImport(token, location.id, tooLong)).status).toBe(422);
+    expect((await csvImport(token, location.id, tooLong, { dryRun: 'true' })).status).toBe(422);
+    const longItem = `${HEADER}Box,,${'i'.repeat(501)},,\n`;
+    expect((await csvImport(token, location.id, longItem)).status).toBe(422);
+    const count = await query('SELECT id FROM bins WHERE location_id = $1', [location.id]);
+    expect(count.rows).toHaveLength(0);
   });
 });
