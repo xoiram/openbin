@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AiSuggestionsPanel } from '@/features/ai/AiSuggestionsPanel';
 import type { useDictation } from '@/lib/useDictation';
 import type { AiSuggestions, Bin, CustomField, ItemCheckout, Photo } from '@/types';
@@ -58,6 +59,7 @@ export function BinDetailContent({
   onApplySuggestions,
   onClearSuggestions,
 }: BinDetailContentProps) {
+  const { t } = useTranslation('bins');
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-6">
       <div className="min-w-0">
@@ -69,7 +71,7 @@ export function BinDetailContent({
               onClick={onClearSuggestions}
               className="mt-2 text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             >
-              Dismiss
+              {t('detailContent.dismiss', { defaultValue: 'Dismiss' })}
             </button>
           </div>
         )}

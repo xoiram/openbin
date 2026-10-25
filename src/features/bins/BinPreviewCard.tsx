@@ -1,10 +1,12 @@
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { getPhotoThumbUrl } from '@/features/photos/usePhotos';
 import { useTagStyle } from '@/features/tags/useTagStyle';
 import { getCardRenderProps, parseCardStyle } from '@/lib/cardStyle';
 import { resolveIcon } from '@/lib/iconMap';
 import { getPremadeUrl } from '@/lib/premadeBackgrounds';
+import { useTerminology } from '@/lib/terminology';
 import { useTheme } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +21,8 @@ export function BinPreviewCard({ name, color, items, tags, icon, cardStyle, area
   className?: string;
   fixedSize?: boolean;
 }) {
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const { theme } = useTheme();
   const getTagStyle = useTagStyle();
   const renderProps = getCardRenderProps(color, cardStyle ?? '', theme);
@@ -47,22 +51,22 @@ export function BinPreviewCard({ name, color, items, tags, icon, cardStyle, area
   const showArea = fixedSize || !!areaName;
   const showItems = fixedSize || items.length > 0;
   const showTags = fixedSize || tags.length > 0;
-  const tagsToRender = tags.length > 0 ? tags : fixedSize ? ['tag', 'label'] : [];
+  const tagsToRender = tags.length > 0 ? tags : fixedSize ? [t('previewCard.sampleTag1', { defaultValue: 'tag' }), t('previewCard.sampleTag2', { defaultValue: 'label' })] : [];
 
   const content = (
     <div className="flex items-start gap-3">
       <div className="min-w-0 flex-1">
         <h3 className="font-semibold text-[15px] text-[var(--text-primary)] truncate leading-snug" style={nameStyle}>
-          {name || <span>My bin</span>}
+          {name || <span>{t('previewCard.myBin', { defaultValue: 'My {{bin}}', bin: term.bin })}</span>}
         </h3>
         {showArea && (
           <p className="text-[12px] text-[var(--text-tertiary)] truncate leading-relaxed" style={secondaryStyle}>
-            {areaName || (fixedSize ? 'Area' : ' ')}
+            {areaName || (fixedSize ? term.Area : ' ')}
           </p>
         )}
         {showItems && (
           <p className="mt-1 text-[13px] text-[var(--text-tertiary)] line-clamp-1 leading-relaxed" style={secondaryStyle}>
-            {items.length > 0 ? items.join(', ') : fixedSize ? 'Item one, item two, item three' : ' '}
+            {items.length > 0 ? items.join(', ') : fixedSize ? t('previewCard.sampleItems', { defaultValue: 'Item one, item two, item three' }) : ' '}
           </p>
         )}
         {showTags && (

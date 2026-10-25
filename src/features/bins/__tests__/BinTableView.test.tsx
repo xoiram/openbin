@@ -4,6 +4,11 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Bin, CustomField } from '@/types';
 import { BinTableView } from '../BinTableView';
 
+vi.mock('@/lib/terminology', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/terminology')>();
+  return { ...actual, useTerminology: () => actual.DEFAULT_TERMINOLOGY };
+});
+
 // Mock hooks that need context providers
 vi.mock('@/features/tags/useTagStyle', () => ({
   useTagStyle: () => () => undefined,

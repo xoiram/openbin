@@ -1,6 +1,7 @@
 import './print.css';
 import { List, Tag, Type } from 'lucide-react';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { OptionGroup } from '@/components/ui/option-group';
 import { PageHeader } from '@/components/ui/page-header';
@@ -20,6 +21,7 @@ import { QrStyleCard } from './QrStyleCard';
 import { usePrintPageActions } from './usePrintPageActions';
 
 export function PrintPage() {
+  const { t } = useTranslation('print');
   const {
     allBins, areas, isLoading,
     selection,
@@ -105,7 +107,7 @@ export function PrintPage() {
   return (
     <>
       <div className="page-content print-hide max-w-6xl">
-        <PageHeader title="Print" back actions={<TourLauncher tourId="print-scan" />} />
+        <PageHeader title={t('page.title', { defaultValue: 'Print' })} back actions={<TourLauncher tourId="print-scan" />} />
 
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:items-start gap-4">
         {/* Left column — settings */}
@@ -113,9 +115,9 @@ export function PrintPage() {
           <div data-tour="print-mode">
             <OptionGroup
               options={[
-                { key: 'labels', label: 'Labels', icon: Tag },
-                { key: 'names', label: 'Names', icon: Type },
-                { key: 'items', label: 'Item List', icon: List },
+                { key: 'labels', label: t('page.modeLabels', { defaultValue: 'Labels' }), icon: Tag },
+                { key: 'names', label: t('page.modeNames', { defaultValue: 'Names' }), icon: Type },
+                { key: 'items', label: t('page.modeItems', { defaultValue: 'Item List' }), icon: List },
               ]}
               value={printMode}
               onChange={handlePrintModeChange}

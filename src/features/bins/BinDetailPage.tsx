@@ -1,5 +1,6 @@
 import { PackageOpen } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { LabelThreshold } from '@/components/ui/ai-progress-bar';
 import { AiProgressBar } from '@/components/ui/ai-progress-bar';
@@ -43,7 +44,8 @@ export function BinDetailPage() {
   const { bin, isLoading } = useBin(id);
   const { checkouts } = useCheckouts(id);
   const allTags = useAllTags();
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const backState = location.state as BinDetailLocationState | null;
   const actions = useBinDetailActions(bin, id);
   const autoSave = useAutoSaveBin(bin ?? null);
@@ -87,15 +89,37 @@ export function BinDetailPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [prevBinId, nextBinId, navigate, backState]);
 
+  const detailLabels = useMemo<LabelThreshold[]>(
+    () =>
+      actions.isReanalysis
+        ? [
+            [0, t('detailPage.progress.preparingReanalysis', { defaultValue: 'Preparing reanalysis...' })],
+            [15, t('detailPage.progress.comparingChanges', { defaultValue: 'Comparing changes...' })],
+            [45, t('detailPage.progress.updatingSuggestions', { defaultValue: 'Updating suggestions...' })],
+            [75, t('detailPage.progress.almostDone', { defaultValue: 'Almost done...' })],
+          ]
+        : [
+            [0, t('detailPage.progress.uploadingPhotos', { defaultValue: 'Uploading photos...' })],
+            [15, t('detailPage.progress.identifyingItems', { defaultValue: 'Identifying items...' })],
+            [45, t('detailPage.progress.generatingDetails', { defaultValue: 'Generating details...' })],
+            [75, t('detailPage.progress.almostDone', { defaultValue: 'Almost done...' })],
+          ],
+    [actions.isReanalysis, t],
+  );
+
   if (isLoading && bin === undefined) {
     return <BinDetailSkeleton />;
   }
 
   if (!bin) {
     return (
-      <EmptyState icon={PackageOpen} title={`${t.Bin} not found`} subtitle="It may have been deleted or moved to another location.">
+      <EmptyState
+        icon={PackageOpen}
+        title={t('detailPage.notFoundTitle', { defaultValue: '{{bin}} not found', bin: term.Bin })}
+        subtitle={t('detailPage.notFoundSubtitle', { defaultValue: 'It may have been deleted or moved to another {{location}}.', location: term.location })}
+      >
         <Button variant="outline" onClick={() => navigate('/bins')}>
-          Back to {t.bins}
+          {t('detailPage.backTo', { defaultValue: 'Back to {{bins}}', bins: term.bins })}
         </Button>
       </EmptyState>
     );
@@ -109,9 +133,6 @@ export function BinDetailPage() {
     else navigate('/bins');
   }
 
-  const detailLabels: LabelThreshold[] = actions.isReanalysis
-    ? [[0, 'Preparing reanalysis...'], [15, 'Comparing changes...'], [45, 'Updating suggestions...'], [75, 'Almost done...']]
-    : [[0, 'Uploading photos...'], [15, 'Identifying items...'], [45, 'Generating details...'], [75, 'Almost done...']];
 
   return (
     <div className="page-content max-w-5xl">
@@ -203,8 +224,8 @@ export function BinDetailPage() {
           <UpgradeDialog
             open={upgradeOpen}
             onOpenChange={setUpgradeOpen}
-            feature="AI Features"
-            description="AI-powered analysis and suggestions are available on the Pro plan."
+            feature={t('detailPage.upgradeFeature', { defaultValue: 'AI Features' })}
+            description={t('detailPage.upgradeDescription', { defaultValue: 'AI-powered analysis and suggestions are available on the Pro plan.' })}
           />
         </Suspense>
       )}

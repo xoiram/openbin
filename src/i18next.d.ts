@@ -9,8 +9,11 @@ import type common from './locales/en/common.json';
 import type errors from './locales/en/errors.json';
 import type items from './locales/en/items.json';
 import type onboarding from './locales/en/onboarding.json';
+import type print from './locales/en/print.json';
+import type qrcode from './locales/en/qrcode.json';
 import type settings from './locales/en/settings.json';
 import type shoppingList from './locales/en/shoppingList.json';
+import type tags from './locales/en/tags.json';
 import type tour from './locales/en/tour.json';
 
 declare module 'i18next' {
@@ -30,6 +33,9 @@ declare module 'i18next' {
       attachments: typeof attachments;
       shoppingList: typeof shoppingList;
       bins: typeof bins;
+      print: typeof print;
+      qrcode: typeof qrcode;
+      tags: typeof tags;
     };
   }
 }

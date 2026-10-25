@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Disclosure } from '@/components/ui/disclosure';
 import { Textarea } from '@/components/ui/textarea';
 import { AreaPicker } from '@/features/areas/AreaPicker';
@@ -72,42 +73,43 @@ export function BinMoreOptionsSection({
   setVisibility,
   areaName,
 }: BinMoreOptionsSectionProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const secondaryInfo = getSecondaryColorInfo(cardStyle);
 
   return (
     <Disclosure
-      label="More options"
+      label={t('moreOptions.label', { defaultValue: 'More options' })}
       open={open}
       onOpenChange={onOpenChange}
       labelClassName="py-2 text-[var(--accent)] cursor-pointer"
     >
       <div className="space-y-5">
         <div className="space-y-2">
-          <span className={sectionHeader}>{t.Area}</span>
+          <span className={sectionHeader}>{term.Area}</span>
           <AreaPicker locationId={locationId} value={areaId} onChange={setAreaId} />
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="bin-notes" className={sectionHeader}>Notes</label>
+          <label htmlFor="bin-notes" className={sectionHeader}>{t('moreOptions.notes', { defaultValue: 'Notes' })}</label>
           <Textarea
             id="bin-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Additional notes..."
+            placeholder={t('moreOptions.notesPlaceholder', { defaultValue: 'Additional notes...' })}
             maxLength={10000}
             rows={2}
           />
         </div>
 
         <div className="space-y-2">
-          <span className={sectionHeader}>Tags</span>
+          <span className={sectionHeader}>{t('moreOptions.tags', { defaultValue: 'Tags' })}</span>
           <TagInput tags={tags} onChange={setTags} suggestions={allTags} />
         </div>
 
         {customFieldDefs.length > 0 && (
           <div className="space-y-2">
-            <span className={sectionHeader}>Custom Fields</span>
+            <span className={sectionHeader}>{t('moreOptions.customFields', { defaultValue: 'Custom Fields' })}</span>
             <CustomFieldsEditCard
               fields={customFieldDefs}
               values={customFields}
@@ -117,7 +119,7 @@ export function BinMoreOptionsSection({
         )}
 
         <div className="space-y-3">
-          <span className={sectionHeader}>Appearance</span>
+          <span className={sectionHeader}>{t('moreOptions.appearance', { defaultValue: 'Appearance' })}</span>
           <BinPreviewCard
             name={name}
             color={color}
@@ -128,11 +130,11 @@ export function BinMoreOptionsSection({
             areaName={areaName}
           />
           <div className="space-y-2">
-            <span className="text-[12px] text-[var(--text-tertiary)]">Icon</span>
+            <span className="text-[12px] text-[var(--text-tertiary)]">{t('moreOptions.icon', { defaultValue: 'Icon' })}</span>
             <IconPicker value={icon} onChange={setIcon} />
           </div>
           <div className="space-y-2">
-            <span className="text-[12px] text-[var(--text-tertiary)]">Color</span>
+            <span className="text-[12px] text-[var(--text-tertiary)]">{t('moreOptions.color', { defaultValue: 'Color' })}</span>
             <ColorPicker
               value={color}
               onChange={setColor}
@@ -142,13 +144,13 @@ export function BinMoreOptionsSection({
             />
           </div>
           <div className="space-y-2">
-            <span className="text-[12px] text-[var(--text-tertiary)]">Style</span>
+            <span className="text-[12px] text-[var(--text-tertiary)]">{t('moreOptions.style', { defaultValue: 'Style' })}</span>
             <StylePicker value={cardStyle} color={color} onChange={setCardStyle} />
           </div>
         </div>
 
         <div className="space-y-2">
-          <span className={sectionHeader}>Visibility</span>
+          <span className={sectionHeader}>{t('moreOptions.visibility', { defaultValue: 'Visibility' })}</span>
           <VisibilityPicker value={visibility} onChange={setVisibility} />
         </div>
       </div>

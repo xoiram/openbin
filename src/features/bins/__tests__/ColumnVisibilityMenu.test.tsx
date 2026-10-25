@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { ColumnVisibilityMenu, FieldToggleList } from '../ColumnVisibilityMenu';
 import { FIELD_LABELS, type FieldKey } from '../useColumnVisibility';
 
+vi.mock('@/lib/terminology', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/terminology')>();
+  return { ...actual, useTerminology: () => actual.DEFAULT_TERMINOLOGY };
+});
+
 const DEFAULT_VIS: Record<string, boolean> = {
   icon: true, area: true, items: true, tags: true,
   updated: true, created: false, notes: false, createdBy: false, customFields: false,
