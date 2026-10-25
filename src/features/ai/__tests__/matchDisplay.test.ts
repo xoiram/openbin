@@ -119,4 +119,13 @@ describe('getMatchDisplay', () => {
     };
     expect(getMatchDisplay(match).defaultExpanded).toBe(false);
   });
+
+  it('treats a loose item as a header-only row', () => {
+    const match: QueryMatch = {
+      kind: 'loose_item', bin_id: null, item_id: 'l1', name: 'Tape', quantity: null, area_id: null,
+      area_name: '', bin_path: '', items: [], total_item_count: 1, tags: [], relevance: 'contains "tape"',
+      icon: '', color: '',
+    };
+    expect(getMatchDisplay(match)).toEqual({ mode: 'header-only', defaultExpanded: false, countLabel: '' });
+  });
 });

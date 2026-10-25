@@ -165,6 +165,7 @@
     "itemCount_other": "{{count}} gjenstander",
     "itemNameAriaLabel": "Gjenstandsnavn",
     "itemsInBin": "Gjenstander i {{bin}}",
+    "looseItems": "Løse gjenstander",
     "moreItems_one": "+ {{count}} gjenstand til — åpne for å se alle",
     "moreItems_other": "+ {{count}} gjenstander til — åpne for å se alle",
     "openBin": "Åpne boks",
@@ -190,7 +191,8 @@
     "selectedCount_one": "{{count}} gjenstand valgt",
     "selectedCount_other": "{{count}} gjenstander valgt",
     "showIn": "Vis {{label}} i {{name}}",
-    "showLabel": "Vis {{label}}"
+    "showLabel": "Vis {{label}}",
+    "unassigned": "Ikke tildelt"
   },
   "promptHelp": {
     "analysis": "Eksisterende stikkord og egendefinerte felt sendes automatisk i brukermeldingen. Denne prompten definerer kun instruksjonene.",

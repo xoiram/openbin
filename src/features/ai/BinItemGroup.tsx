@@ -6,13 +6,13 @@ import { BinDisclosurePill } from './BinDisclosurePill';
 import { BinGroupHeader } from './BinGroupHeader';
 import { ItemRow } from './ItemRow';
 import { getMatchDisplay } from './matchDisplay';
-import type { QueryMatch } from './useInventoryQuery';
+import { type BinQueryMatch, getMatchPath } from './useInventoryQuery';
 import type { useItemQuerySelection } from './useItemQuerySelection';
 
 type SelectionApi = ReturnType<typeof useItemQuerySelection>;
 
 interface BinItemGroupProps {
-  match: QueryMatch;
+  match: BinQueryMatch;
   canWrite: boolean;
   selection?: SelectionApi;
   /** Items hidden by external actions (e.g. bulk remove). */
@@ -56,6 +56,7 @@ export function BinItemGroup({
       <BinGroupHeader
         name={match.name}
         areaName={match.area_name}
+        path={getMatchPath(match)}
         icon={match.icon}
         color={match.color}
         isTrashed={!!match.is_trashed}

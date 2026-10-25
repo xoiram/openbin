@@ -78,3 +78,29 @@ describe('applyContextLimits — complete flag', () => {
     ).not.toThrow();
   });
 });
+
+describe('applyContextLimits — loose items', () => {
+  const loose = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `Item ${i}` }));
+
+  it('keeps loose items and complete=true when everything fits', () => {
+    const out = applyContextLimits([makeBin('A1B2C3', 'Tools')], undefined, false, { items: loose(3), fetchedAll: true });
+    expect(out.loose_items).toHaveLength(3);
+    expect(out.complete).toBe(true);
+  });
+
+  it('is incomplete when the fetch itself was capped', () => {
+    const out = applyContextLimits([makeBin('A1B2C3', 'Tools')], undefined, false, { items: loose(3), fetchedAll: false });
+    expect(out.complete).toBe(false);
+  });
+
+  it('counts loose items in the token budget and trims them with complete=false', () => {
+    const big = Array.from({ length: 100 }, (_, i) => ({ name: `Very long loose item name number ${i} ${'x'.repeat(400)}` }));
+    const out = applyContextLimits([makeBin('A1B2C3', 'Tools')], undefined, false, { items: big, fetchedAll: true });
+    expect(out.loose_items!.length).toBeLessThan(100);
+    expect(out.complete).toBe(false);
+  });
+
+  it('omits loose_items entirely when not provided', () => {
+    expect('loose_items' in applyContextLimits([makeBin('A1B2C3', 'Tools')])).toBe(false);
+  });
+});

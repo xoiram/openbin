@@ -117,4 +117,14 @@ describe('BinGroupHeader', () => {
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onToggle).not.toHaveBeenCalled();
   });
+
+  it('shows the path instead of the area name when given', () => {
+    render(
+      <BinGroupHeader name="Drawer" areaName="Garage" path="Garage › Toolbox" icon="" color="#000" isTrashed={false} onOpen={vi.fn()} />,
+    );
+    expect(screen.getByText('Garage › Toolbox')).toBeDefined();
+    expect(screen.queryByText('Garage')).toBeNull();
+    // The open label keeps the bare name.
+    expect(screen.getByRole('button', { name: 'Open Drawer' })).toBeDefined();
+  });
 });

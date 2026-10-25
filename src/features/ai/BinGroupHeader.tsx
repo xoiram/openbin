@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 interface BinGroupHeaderProps {
   name: string;
   areaName: string;
+  /** Where the box lives (`area › parent box`). Shown instead of `areaName` when set. */
+  path?: string;
   icon: string;
   color: string;
   isTrashed: boolean;
@@ -27,6 +29,7 @@ interface BinGroupHeaderProps {
 export function BinGroupHeader({
   name,
   areaName,
+  path,
   icon,
   color,
   isTrashed,
@@ -37,6 +40,7 @@ export function BinGroupHeader({
   const { t } = useTranslation('ai');
   const BinIcon = resolveIcon(icon);
   const colorPreset = resolveColor(color);
+  const subtitle = path || areaName;
   const openLabel = `${t('itemQuery.openPrefix', { defaultValue: 'Open' })} ${name}`;
 
   const iconNode = isTrashed ? (
@@ -48,8 +52,8 @@ export function BinGroupHeader({
   const titleNode = (
     <span className="flex-1 min-w-0">
       <span className="block text-[15px] font-semibold text-[var(--text-primary)] truncate">{name}</span>
-      {areaName && (
-        <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5">{areaName}</span>
+      {subtitle && (
+        <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5">{subtitle}</span>
       )}
     </span>
   );

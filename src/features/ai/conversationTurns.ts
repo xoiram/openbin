@@ -62,7 +62,7 @@ export function buildHistoryPayload(turns: Turn[]): ConversationTurnPayload[] {
         role: 'assistant',
         kind: 'answer',
         content: turn.queryResult.answer,
-        matchedBinIds: turn.queryResult.matches.map((m) => m.bin_id),
+        matchedBinIds: turn.queryResult.matches.flatMap((m) => (m.bin_id ? [m.bin_id] : [])),
       });
     } else if (turn.kind === 'ai-command-preview') {
       const executed = turn.status === 'executed';

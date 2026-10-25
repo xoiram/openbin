@@ -52,4 +52,20 @@ describe('useItemQuerySelection', () => {
     expect(result.current.isAnySelectedInBin('b1')).toBe(true);
     expect(result.current.isAnySelectedInBin('b2')).toBe(false);
   });
+
+  it('ignores loose items passed alongside boxes (no selection, never marks a box selected)', () => {
+    const withLoose: QueryMatch[] = [
+      {
+        kind: 'loose_item', bin_id: null, item_id: 'l1', name: 'Tape', quantity: null, area_id: null,
+        area_name: '', bin_path: '', items: [], total_item_count: 1, tags: [], relevance: '', icon: '', color: '',
+      },
+      ...matches,
+    ];
+    const { result } = renderHook(() => useItemQuerySelection(withLoose));
+    act(() => result.current.selectAllInBin('l1'));
+    expect(result.current.selectionCount).toBe(0);
+    expect(result.current.isBinFullySelected('l1')).toBe(false);
+    act(() => result.current.selectAllInBin('b1'));
+    expect(result.current.selectionCount).toBe(2);
+  });
 });

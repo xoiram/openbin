@@ -99,4 +99,25 @@ describe('buildHistoryPayload', () => {
     // No executionErrors when never executed
     expect(payload[1]).not.toHaveProperty('executionErrors');
   });
+
+  it('omits loose items (null bin_id) from matchedBinIds', () => {
+    const turns = [
+      {
+        kind: 'ai-query-result', id: 't1',
+        queryResult: {
+          answer: 'x',
+          matches: [
+            { bin_id: 'b1', name: 'A', area_name: '', items: [], total_item_count: 0, tags: [], relevance: '', icon: '', color: '' },
+            {
+              kind: 'loose_item', bin_id: null, item_id: 'l1', name: 'Tape', quantity: null, area_id: null,
+              area_name: '', bin_path: '', items: [], total_item_count: 1, tags: [], relevance: '', icon: '', color: '',
+            },
+          ],
+        },
+      },
+    ] as unknown as Turn[];
+    expect(buildHistoryPayload(turns)).toEqual([
+      { role: 'assistant', kind: 'answer', content: 'x', matchedBinIds: ['b1'] },
+    ]);
+  });
 });

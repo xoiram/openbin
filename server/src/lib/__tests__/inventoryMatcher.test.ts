@@ -1,11 +1,15 @@
 import type { Express } from 'express';
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createTestBin, createTestLocation, createTestUser, joinTestLocation } from '../../__tests__/helpers.js';
+import { createTestArea, createTestBin, createTestLocation, createTestUser, expectNoHierarchyViolations, joinTestLocation, setParentBinByDb } from '../../__tests__/helpers.js';
+import { addLoose } from '../../__tests__/looseItemsHelpers.js';
+import { query } from '../../db.js';
 import { createApp } from '../../index.js';
 import {
+  findCheckedOutLooseItems,
   findCheckedOutMatches,
   findLiteralMatches,
+  findLooseItemMatches,
   findNearMissBins,
   findPinnedMatches,
   findPrivateMatches,
@@ -211,5 +215,110 @@ describe('findNearMissBins', () => {
     }
     const got = await findNearMissBins(s.locationId, s.userId, 'tool');
     expect(got.length).toBeLessThanOrEqual(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Nested boxes + loose items
+// ---------------------------------------------------------------------------
+describe('findLooseItemMatches', () => {
+  async function loose() {
+    const s = await setup();
+    const area = await createTestArea(app, s.token, s.locationId, 'Garage');
+    return { ...s, area };
+  }
+
+  it('finds a loose item in an area and an unassigned one by name', async () => {
+    const s = await loose();
+    await addLoose(app, s.token, s.locationId, { name: 'Step Ladder', areaId: s.area.id, quantity: 2 });
+    await addLoose(app, s.token, s.locationId, { name: 'Ladder Bracket' });
+    await addLoose(app, s.token, s.locationId, { name: 'Hammer', areaId: s.area.id });
+
+    const got = await findLooseItemMatches(s.locationId, s.userId, ['ladder']);
+    expect(got.map((g) => g.name).sort()).toEqual(['Ladder Bracket', 'Step Ladder']);
+    const inArea = got.find((g) => g.name === 'Step Ladder')!;
+    expect(inArea).toMatchObject({ area_id: s.area.id, area_name: 'Garage', quantity: 2 });
+    const unassigned = got.find((g) => g.name === 'Ladder Bracket')!;
+    expect(unassigned).toMatchObject({ area_id: null, area_name: '', quantity: null });
+  });
+
+  it('returns nothing when fields excludes item, and still works for fields=[item]', async () => {
+    const s = await loose();
+    await addLoose(app, s.token, s.locationId, { name: 'Step Ladder' });
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['ladder'], { fields: ['name'] })).toEqual([]);
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['ladder'], { fields: ['tag'] })).toEqual([]);
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['ladder'], { fields: ['item'] })).toHaveLength(1);
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['ladder'], { fields: [] })).toHaveLength(1);
+  });
+
+  it('does not probe area names', async () => {
+    const s = await loose();
+    await addLoose(app, s.token, s.locationId, { name: 'Hammer', areaId: s.area.id });
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['garage'])).toEqual([]);
+  });
+
+  it('does not return box items, deleted loose items or other locations', async () => {
+    const s = await loose();
+    await createTestBin(app, s.token, s.locationId, { name: 'Toolbox', items: ['Ladder Hook'] });
+    const gone = await addLoose(app, s.token, s.locationId, { name: 'Ladder Gone' });
+    await query('UPDATE bin_items SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1', [gone.id]);
+    const other = await createTestLocation(app, s.token);
+    await addLoose(app, s.token, other.id, { name: 'Ladder Elsewhere' });
+
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['ladder'])).toEqual([]);
+  });
+
+  it('treats LIKE wildcards in terms literally', async () => {
+    const s = await loose();
+    await addLoose(app, s.token, s.locationId, { name: 'Ladder' });
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['%'])).toEqual([]);
+  });
+
+  it('caps the result at 10 loose items', async () => {
+    const s = await loose();
+    for (let i = 0; i < 12; i++) await addLoose(app, s.token, s.locationId, { name: `Cable ${i}` });
+    expect(await findLooseItemMatches(s.locationId, s.userId, ['cable'])).toHaveLength(10);
+  });
+});
+
+describe('findCheckedOutLooseItems', () => {
+  it('returns only loose items with an active checkout', async () => {
+    const s = await setup();
+    const out = await addLoose(app, s.token, s.locationId, { name: 'Drill' });
+    await addLoose(app, s.token, s.locationId, { name: 'Saw' });
+    const res = await request(app).post(`/api/locations/${s.locationId}/items/${out.id}/checkout`).set('Authorization', `Bearer ${s.token}`).send({});
+    expect(res.status).toBe(201);
+
+    const got = await findCheckedOutLooseItems(s.locationId, s.userId);
+    expect(got.map((g) => g.name)).toEqual(['Drill']);
+  });
+});
+
+describe('candidates carry nesting info', () => {
+  it('a child box reports its parent id and name, a top-level box reports none', async () => {
+    const s = await setup();
+    const parent = await createTestBin(app, s.token, s.locationId, { name: 'Toolbox' });
+    const kid = await createTestBin(app, s.token, s.locationId, { name: 'Parts Tray' });
+    await setParentBinByDb(kid.id, parent.id);
+
+    const got = await findLiteralMatches(s.locationId, s.userId, ['parts']);
+    expect(got).toHaveLength(1);
+    expect(got[0]).toMatchObject({ parent_bin_id: parent.id, parent_bin_name: 'Toolbox' });
+    const top = await findLiteralMatches(s.locationId, s.userId, ['toolbox']);
+    expect(top[0]).toMatchObject({ parent_bin_id: null, parent_bin_name: '' });
+    await expectNoHierarchyViolations(s.locationId);
+  });
+
+  it("a private parent's child is not visible to other members", async () => {
+    const s = await setup();
+    const peer = await createTestUser(app);
+    await joinTestLocation(app, peer.token, s.inviteCode);
+    const parent = await createTestBin(app, s.token, s.locationId, { name: 'Secret Box', visibility: 'private' });
+    const kid = await createTestBin(app, s.token, s.locationId, { name: 'Secret Parts' });
+    await setParentBinByDb(kid.id, parent.id);
+
+    expect(await findLiteralMatches(s.locationId, peer.user.id, ['secret'])).toEqual([]);
+    expect((await findLiteralMatches(s.locationId, s.userId, ['secret'])).map((b) => b.name).sort()).toEqual(['Secret Box', 'Secret Parts']);
+    await expectNoHierarchyViolations(s.locationId);
   });
 });

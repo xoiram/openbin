@@ -165,6 +165,7 @@
     "itemCount_other": "{{count}} items",
     "itemNameAriaLabel": "Item name",
     "itemsInBin": "Items in {{bin}}",
+    "looseItems": "Loose items",
     "moreItems_one": "+ {{count}} more item — open to see all",
     "moreItems_other": "+ {{count}} more items — open to see all",
     "openBin": "Open bin",
@@ -190,7 +191,8 @@
     "selectedCount_one": "{{count}} item selected",
     "selectedCount_other": "{{count}} items selected",
     "showIn": "Show {{label}} in {{name}}",
-    "showLabel": "Show {{label}}"
+    "showLabel": "Show {{label}}",
+    "unassigned": "Unassigned"
   },
   "promptHelp": {
     "analysis": "Existing tags and custom fields are passed automatically in the user message. This prompt defines the instructions only.",
