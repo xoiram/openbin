@@ -1,0 +1,86 @@
+{
+  "grid": {
+    "title": "One {{bin}} per stack",
+    "hintSingle": "Add more photos to create several {{bins}} at once.",
+    "hintMany": "Drag photos onto each other to put them in the same {{bin}}.",
+    "movingHint": "Moving photo {{index}}. Press another photo, or {{key}} to cancel.",
+    "escKey": "Esc",
+    "moveToNew": "Move photo {{index}} to a new {{bin}}",
+    "optional": "· optional",
+    "back": "Back",
+    "continue": "Continue",
+    "add": "Add",
+    "addMorePhotos": "Add more photos",
+    "splitZone": "Drop here to put this photo in its own {{bin}}",
+    "stackLabel_one": "{{bin}} {{number}}, {{count}} photo",
+    "stackLabel_other": "{{bin}} {{number}}, {{count}} photos",
+    "photoTile": "Photo {{index}} — drag to group with another photo",
+    "photoAlt": "Photo {{index}}",
+    "removePhoto": "Remove photo {{index}}",
+    "joined": "Joined",
+    "split": "Split",
+    "undo": "Undo",
+    "announce": {
+      "canceled": "Move canceled.",
+      "moving": "Moving photo {{index}}. Press another photo to move it, or press Escape to cancel.",
+      "sameBin": "That photo is in the same {{bin}}. Pick a different {{bin}}.",
+      "targetFull": "Target {{bin}} is full (max {{max}} photos).",
+      "moved": "Moved photo {{index}}.",
+      "movedToNew": "Photo {{index}} moved to a new {{bin}}."
+    }
+  },
+  "correction": {
+    "limitReached": "You can still edit any field below.",
+    "placeholder": "Optionally describe what to fix...",
+    "submit": "Submit correction",
+    "reanalyze": "Reanalyze"
+  },
+  "retryBand": {
+    "scan": "Scan with AI",
+    "continueManually": "Continue manually"
+  },
+  "form": {
+    "name": "Name",
+    "namePlaceholder": "e.g., Holiday Decorations",
+    "moreOptions": "More options",
+    "notes": "Notes",
+    "notesPlaceholder": "Notes about this {{bin}}...",
+    "tags": "Tags",
+    "icon": "Icon",
+    "color": "Color"
+  },
+  "review": {
+    "previewAlt": "Preview",
+    "previewAltMany": "{{photoCount}} photos, showing first",
+    "next": "Next",
+    "creating": "Creating...",
+    "createBin": "Create {{bin}}",
+    "reviewAll": "Review all",
+    "adjustAi": "Adjust AI suggestions",
+    "setUpAi": "Set up AI",
+    "backToSummary": "Back to summary",
+    "back": "Back",
+    "done": "Done"
+  },
+  "summary": {
+    "creatingProgress": "Creating {{done}}/{{total}}...",
+    "allCreated": "All {{bins}} created!",
+    "createTitle_one": "Create {{count}} {{bin}}",
+    "createTitle_other": "Create {{count}} {{bins}}",
+    "tapToEdit": "Tap any {{bin}} to edit before creating.",
+    "unnamedSkipped_one": "{{count}} unnamed {{bin}} won't be created.",
+    "unnamedSkipped_other": "{{count}} unnamed {{bins}} won't be created.",
+    "untitled": "Untitled {{bin}}",
+    "editNamed": "Edit {{name}}",
+    "editUntitled": "Edit untitled {{bin}} {{number}}",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "photoCount": "· {{photoCount}} photos",
+    "needsName": "· needs a name",
+    "failedTitle_one": "Couldn't create {{count}} {{bin}}",
+    "failedTitle_other": "Couldn't create {{count}} {{bins}}",
+    "createAll_one": "Create All ({{count}} {{bin}})",
+    "createAll_other": "Create All ({{count}} {{bins}})",
+    "retryFailed": "Retry {{failedCount}} failed"
+  }
+}

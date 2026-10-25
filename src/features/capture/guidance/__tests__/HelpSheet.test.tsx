@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { HelpSheet } from '../HelpSheet';
 import { CAMERA_TIPS } from '../tips';
 
+vi.mock('@/lib/terminology', async () => {
+  const { DEFAULT_TERMINOLOGY } = await vi.importActual<typeof import('@/lib/terminology')>('@/lib/terminology');
+  return { useTerminology: () => DEFAULT_TERMINOLOGY };
+});
+
 describe('HelpSheet', () => {
 	it('does not render its content when closed', () => {
 		render(<HelpSheet isOpen={false} onClose={() => {}} />);
@@ -13,7 +18,7 @@ describe('HelpSheet', () => {
 		render(<HelpSheet isOpen onClose={() => {}} />);
 		expect(screen.getByText('Photo tips')).toBeTruthy();
 		for (const tip of CAMERA_TIPS) {
-			expect(screen.getByText(tip.headline)).toBeTruthy();
+			expect(screen.getByText(tip.headline.replace('{{bin}}', 'bin'))).toBeTruthy();
 		}
 	});
 

@@ -1,0 +1,56 @@
+{
+  "return": {
+    "submit": "Returner",
+    "submitting": "Returnerer…"
+  },
+  "bulkReturnOriginal": {
+    "title_one": "Returnere {{count}} gjenstand til opprinnelig {{bin}}?",
+    "title_other": "Returnere {{count}} gjenstander til opprinnelige {{bins}}?",
+    "description": "Hver gjenstand legges tilbake der den ble sjekket ut fra."
+  },
+  "bulkReturnToBin": {
+    "title_one": "Returner {{count}} gjenstand til valgt {{bin}}",
+    "title_other": "Returner {{count}} gjenstander til valgt {{bin}}",
+    "description_one": "Gjenstandene kommer nå fra {{count}} {{bin}}. Alle flyttes til det valgte målet.",
+    "description_other": "Gjenstandene kommer nå fra {{count}} {{bins}}. Alle flyttes til det valgte målet."
+  },
+  "returnItem": {
+    "title": "Returner «{{name}}»",
+    "returned": "{{name}} er returnert",
+    "failed": "Kunne ikke returnere gjenstanden",
+    "originalBin": "Opprinnelig {{bin}}",
+    "differentBin": "Annen {{bin}}"
+  },
+  "bulkToasts": {
+    "returned_one": "Returnerte {{count}} gjenstand",
+    "returned_other": "Returnerte {{count}} gjenstander",
+    "returnedTo_one": "Returnerte {{count}} gjenstand til {{name}}",
+    "returnedTo_other": "Returnerte {{count}} gjenstander til {{name}}",
+    "withFailures": "{{main}}. {{failed}} mislyktes."
+  },
+  "page": {
+    "title": "Utsjekket",
+    "searchPlaceholder": "Søk i gjenstander, {{bins}}, personer...",
+    "bulk": {
+      "returnToOriginal": "Returner til opprinnelig",
+      "returnToBin": "Returner til {{bin}}"
+    },
+    "empty": {
+      "noMatchesTitle": "Ingen treff",
+      "title": "Ingen gjenstander er sjekket ut",
+      "noMatchesSubtitle": "Prøv et annet søk",
+      "subtitle": "Gjenstander du sjekker ut fra {{bins}}, vises her"
+    },
+    "columns": {
+      "item": "Gjenstand",
+      "bin": "{{Bin}}",
+      "by": "Av",
+      "time": "Tid"
+    },
+    "selectionLabel_one": "{{count}} gjenstand valgt",
+    "selectionLabel_other": "{{count}} gjenstander valgt",
+    "rowLabel": "{{name}} sjekket ut fra {{bin}}",
+    "returnTooltip": "Returner gjenstand",
+    "returnLabel": "Returner {{name}}"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "deletePhoto": "Slett bilde",
+  "deleteDialog": {
+    "title": "Slette bilde?",
+    "description": "Bildet blir slettet permanent. Denne handlingen kan ikke angres."
+  },
+  "gallery": {
+    "label": "Bilder",
+    "view": "Vis {{name}}",
+    "addPhoto": "Legg til bilde",
+    "addPhotoAria": "Legg til bilde. Tillatte typer: {{types}}.",
+    "unsupportedOne": "«{{name}}» er ikke en støttet bildetype. Tillatt: {{types}}.",
+    "unsupportedMany": "{{fileCount}} filer har typer som ikke støttes. Tillatt: {{types}}.",
+    "uploadFailed_one": "Kunne ikke laste opp {{count}} bilde",
+    "uploadFailed_other": "Kunne ikke laste opp {{count}} bilder",
+    "deleted": "Bilde slettet",
+    "deleteFailed": "Kunne ikke slette bilde"
+  },
+  "lightbox": {
+    "dialogLabel": "Bilde {{index}} av {{total}}: {{name}}",
+    "close": "Lukk",
+    "previous": "Forrige bilde",
+    "next": "Neste bilde",
+    "navigation": "Bildenavigasjon",
+    "goTo": "Gå til bilde {{index}}",
+    "goToCurrent": "Gå til bilde {{index}} (gjeldende)"
+  }
+}

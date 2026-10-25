@@ -1,5 +1,6 @@
 import { ChevronLeft } from 'lucide-react';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AreaPicker } from '@/features/areas/AreaPicker';
@@ -12,6 +13,8 @@ import { useBinSizes } from './photoGridTypes';
 import { SplitZone } from './SplitZone';
 import type { BulkAddAction, BulkAddState } from './useBulkGroupAdd';
 import { usePhotoGridDrag } from './usePhotoGridDrag';
+
+const KBD_MARKER = '%%KBD%%';
 
 interface PhotoGroupingGridProps {
   state: BulkAddState;
@@ -34,7 +37,8 @@ export function PhotoGroupingGrid({
   onContinue,
   onBack,
 }: PhotoGroupingGridProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bulkAdd');
+  const term = useTerminology();
   const sizes = useBinSizes();
   const totalPhotos = state.groups.reduce((acc, g) => acc + g.photos.length, 0);
 
@@ -57,28 +61,36 @@ export function PhotoGroupingGrid({
   );
 
   const isSinglePhoto = totalPhotos === 1;
+  // Split the translated sentence around a marker so the <kbd> lands wherever the locale puts it.
+  const [movingHintBefore = '', movingHintAfter = ''] = keyboardMove
+    ? t('grid.movingHint', {
+        defaultValue: 'Moving photo {{index}}. Press another photo, or {{key}} to cancel.',
+        index: keyboardMove.indexLabel,
+        key: KBD_MARKER,
+      }).split(KBD_MARKER)
+    : [];
   let displayIndex = 0;
 
   return (
     <div className="flex flex-1 flex-col">
       <header className="mb-6 space-y-1">
         <h2 className="text-[17px] font-semibold leading-tight text-[var(--text-primary)]">
-          One {t.bin} per stack
+          {t('grid.title', { defaultValue: 'One {{bin}} per stack', bin: term.bin })}
         </h2>
         {!keyboardMove && (
           <p className="text-[13px] leading-snug text-[var(--text-secondary)]">
             {isSinglePhoto
-              ? `Add more photos to create several ${t.bins} at once.`
-              : `Drag photos onto each other to put them in the same ${t.bin}.`}
+              ? t('grid.hintSingle', { defaultValue: 'Add more photos to create several {{bins}} at once.', bins: term.bins })
+              : t('grid.hintMany', { defaultValue: 'Drag photos onto each other to put them in the same {{bin}}.', bin: term.bin })}
           </p>
         )}
         {keyboardMove && (
           <p className="text-[13px] leading-snug text-[var(--accent)]">
-            Moving photo {keyboardMove.indexLabel}. Press another photo, or{' '}
+            {movingHintBefore}
             <kbd className="rounded border border-[var(--border-flat)] bg-[var(--bg-input)] px-1 text-[11px]">
-              Esc
-            </kbd>{' '}
-            to cancel.
+              {t('grid.escKey', { defaultValue: 'Esc' })}
+            </kbd>
+            {movingHintAfter}
           </p>
         )}
       </header>
@@ -123,7 +135,11 @@ export function PhotoGroupingGrid({
           onClick={onKeyboardSplit}
           className="mt-4 self-start rounded-[var(--radius-md)] border border-[var(--accent)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"
         >
-          Move photo {keyboardMove.indexLabel} to a new {t.bin}
+          {t('grid.moveToNew', {
+            defaultValue: 'Move photo {{index}} to a new {{bin}}',
+            index: keyboardMove.indexLabel,
+            bin: term.bin,
+          })}
         </button>
       )}
 
@@ -131,8 +147,10 @@ export function PhotoGroupingGrid({
 
       <div className="mt-6 mb-6 space-y-2">
         <Label className="text-[13px] font-medium text-[var(--text-primary)]">
-          {t.Area}
-          <span className="ml-1 text-[12px] font-normal text-[var(--text-tertiary)]">· optional</span>
+          {term.Area}
+          <span className="ml-1 text-[12px] font-normal text-[var(--text-tertiary)]">
+            {t('grid.optional', { defaultValue: '· optional' })}
+          </span>
         </Label>
         <AreaPicker
           locationId={locationId ?? undefined}
@@ -144,10 +162,10 @@ export function PhotoGroupingGrid({
       <div className={cn('row-spread', stickyDialogFooter)}>
         <Button variant="ghost" onClick={onBack}>
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
+          {t('grid.back', { defaultValue: 'Back' })}
         </Button>
         <Button onClick={onContinue} disabled={state.groups.length === 0}>
-          Continue
+          {t('grid.continue', { defaultValue: 'Continue' })}
         </Button>
       </div>
 

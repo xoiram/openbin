@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { addPhoto } from '@/features/photos/usePhotos';
 import { getErrorMessage } from '@/lib/utils';
 
@@ -19,6 +20,7 @@ export interface CapturedPhoto {
  * When absent, photos are captured locally (status marked 'uploaded' immediately).
  */
 export function useCapture(binId?: string) {
+  const { t } = useTranslation('capture');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const photosRef = useRef<CapturedPhoto[]>([]);
@@ -60,14 +62,14 @@ export function useCapture(binId?: string) {
               ? {
                   ...p,
                   status: 'failed' as const,
-                  error: getErrorMessage(err, 'Upload failed'),
+                  error: getErrorMessage(err, t('errors.uploadFailed', { defaultValue: 'Upload failed' })),
                 }
               : p,
           ),
         );
       }
     },
-    [updatePhotos],
+    [updatePhotos, t],
   );
 
   const stopCamera = useCallback(() => {
@@ -114,19 +116,22 @@ export function useCapture(binId?: string) {
         if (err instanceof DOMException) {
           if (err.name === 'NotAllowedError') {
             setError(
-              'Camera access denied. Please allow camera access in your browser settings and try again.',
+              t('errors.accessDenied', {
+                defaultValue:
+                  'Camera access denied. Please allow camera access in your browser settings and try again.',
+              }),
             );
           } else if (err.name === 'NotFoundError') {
-            setError('No camera found on this device.');
+            setError(t('errors.notFound', { defaultValue: 'No camera found on this device.' }));
           } else {
-            setError(`Camera error: ${err.message}`);
+            setError(t('errors.generic', { defaultValue: 'Camera error: {{message}}', message: err.message }));
           }
         } else {
-          setError('Failed to access camera.');
+          setError(t('errors.accessFailed', { defaultValue: 'Failed to access camera.' }));
         }
       }
     },
-    [facingMode],
+    [facingMode, t],
   );
 
   const flipCamera = useCallback(() => {

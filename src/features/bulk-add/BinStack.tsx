@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTerminology } from '@/lib/terminology';
 import { cn } from '@/lib/utils';
 import type { ActiveDrag, BinSizes, KeyboardMoveState, PointerPayload } from './photoGridTypes';
@@ -32,10 +33,10 @@ export const BinStack = memo(function BinStack({
   onPhotoKeyDown,
   onRemove,
 }: BinStackProps) {
-  const t = useTerminology();
+  const { t } = useTranslation('bulkAdd');
+  const term = useTerminology();
   const { photoSize, padding, spread, binSize } = sizes;
   const count = group.photos.length;
-  const countLabel = count === 1 ? '1 photo' : `${count} photos`;
   const hoverTarget =
     activeDrag?.dropTarget?.type === 'bin' && activeDrag.dropTarget.groupId === group.id;
   const isHoverFromOther = hoverTarget && activeDrag?.sourceGroupId !== group.id;
@@ -49,7 +50,13 @@ export const BinStack = memo(function BinStack({
       <div
         data-bin-id={group.id}
         role="group"
-        aria-label={`${t.Bin} ${binNumber}, ${countLabel}`}
+        aria-label={t('grid.stackLabel', {
+          count,
+          bin: term.Bin,
+          number: binNumber,
+          defaultValue_one: '{{bin}} {{number}}, {{count}} photo',
+          defaultValue_other: '{{bin}} {{number}}, {{count}} photos',
+        })}
         className={cn(
           'relative rounded-[6px] transition-[transform,box-shadow] duration-150',
           showValidRing &&
@@ -108,7 +115,7 @@ export const BinStack = memo(function BinStack({
         )}
       </div>
       <span className="mt-2 text-[11px] leading-tight text-[var(--text-tertiary)]">
-        {t.Bin} {binNumber}
+        {term.Bin} {binNumber}
       </span>
     </div>
   );

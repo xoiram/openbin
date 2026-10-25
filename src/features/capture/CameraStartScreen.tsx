@@ -1,5 +1,6 @@
 import { Camera } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 interface CameraStartScreenProps {
@@ -18,19 +19,22 @@ export function CameraStartScreen({
   onCancel,
   readyExtras,
 }: CameraStartScreenProps) {
+  const { t } = useTranslation(['capture', 'common']);
   return (
     <div className="absolute inset-0 z-20 bg-[var(--bg-base)] flex flex-col items-center justify-center gap-5 px-6">
       {!hasCamera ? (
         <>
           <Camera className="h-16 w-16 text-[var(--text-tertiary)]" />
           <h2 className="text-[17px] font-semibold text-[var(--text-primary)] text-center">
-            Camera not available
+            {t('start.unavailableTitle', { defaultValue: 'Camera not available' })}
           </h2>
           <p className="text-[14px] text-[var(--text-secondary)] text-center max-w-sm">
-            Your browser does not support camera access. Make sure you are using HTTPS.
+            {t('start.unavailableDescription', {
+              defaultValue: 'Your browser does not support camera access. Make sure you are using HTTPS.',
+            })}
           </p>
           <Button variant="outline" onClick={onCancel}>
-            Go Back
+            {t('start.goBack', { defaultValue: 'Go Back' })}
           </Button>
         </>
       ) : error ? (
@@ -41,25 +45,25 @@ export function CameraStartScreen({
           </p>
           <div className="flex gap-3">
             <Button variant="outline" onClick={onCancel}>
-              Go Back
+              {t('start.goBack', { defaultValue: 'Go Back' })}
             </Button>
-            <Button onClick={onStart}>Try Again</Button>
+            <Button onClick={onStart}>{t('start.tryAgain', { defaultValue: 'Try Again' })}</Button>
           </div>
         </>
       ) : (
         <>
           <Camera className="h-16 w-16 text-[var(--accent)] opacity-80" />
           <h2 className="text-[17px] font-semibold text-[var(--text-primary)]">
-            Ready to capture
+            {t('start.readyTitle', { defaultValue: 'Ready to capture' })}
           </h2>
           <p className="text-[14px] text-[var(--text-secondary)] text-center max-w-sm">
-            Tap the button below to start the camera and take photos.
+            {t('start.readyDescription', { defaultValue: 'Tap the button below to start the camera and take photos.' })}
           </p>
           <div className="flex gap-3">
             <Button variant="outline" onClick={onCancel}>
-              Cancel
+              {t('common:actions.cancel', { defaultValue: 'Cancel' })}
             </Button>
-            <Button onClick={onStart}>Start Camera</Button>
+            <Button onClick={onStart}>{t('start.startCamera', { defaultValue: 'Start Camera' })}</Button>
           </div>
           {readyExtras}
         </>

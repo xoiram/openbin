@@ -2,6 +2,13 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DashboardChecklist } from '../DashboardChecklist';
 
+vi.mock('@/lib/terminology', () => ({
+  useTerminology: () => ({
+    bin: 'bin', bins: 'bins', Bin: 'Bin', Bins: 'Bins',
+    area: 'area', areas: 'areas', Area: 'Area', Areas: 'Areas',
+    location: 'location', locations: 'locations', Location: 'Location', Locations: 'Locations',
+  }),
+}));
 vi.mock('../useChecklist', () => ({
   useChecklist: vi.fn(),
 }));

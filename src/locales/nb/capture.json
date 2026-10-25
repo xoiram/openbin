@@ -1,0 +1,56 @@
+{
+  "close": "Lukk",
+  "done": "Ferdig",
+  "noPhotosYet": "Ingen bilder ennå",
+  "takePhoto": "Ta bilde",
+  "flipCamera": "Bytt kamera",
+  "retryUpload": "Prøv opplasting på nytt",
+  "photoCount_one": "{{count}} bilde",
+  "photoCount_other": "{{count}} bilder",
+  "discardConfirm_one": "Forkaste {{count}} bilde?",
+  "discardConfirm_other": "Forkaste {{count}} bilder?",
+  "start": {
+    "unavailableTitle": "Kamera ikke tilgjengelig",
+    "unavailableDescription": "Nettleseren din støtter ikke kameratilgang. Sørg for at du bruker HTTPS.",
+    "goBack": "Gå tilbake",
+    "tryAgain": "Prøv igjen",
+    "readyTitle": "Klar til å ta bilder",
+    "readyDescription": "Trykk på knappen nedenfor for å starte kameraet og ta bilder.",
+    "startCamera": "Start kamera"
+  },
+  "hints": {
+    "tapShutter": "trykk på utløseren for å ta bilde",
+    "keepShooting": "fortsett å fotografere — samme {{bin}}",
+    "newBin": "ny {{bin}} — sikt og ta bilde",
+    "doneWhenFinished": "Trykk Ferdig når du er ferdig"
+  },
+  "bulk": {
+    "groupStatus_one": "{{Bin}} #{{index}} · {{count}} bilde",
+    "groupStatus_other": "{{Bin}} #{{index}} · {{count}} bilder",
+    "openLibrary": "Åpne bildebibliotek",
+    "nextBin": "Neste {{bin}}",
+    "nextBinLine1": "Neste",
+    "nextBinLine2": "{{bin}}"
+  },
+  "thumbnail": {
+    "label": "{{Bin}} {{group}}, bilde {{photo}}",
+    "remove": "Fjern bilde"
+  },
+  "tips": {
+    "title": "Fototips",
+    "gotIt": "Skjønner",
+    "items": {
+      "visibility": "Åpne {{bin}} så innholdet synes",
+      "light": "Bruk sterkt, jevnt lys",
+      "angles": "Ta bilder fra 2–3 vinkler",
+      "labels": "Gå nær etiketter"
+    }
+  },
+  "errors": {
+    "uploadFailed": "Opplasting mislyktes",
+    "accessDenied": "Kameratilgang ble nektet. Tillat kameratilgang i nettleserinnstillingene og prøv igjen.",
+    "notFound": "Fant ikke noe kamera på denne enheten.",
+    "generic": "Kamerafeil: {{message}}",
+    "accessFailed": "Kunne ikke få tilgang til kameraet."
+  }
+}

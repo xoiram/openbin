@@ -1,0 +1,19 @@
+{
+  "acceptedTypes": "PDF, Word, Excel, PowerPoint, text, CSV, JSON, ODF, ZIP, 7z, tar, gz",
+  "toasts": {
+    "unsupportedOne": "\"{{name}}\" is not a supported file type. Allowed: {{allowed}}.",
+    "unsupportedMany": "{{number}} files have unsupported types. Allowed: {{allowed}}.",
+    "tooLarge": "\"{{name}}\" exceeds the {{max}} MB limit",
+    "uploadFailed": "Failed to upload \"{{name}}\"",
+    "deleted": "Attachment deleted",
+    "deleteFailed": "Failed to delete"
+  },
+  "download": "Download {{name}}",
+  "fileFallback": "FILE",
+  "deleteTooltip": "Delete attachment",
+  "deleteLabel": "Delete {{name}}",
+  "uploading": "Uploading…",
+  "addTooltip": "{{allowed}} · up to {{max}} MB",
+  "addLabel": "Add attachment. Allowed types: {{allowed}}. Max {{max}} MB.",
+  "addFile": "Add File"
+}
