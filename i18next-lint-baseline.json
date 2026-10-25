@@ -204,12 +204,6 @@
     "hardcoded: Close AI setup": 1,
     "hardcoded: Set up AI": 1
   },
-  "src/features/bins/BinCard.tsx": {
-    "hardcoded: Select": 1
-  },
-  "src/features/bins/BinCompactCard.tsx": {
-    "hardcoded: Select": 1
-  },
   "src/features/bins/BinCreateForm.tsx": {
     "hardcoded: Cancel": 1,
     "hardcoded: Name": 1,
@@ -278,20 +272,6 @@
     "hardcoded: Print label": 1,
     "hardcoded: Share": 1
   },
-  "src/features/bins/BinFilterDialog.tsx": {
-    "hardcoded: Clear": 1,
-    "hardcoded: No tags in this location": 1,
-    "hardcoded: Reset": 1,
-    "hardcoded: Save View": 1,
-    "hardcoded: Unused since": 1
-  },
-  "src/features/bins/BinListPage.tsx": {
-    "hardcoded: Add items": 1,
-    "hardcoded: Ask AI": 2,
-    "hardcoded: Create": 1,
-    "hardcoded: Print QR": 1,
-    "hardcoded: Scan QR code": 1
-  },
   "src/features/bins/BinMoreOptionsSection.tsx": {
     "hardcoded: Additional notes...": 1,
     "hardcoded: Appearance": 1,
@@ -305,13 +285,6 @@
   },
   "src/features/bins/BinPreviewCard.tsx": {
     "hardcoded: My bin": 1
-  },
-  "src/features/bins/BinTableView.tsx": {
-    "hardcoded: Created By": 1,
-    "hardcoded: Items": 1,
-    "hardcoded: Notes": 1,
-    "hardcoded: Select": 1,
-    "hardcoded: Tags": 1
   },
   "src/features/bins/BulkAppearanceDialog.tsx": {
     "hardcoded: Color": 1,
@@ -341,10 +314,6 @@
     "hardcoded: Color": 1,
     "hardcoded: Gray": 1,
     "hardcoded: White": 1
-  },
-  "src/features/bins/ColumnVisibilityMenu.tsx": {
-    "hardcoded: Toggle field visibility": 1,
-    "hardcoded: Visible Fields": 1
   },
   "src/features/bins/CustomFieldsDialog.tsx": {
     "hardcoded: Add": 1,
@@ -407,15 +376,6 @@
     "hardcoded: List or describe items, e.g. 'three socks, AA batteries, winter jacket'": 1,
     "hardcoded: Paste or type freely — AI will clean it up": 1
   },
-  "src/features/bins/SaveViewDialog.tsx": {
-    "hardcoded: Cancel": 1,
-    "hardcoded: Save": 1
-  },
-  "src/features/bins/SearchBarOverflowMenu.tsx": {
-    "hardcoded: Fields": 1,
-    "hardcoded: View": 1,
-    "hardcoded: View settings": 1
-  },
   "src/features/bins/ShareBinDialog.tsx": {
     "hardcoded: 1 hour": 1,
     "hardcoded: 24 hours": 1,
@@ -453,14 +413,6 @@
   },
   "src/features/bins/TagInput.tsx": {
     "hardcoded: Create": 1
-  },
-  "src/features/bins/TrashPage.tsx": {
-    "hardcoded: Are you sure you want to permanently delete": 1,
-    "hardcoded: Cancel": 1,
-    "hardcoded: Delete Forever": 1,
-    "hardcoded: Deleted": 1,
-    "hardcoded: Restore": 1,
-    "hardcoded: This action cannot be undone. All photos will also be deleted.": 1
   },
   "src/features/bulk-add/AddMoreTile.tsx": {
     "hardcoded: Add": 1,

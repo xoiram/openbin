@@ -1,5 +1,6 @@
 import { Check, Lock } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Highlight } from '@/components/ui/highlight';
 import { resolveIcon } from '@/lib/iconMap';
 import { useTheme } from '@/lib/theme';
@@ -35,6 +36,7 @@ export const BinCompactCard = React.memo(function BinCompactCard({
   filters,
   isVisible,
 }: BinCompactCardProps) {
+  const { t } = useTranslation('bins');
   const { theme } = useTheme();
   const BinIcon = resolveIcon(bin.icon);
 
@@ -87,7 +89,7 @@ export const BinCompactCard = React.memo(function BinCompactCard({
           tabIndex={0}
           className="relative h-5 w-5 shrink-0 appearance-none bg-transparent border-none p-0"
           onClick={(e) => { e.stopPropagation(); onSelect(bin.id, index, e.shiftKey); }}
-          aria-label="Select"
+          aria-label={t('card.select', { defaultValue: 'Select' })}
         >
           {isVisible?.('icon') !== false && (
             <BinIcon

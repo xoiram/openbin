@@ -7,7 +7,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crossfade } from '@/components/ui/crossfade';
@@ -54,7 +54,8 @@ const UpgradeDialog = __EE__
   : (() => null) as React.FC<Record<string, unknown>>;
 
 export function BinListPage() {
-  const t = useTerminology();
+  const { t } = useTranslation('bins');
+  const term = useTerminology();
   const location = useLocation();
   const { search, setSearch, debouncedSearch, sort, setSort, sortDir, setSortDir, filters, setFilters, page, setPage, clearAll } = useBinSearchParams();
 
@@ -112,7 +113,7 @@ export function BinListPage() {
     items: bins,
     resetDeps: [debouncedSearch, sort, sortDir, filters],
   });
-  const { bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy } = useBulkActions(bins, selectedIds, clearSelection, showToast, t);
+  const { bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy } = useBulkActions(bins, selectedIds, clearSelection, showToast, term);
 
   const selectedBinIds = useMemo(() => selectedIds.size > 0 ? [...selectedIds] : undefined, [selectedIds]);
   useEffect(() => {
@@ -128,16 +129,25 @@ export function BinListPage() {
     if (!bin) return;
     setCopiedStyle({ icon: bin.icon, color: bin.color, card_style: bin.card_style });
     clearSelection();
-    showToast({ message: 'Style copied', variant: 'success' });
-  }, [selectedIds, bins, clearSelection, showToast]);
+    showToast({ message: t('list.styleCopied', { defaultValue: 'Style copied' }), variant: 'success' });
+  }, [selectedIds, bins, clearSelection, showToast, t]);
 
   const handlePasteStyle = useCallback(async () => {
     if (!copiedStyle) return;
     const ids = [...selectedIds];
     await Promise.all(ids.map((id) => updateBin(id, { icon: copiedStyle.icon, color: copiedStyle.color, cardStyle: copiedStyle.card_style })));
     clearSelection();
-    showToast({ message: `Style applied to ${ids.length} ${ids.length === 1 ? t.bin : t.bins}`, variant: 'success' });
-  }, [copiedStyle, selectedIds, clearSelection, showToast, t]);
+    showToast({
+      message: t('list.styleApplied', {
+        count: ids.length,
+        defaultValue_one: 'Style applied to {{count}} {{bin}}',
+        defaultValue_other: 'Style applied to {{count}} {{bins}}',
+        bin: term.bin,
+        bins: term.bins,
+      }),
+      variant: 'success',
+    });
+  }, [copiedStyle, selectedIds, clearSelection, showToast, t, term]);
 
   const handleBinSortChange = useCallback((column: SortOption, direction: SortDirection) => {
     setSort(column);
@@ -155,7 +165,7 @@ export function BinListPage() {
     <div className="page-content max-w-none">
       {/* Header */}
       <PageHeader
-        title={t.Bins}
+        title={term.Bins}
         actions={activeLocationId ? (
           <div className="row">
             <div className="flex items-center gap-1">
@@ -168,13 +178,13 @@ export function BinListPage() {
                 onColumnToggle={toggleField}
                 customFieldLabels={customFieldLabels}
               />
-              <Tooltip content="Scan QR code" side="bottom">
+              <Tooltip content={t('list.scanQrCode', { defaultValue: 'Scan QR code' })} side="bottom">
                 <Button
                   onClick={() => openScanDialog()}
                   size="icon"
                   variant="ghost"
                   className="hidden lg:inline-flex h-10 w-10 rounded-[var(--radius-sm)]"
-                  aria-label="Scan QR code"
+                  aria-label={t('list.scanQrCode', { defaultValue: 'Scan QR code' })}
                 >
                   <ScanLine className="h-5 w-5" />
                 </Button>
@@ -186,21 +196,21 @@ export function BinListPage() {
                     variant="ghost"
                     size="sm"
                     className="hidden lg:inline-flex h-10 gap-1.5 rounded-[var(--radius-sm)] bg-[var(--ai-accent)]/10 dark:bg-[var(--ai-accent)]/20 text-[var(--ai-accent)] hover:bg-[var(--ai-accent)]/15 dark:hover:bg-[var(--ai-accent)]/28 active:bg-[var(--ai-accent)]/20 dark:active:bg-[var(--ai-accent)]/35 dark:border dark:border-[var(--ai-accent)]/25 ai-shimmer"
-                    aria-label="Ask AI"
+                    aria-label={t('list.askAi', { defaultValue: 'Ask AI' })}
                   >
                     <Sparkles className="h-4 w-4" />
-                    Ask AI
+                    {t('list.askAi', { defaultValue: 'Ask AI' })}
                   </Button>
                 </Tooltip>
               )}
             </div>
             {canCreateBin && (
-              <Tooltip content={`New ${t.bin}`} side="bottom">
+              <Tooltip content={t('list.newBin', { defaultValue: 'New {{bin}}', bin: term.bin })} side="bottom">
                 <Button
                   onClick={() => setCreateOpen(true)}
                   size="icon"
                   className="h-10 w-10 rounded-[var(--radius-sm)]"
-                  aria-label={`New ${t.bin}`}
+                  aria-label={t('list.newBin', { defaultValue: 'New {{bin}}', bin: term.bin })}
                 >
                   <Plus className="h-5 w-5" />
                 </Button>
@@ -223,7 +233,7 @@ export function BinListPage() {
           activeCount={activeCount}
           hasBadges={hasBadges}
           onOpenFilter={() => setFilterOpen(true)}
-          t={t}
+          term={term}
         />
       )}
 
@@ -231,13 +241,17 @@ export function BinListPage() {
       {!activeLocationId ? (
         <EmptyState
           icon={MapPin}
-          title={`No ${t.location} selected`}
-          subtitle={`Create or join a ${t.location} to start organizing ${t.bins}`}
+          title={t('list.noLocationTitle', { defaultValue: 'No {{location}} selected', location: term.location })}
+          subtitle={t('list.noLocationSubtitle', {
+            defaultValue: 'Create or join a {{location}} to start organizing {{bins}}',
+            location: term.location,
+            bins: term.bins,
+          })}
           variant="onboard"
         >
           <Button onClick={() => navigate('/locations')} className="mt-1">
             <MapPin className="h-4 w-4 mr-2" />
-            {`Manage ${t.Locations}`}
+            {t('list.manageLocations', { defaultValue: 'Manage {{locations}}', locations: term.Locations })}
           </Button>
         </EmptyState>
       ) : (
@@ -250,21 +264,21 @@ export function BinListPage() {
           {error ? (
               <EmptyState
                 icon={AlertTriangle}
-                title={`Failed to load ${t.bins}`}
+                title={t('list.loadFailed', { defaultValue: 'Failed to load {{bins}}', bins: term.bins })}
                 subtitle={error}
               />
           ) : bins.length === 0 ? (
             search || activeCount > 0 ? (
               <EmptyState
                 icon={PackageOpen}
-                title={`No ${t.bins} match your filters`}
+                title={t('list.noMatches', { defaultValue: 'No {{bins}} match your filters', bins: term.bins })}
                 variant="search"
               />
             ) : (
               <EmptyState
                 icon={PackageOpen}
-                title={`No ${t.bins} yet`}
-                subtitle={`Create your first ${t.bin} to get started`}
+                title={t('list.emptyTitle', { defaultValue: 'No {{bins}} yet', bins: term.bins })}
+                subtitle={t('list.emptySubtitle', { defaultValue: 'Create your first {{bin}} to get started', bin: term.bin })}
                 variant="onboard"
               >
                 {canCreateBin && (
@@ -272,22 +286,22 @@ export function BinListPage() {
                     <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-2 text-[12px] text-[var(--text-tertiary)]">
                       <span className="inline-flex items-center gap-1.5">
                         <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)]">1</span>
-                        Create {t.bin}
+                        {t('list.stepCreate', { defaultValue: 'Create {{bin}}', bin: term.bin })}
                       </span>
                       <span className="opacity-30">→</span>
                       <span className="inline-flex items-center gap-1.5">
                         <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)]">2</span>
-                        Add items
+                        {t('list.stepAddItems', { defaultValue: 'Add items' })}
                       </span>
                       <span className="opacity-30">→</span>
                       <span className="inline-flex items-center gap-1.5">
                         <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)]">3</span>
-                        Print QR
+                        {t('list.stepPrintQr', { defaultValue: 'Print QR' })}
                       </span>
                     </div>
                     <Button onClick={() => setCreateOpen(true)} className="mt-2">
                       <Plus className="h-4 w-4 mr-2" />
-                      {`Create ${t.Bin}`}
+                      {t('list.createBin', { defaultValue: 'Create {{bin}}', bin: term.Bin })}
                     </Button>
                   </>
                 )}
@@ -313,7 +327,7 @@ export function BinListPage() {
                   </div>
                 ))}
               </div>
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} pageSize={pageSize} pageSizeOptions={pageSizeOptions} onPageSizeChange={setPageSize} itemLabel={t.bins} />
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} pageSize={pageSize} pageSizeOptions={pageSizeOptions} onPageSizeChange={setPageSize} itemLabel={term.bins} />
             </div>
           ) : viewMode === 'table' ? (
             <div data-tour="select-toggle" className={cn(selectable && "pb-16")}>
@@ -331,7 +345,7 @@ export function BinListPage() {
                 isVisible={isVisible}
                 customFields={customFields}
               />
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} pageSize={pageSize} pageSizeOptions={pageSizeOptions} onPageSizeChange={setPageSize} itemLabel={t.bins} />
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} pageSize={pageSize} pageSizeOptions={pageSizeOptions} onPageSizeChange={setPageSize} itemLabel={term.bins} />
             </div>
           ) : (
             <div data-tour="select-toggle" className={cn(selectable && "pb-16")}>
@@ -353,7 +367,7 @@ export function BinListPage() {
                   </div>
                 ))}
               </div>
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} pageSize={pageSize} pageSizeOptions={pageSizeOptions} onPageSizeChange={setPageSize} itemLabel={t.bins} />
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} pageSize={pageSize} pageSizeOptions={pageSizeOptions} onPageSizeChange={setPageSize} itemLabel={term.bins} />
             </div>
           )}
           </Crossfade>
@@ -381,7 +395,13 @@ export function BinListPage() {
       <DeleteBinDialog
         open={bulkDeleteOpen}
         onOpenChange={setBulkDeleteOpen}
-        binName={`${selectedIds.size} ${selectedIds.size === 1 ? t.bin : t.bins}`}
+        binName={t('list.selectedBinCount', {
+          count: selectedIds.size,
+          defaultValue_one: '{{count}} {{bin}}',
+          defaultValue_other: '{{count}} {{bins}}',
+          bin: term.bin,
+          bins: term.bins,
+        })}
         onConfirm={bulkDelete}
       />
 
@@ -422,8 +442,10 @@ export function BinListPage() {
           <UpgradeDialog
             open={upgradeOpen}
             onOpenChange={setUpgradeOpen}
-            feature="AI Features"
-            description="AI-powered commands, analysis, and suggestions are available on the Pro plan."
+            feature={t('list.upgradeAiFeature', { defaultValue: 'AI Features' })}
+            description={t('list.upgradeAiDescription', {
+              defaultValue: 'AI-powered commands, analysis, and suggestions are available on the Pro plan.',
+            })}
           />
         </Suspense>
       )}
