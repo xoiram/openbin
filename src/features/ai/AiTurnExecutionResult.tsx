@@ -1,6 +1,6 @@
 import { Check, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cn, flatCard, plural } from '@/lib/utils';
+import { cn, flatCard } from '@/lib/utils';
 import type { ExecutionResult } from './useActionExecutor';
 
 interface AiTurnExecutionResultProps {
@@ -11,22 +11,21 @@ interface AiTurnExecutionResultProps {
 export function AiTurnExecutionResult({ result, onBinClick }: AiTurnExecutionResultProps) {
   const { t } = useTranslation('ai');
   const completedCount = result.completedActionIndices.length;
-  const changeWord = plural(
-    completedCount,
-    t('turnResult.change', { defaultValue: 'change' }),
-    t('turnResult.changes', { defaultValue: 'changes' }),
-  );
 
   return (
     <div className={cn(flatCard, 'ai-turn-enter p-3 space-y-2')}>
       <div className="flex items-center gap-2 text-[14px] text-[var(--text-primary)]">
         <Check className="h-4 w-4 text-[var(--color-success)]" strokeWidth={3} />
         <span>
-          {t('turnResult.applied', { defaultValue: 'Applied' })} {completedCount} {changeWord}
+          {t('turnResult.applied', {
+            count: completedCount,
+            defaultValue_one: 'Applied {{count}} change',
+            defaultValue_other: 'Applied {{count}} changes',
+          })}
           {result.failedCount > 0 && (
             <span className="text-[var(--destructive)]">
               {' '}
-              · {result.failedCount} {t('turnResult.failed', { defaultValue: 'failed' })}
+              · {t('turnResult.failedCount', { defaultValue: '{{count}} failed', count: result.failedCount })}
             </span>
           )}
         </span>

@@ -1,7 +1,6 @@
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTerminology } from '@/lib/terminology';
-import { plural } from '@/lib/utils';
 
 interface ConversationScopePillProps {
   binCount: number;
@@ -15,9 +14,11 @@ export function ConversationScopePill({ binCount, onClear }: ConversationScopePi
     <span className="inline-flex items-center gap-1 max-w-full min-w-0 bg-[var(--tab-pill-bg)] text-[var(--ai-accent)] px-2.5 py-0.5 rounded-full text-[12px]">
       <span className="truncate">
         {t('scopePill.focusedOn', {
-          defaultValue: 'Focused on {{n}} {{unit}}',
-          n: binCount,
-          unit: plural(binCount, term.bin, term.bins),
+          count: binCount,
+          bin: term.bin,
+          bins: term.bins,
+          defaultValue_one: 'Focused on {{count}} {{bin}}',
+          defaultValue_other: 'Focused on {{count}} {{bins}}',
         })}
       </span>
       <button

@@ -9,12 +9,13 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/skeleton-list';
 import { useToast } from '@/components/ui/toast';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useLocationList } from '@/features/locations/useLocations';
 import { SettingsPageHeader } from '@/features/settings/SettingsPageHeader';
 import { useAuth } from '@/lib/auth';
 import { useTerminology } from '@/lib/terminology';
 import { usePermissions } from '@/lib/usePermissions';
-import { relativeTime } from '@/lib/utils';
+
 import type { Bin } from '@/types';
 import { notifyBinsChanged, permanentDeleteBin, restoreBinFromTrash, useTrashBins } from './useBins';
 
@@ -25,6 +26,7 @@ export function TrashPage() {
   const { activeLocationId } = useAuth();
   const { isAdmin, isLoading: permissionsLoading } = usePermissions();
   const { t } = useTranslation(['bins', 'common']);
+  const relativeTime = useRelativeTime();
   const term = useTerminology();
   const { locations } = useLocationList();
   const [confirmDelete, setConfirmDelete] = useState<Bin | null>(null);

@@ -38,9 +38,9 @@ const UpgradePrompt = __EE__
   ? lazy(() => import('@/ee/UpgradePrompt').then(m => ({ default: m.UpgradePrompt })))
   : (() => null) as React.FC<Record<string, unknown>>;
 
-function formatDate(iso: string | null, t: TFunction<'settings'>): string {
+function formatDate(iso: string | null, t: TFunction<'settings'>, locale: string): string {
   if (!iso) return t('account.never', { defaultValue: 'Never' });
-  return new Date(iso).toLocaleDateString(undefined, {
+  return new Date(iso).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -56,7 +56,7 @@ export function AccountSection() {
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
   const { locations } = useLocationList();
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
 
   // Profile form
   const [displayName, setDisplayName] = useState(user?.displayName || '');
@@ -141,7 +141,7 @@ export function AccountSection() {
   const avatarSrc = user.avatarUrl ? `${getAvatarUrl(user.avatarUrl)}?v=${avatarKey}` : null;
 
   const memberSince = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
+    ? new Date(user.createdAt).toLocaleDateString(i18n.language, { year: 'numeric', month: 'long' })
     : t('account.memberSinceUnknown', { defaultValue: 'Unknown' });
 
   async function handleSaveProfile(e: React.FormEvent) {
@@ -566,9 +566,9 @@ export function AccountSection() {
                 title={k.name || k.key_prefix}
                 meta={
                   <>
-                    {k.key_prefix}... &middot; {t('account.keyCreatedPrefix', { defaultValue: 'Created' })} {formatDate(k.created_at, t)}
+                    {k.key_prefix}... &middot; {t('account.keyCreated', { defaultValue: 'Created {{date}}', date: formatDate(k.created_at, t, i18n.language) })}
                     {k.last_used_at
-                      ? ` \u00b7 ${t('account.keyLastUsedPrefix', { defaultValue: 'Last used' })} ${formatDate(k.last_used_at, t)}`
+                      ? ` \u00b7 ${t('account.keyLastUsed', { defaultValue: 'Last used {{date}}', date: formatDate(k.last_used_at, t, i18n.language) })}`
                       : ''}
                   </>
                 }

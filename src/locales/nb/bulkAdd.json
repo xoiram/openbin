@@ -5,7 +5,7 @@
     "hintMany": "Dra bilder oppå hverandre for å legge dem i samme {{bin}}.",
     "movingHint": "Flytter bilde {{index}}. Trykk på et annet bilde, eller {{key}} for å avbryte.",
     "escKey": "Esc",
-    "moveToNew": "Flytt bilde {{index}} til en ny {{bin}}",
+    "moveToNew": "Flytt bilde {{index}} til {{bin}} (ny)",
     "optional": "· valgfritt",
     "back": "Tilbake",
     "continue": "Fortsett",
@@ -24,9 +24,9 @@
       "canceled": "Flytting avbrutt.",
       "moving": "Flytter bilde {{index}}. Trykk på et annet bilde for å flytte det, eller trykk Escape for å avbryte.",
       "sameBin": "Det bildet er i samme {{bin}}. Velg en annen {{bin}}.",
-      "targetFull": "Valgt {{bin}} er full (maks {{max}} bilder).",
+      "targetFull": "Valgt mål er fullt ({{bin}}, maks {{max}} bilder).",
       "moved": "Flyttet bilde {{index}}.",
-      "movedToNew": "Bilde {{index}} flyttet til en ny {{bin}}."
+      "movedToNew": "Bilde {{index}} flyttet til {{bin}} (ny)."
     }
   },
   "correction": {
@@ -44,7 +44,7 @@
     "namePlaceholder": "f.eks. Julepynt",
     "moreOptions": "Flere valg",
     "notes": "Notater",
-    "notesPlaceholder": "Notater om denne {{bin}}...",
+    "notesPlaceholder": "Notater om {{bin}}...",
     "tags": "Stikkord",
     "icon": "Ikon",
     "color": "Farge"
@@ -67,7 +67,7 @@
     "allCreated": "Alle {{bins}} er opprettet!",
     "createTitle_one": "Opprett {{count}} {{bin}}",
     "createTitle_other": "Opprett {{count}} {{bins}}",
-    "tapToEdit": "Trykk på en {{bin}} for å redigere før du oppretter.",
+    "tapToEdit": "Trykk for å redigere {{bin}} før du oppretter.",
     "unnamedSkipped_one": "{{count}} {{bin}} uten navn blir ikke opprettet.",
     "unnamedSkipped_other": "{{count}} {{bins}} uten navn blir ikke opprettet.",
     "untitled": "Navnløs {{bin}}",

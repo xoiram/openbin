@@ -8,6 +8,7 @@ import { parseCardStyle, serializeCardStyle } from '@/lib/cardStyle';
 import { PREMADE_BACKGROUNDS } from '@/lib/premadeBackgrounds';
 import { cn } from '@/lib/utils';
 import type { Photo } from '@/types';
+import { translateBackgroundLabel } from './colorLabels';
 
 interface StylePickerProps {
   value: string; // raw card_style JSON string
@@ -204,11 +205,11 @@ export function StylePicker({ value, color, onChange, photos }: StylePickerProps
                               ? 'ring-2 ring-[var(--accent)] '
                               : 'hover:opacity-80'
                           )}
-                          title={bg.label}
+                          title={translateBackgroundLabel(t, bg.id, bg.label)}
                         >
                           <img
                             src={bg.src}
-                            alt={bg.label}
+                            alt={translateBackgroundLabel(t, bg.id, bg.label)}
                             className="w-full h-full object-cover"
                             loading="lazy"
                           />

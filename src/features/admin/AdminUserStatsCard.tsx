@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { relativeTime } from '@/lib/utils';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
+
 import { LimitStatItem, StatItem } from './AdminUserStatItems';
 import type { AdminUserDetail } from './useAdminUsers';
 
@@ -10,6 +11,7 @@ interface AdminUserStatsCardProps {
 
 export function AdminUserStatsCard({ detail }: AdminUserStatsCardProps) {
   const { t } = useTranslation('admin');
+  const relativeTime = useRelativeTime();
   const createdAt = new Date(detail.createdAt);
   const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
   const showLimits =

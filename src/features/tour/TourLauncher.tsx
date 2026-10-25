@@ -61,7 +61,8 @@ export function TourLauncher({ tourId, variant = 'icon', className }: TourLaunch
 
   const stepCount = t('launcher.stepCount', {
     count: tour.steps.length,
-    defaultValue: `${tour.steps.length} step${tour.steps.length === 1 ? '' : 's'}`,
+    defaultValue_one: '{{count}} step',
+    defaultValue_other: '{{count}} steps',
   });
   return (
     <SettingsRow

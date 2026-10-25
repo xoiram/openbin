@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type SortDirection, SortHeader } from '@/components/ui/sort-header';
 import { Table, TableHeader, TableRow } from '@/components/ui/table';
-import { cn, relativeTime } from '@/lib/utils';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
+import { cn } from '@/lib/utils';
 import { useAdminLabels } from './adminUserDetailConstants';
 import type { AdminFieldKey } from './useAdminColumnVisibility';
 import { type AdminUser, statusVariant } from './useAdminUsers';
@@ -37,6 +38,7 @@ export function AdminUsersTable({
   isVisible,
 }: AdminUsersTableProps) {
   const { t, i18n } = useTranslation('admin');
+  const relativeTime = useRelativeTime();
   const labels = useAdminLabels();
   return (
     <Table>

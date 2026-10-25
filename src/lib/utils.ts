@@ -125,24 +125,7 @@ export const stickyDialogFooter =
 export const rowAction =
   'shrink-0 flex items-center justify-center size-11 text-[var(--text-tertiary)] opacity-30 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity';
 
-/** Human-readable relative time string from an ISO timestamp (e.g. "5m ago", "3d ago"). */
-export function relativeTime(iso: string | null): string {
-  if (!iso) return '—';
-  const ms = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
-/** Short numeric date string (M/D/YYYY) from an ISO timestamp. */
-export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+/** Short numeric date string from an ISO timestamp, in the given locale (pass `i18n.language`). */
+export function formatDate(dateStr: string, locale?: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
 }

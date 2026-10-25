@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -34,17 +34,11 @@ interface DeleteAccountDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Several sentences below are deliberately split into prefix/suffix t() keys
-// around a dynamic value (email, plan, dates, CONFIRM_PHRASE) rather than one
-// interpolated key — the value must render as its own React node so tests
-// asserting on it (or on partial button/label text) keep working. i18next-cli
-// lint flags this as "string concatenation"; it's intentional here, not an
-// oversight — see docs/i18n.md.
 export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogProps) {
   const { user, deleteAccount, activeLocationId } = useAuth();
   const { planInfo, isSelfHosted } = usePlan();
   const { showToast } = useToast();
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
 
   const hasPassword = user?.hasPassword !== false;
   const hasActiveSub =
@@ -135,7 +129,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
         message: result.scheduledAt
           ? t('deleteDialog.deleteScheduledToast', {
               defaultValue: 'Account scheduled for deletion on {{date}}',
-              date: new Date(result.scheduledAt).toLocaleDateString(),
+              date: new Date(result.scheduledAt).toLocaleDateString(i18n.language),
             })
           : t('deleteDialog.accountDeletedToast', { defaultValue: 'Account deleted' }),
         variant: 'success',
@@ -148,7 +142,10 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
   }
 
   const planLabel = user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : '';
-  const periodLabel = planInfo?.billingPeriod ?? 'quarterly';
+  const periodLabel =
+    (planInfo?.billingPeriod ?? 'quarterly') === 'annual'
+      ? t('deleteDialog.periodAnnual', { defaultValue: 'annually' })
+      : t('deleteDialog.periodQuarterly', { defaultValue: 'quarterly' });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,13 +158,18 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
               {step === 'confirm' && t('deleteDialog.titleConfirm', { defaultValue: 'Confirm Account Deletion' })}
             </DialogTitle>
             <span className="text-[12px] text-[var(--text-tertiary)] shrink-0">
-              {t('deleteDialog.stepPrefix', { defaultValue: 'Step' })} {stepNumber} {t('deleteDialog.stepOf', { defaultValue: 'of' })} {totalSteps}
+              {t('deleteDialog.stepCounter', { defaultValue: 'Step {{step}} of {{total}}', step: stepNumber, total: totalSteps })}
             </span>
           </div>
           {step === 'summary' && (
             <DialogDescription>
-              {t('deleteDialog.descSummaryPrefix', { defaultValue: "You're about to delete" })}{' '}
-              <span className="font-medium text-[var(--text-secondary)]">{user.email}</span>.
+              <Trans
+                t={t}
+                i18nKey="deleteDialog.descSummary"
+                defaults="You're about to delete <email>{{email}}</email>."
+                values={{ email: user.email }}
+                components={{ email: <span className="font-medium text-[var(--text-secondary)]" /> }}
+              />
             </DialogDescription>
           )}
           {step === 'subscription' && (
@@ -198,10 +200,13 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
           <div className="space-y-4">
             <div className="space-y-2 text-[14px] text-[var(--text-secondary)]">
               <p>
-                {t('deleteDialog.willDeleteIntroPrefix', { defaultValue: 'This will permanently delete your account in' })}{' '}
-                <span className="font-medium text-[var(--text-primary)]">
-                  {DELETION_GRACE_PERIOD_DAYS} {t('deleteDialog.daysSuffix', { defaultValue: 'days' })}
-                </span>.
+                <Trans
+                  t={t}
+                  i18nKey="deleteDialog.willDeleteIntro"
+                  defaults="This will permanently delete your account in <strong>{{days}} days</strong>."
+                  values={{ days: DELETION_GRACE_PERIOD_DAYS }}
+                  components={{ strong: <span className="font-medium text-[var(--text-primary)]" /> }}
+                />
               </p>
               <p>{t('deleteDialog.recoverHint', { defaultValue: 'You can recover your account by signing in until then.' })}</p>
             </div>
@@ -246,10 +251,13 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
         {step === 'subscription' && (
           <div className="space-y-4">
             <p className="text-[14px] text-[var(--text-secondary)]">
-              {t('deleteDialog.activeSubPrefix', { defaultValue: 'You have an active' })}{' '}
-              <span className="font-medium text-[var(--text-primary)]">{planLabel}</span>{' '}
-              {t('deleteDialog.activeSubMiddle', { defaultValue: 'subscription billing' })}{' '}
-              <span className="font-medium text-[var(--text-primary)]">{periodLabel}</span>.
+              <Trans
+                t={t}
+                i18nKey="deleteDialog.activeSub"
+                defaults="You have an active <strong>{{plan}}</strong> subscription billing <strong>{{period}}</strong>."
+                values={{ plan: planLabel, period: periodLabel }}
+                components={{ strong: <span className="font-medium text-[var(--text-primary)]" /> }}
+              />
             </p>
             <div className="space-y-2">
               <RadioOption
@@ -269,17 +277,33 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
             </div>
             {planInfo?.portalAction && __EE__ && (
               <p className="text-[12px] text-[var(--text-tertiary)]">
-                {t('deleteDialog.orJustPrefix', { defaultValue: 'Or just' })}{' '}
-                <Suspense fallback={<span>{t('deleteDialog.cancelSubscriptionLink', { defaultValue: 'cancel your subscription' })}</span>}>
-                  <CheckoutLink
-                    action={planInfo.portalAction}
-                    target="_blank"
-                    className="text-[var(--accent)] hover:underline"
-                  >
-                    {t('deleteDialog.cancelSubscriptionLink', { defaultValue: 'cancel your subscription' })}
-                  </CheckoutLink>
-                </Suspense>{' '}
-                {t('deleteDialog.withoutDeletingSuffix', { defaultValue: 'without deleting your account.' })}
+                <Suspense
+                  fallback={
+                    <Trans
+                      t={t}
+                      i18nKey="deleteDialog.orJustCancel"
+                      defaults="Or just <link>cancel your subscription</link> without deleting your account."
+                      components={{ link: <span /> }}
+                    />
+                  }
+                >
+                  <Trans
+                    t={t}
+                    i18nKey="deleteDialog.orJustCancel"
+                    defaults="Or just <link>cancel your subscription</link> without deleting your account."
+                    components={{
+                      link: (
+                        <CheckoutLink
+                          action={planInfo.portalAction}
+                          target="_blank"
+                          className="text-[var(--accent)] hover:underline"
+                        >
+                          {null}
+                        </CheckoutLink>
+                      ),
+                    }}
+                  />
+                </Suspense>
               </p>
             )}
             <DialogFooter>
@@ -297,9 +321,13 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="confirm-phrase">
-                {t('deleteDialog.typeToConfirmPrefix', { defaultValue: 'Type' })}{' '}
-                <span className="font-mono text-[var(--text-primary)]">{CONFIRM_PHRASE}</span>{' '}
-                {t('deleteDialog.typeToConfirmSuffix', { defaultValue: 'to confirm' })}
+                <Trans
+                  t={t}
+                  i18nKey="deleteDialog.typeToConfirm"
+                  defaults="Type <phrase>{{phrase}}</phrase> to confirm"
+                  values={{ phrase: CONFIRM_PHRASE }}
+                  components={{ phrase: <span className="font-mono text-[var(--text-primary)]" /> }}
+                />
               </Label>
               <Input
                 id="confirm-phrase"
@@ -347,8 +375,8 @@ interface DeletionPendingBannerProps {
 }
 
 export function DeletionPendingBanner({ scheduledAt }: DeletionPendingBannerProps) {
-  const { t } = useTranslation('settings');
-  const date = new Date(scheduledAt).toLocaleDateString(undefined, {
+  const { t, i18n } = useTranslation('settings');
+  const date = new Date(scheduledAt).toLocaleDateString(i18n.language, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -365,9 +393,13 @@ export function DeletionPendingBanner({ scheduledAt }: DeletionPendingBannerProp
         {t('deleteDialog.pendingBannerTitle', { defaultValue: 'Account scheduled for deletion' })}
       </p>
       <p>
-        {t('deleteDialog.pendingBannerBodyPrefix', { defaultValue: 'Your account is scheduled for deletion on' })}{' '}
-        <span className="font-medium text-[var(--text-primary)]">{date}</span>.{' '}
-        {t('deleteDialog.pendingBannerBodySuffix', { defaultValue: 'Sign back in before then to recover it.' })}
+        <Trans
+          t={t}
+          i18nKey="deleteDialog.pendingBannerBody"
+          defaults="Your account is scheduled for deletion on <date>{{date}}</date>. Sign back in before then to recover it."
+          values={{ date }}
+          components={{ date: <span className="font-medium text-[var(--text-primary)]" /> }}
+        />
       </p>
     </output>
   );

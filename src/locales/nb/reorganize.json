@@ -136,7 +136,7 @@
     "sourceCardLabel_other": "{{name}}: {{count}} gjenstander, {{status}}",
     "destinations": " → {{n}} mål",
     "existingBin": "Eksisterende {{bin}}",
-    "newBin": "Ny {{bin}}",
+    "newBin": "Opprett {{bin}}",
     "itemsMovingTo": "Gjenstander som flyttes til {{name}}",
     "showLess": "Vis mindre",
     "showMore": "Vis {{n}} til",

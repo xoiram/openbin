@@ -15,6 +15,7 @@ import { type SortDirection, SortHeader } from '@/components/ui/sort-header';
 import { Table, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/components/ui/toast';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useAuth } from '@/lib/auth';
 import { type BulkAction, BulkActionBar } from '@/lib/bulk/BulkActionBar';
 import { useBulkSelection } from '@/lib/bulk/useBulkSelection';
@@ -24,7 +25,7 @@ import { resolveIcon } from '@/lib/iconMap';
 import { useTerminology } from '@/lib/terminology';
 import { useMountOnOpen } from '@/lib/useMountOnOpen';
 import { usePermissions } from '@/lib/usePermissions';
-import { cn, relativeTime } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { ItemCheckoutWithContext } from '@/types';
 import { ReturnItemDialog } from './ReturnItemDialog';
 import { useCheckoutBulkActions } from './useCheckoutBulkActions';
@@ -261,6 +262,7 @@ function CheckoutRow({
   onReturnOne: (co: ItemCheckoutWithContext) => void;
 }) {
   const { t } = useTranslation('checkouts');
+  const relativeTime = useRelativeTime();
   const navigate = useNavigate();
   const { handleClick, handleKeyDown, longPress } = useEntitySelectionInteraction({
     id: co.id,

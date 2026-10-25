@@ -15,7 +15,7 @@
     "notABinQr": "Ikke en {{bin}}-QR-kode",
     "notFoundDescription": "Denne QR-koden peker til en {{bin}} som ikke finnes ennå.",
     "notFoundTitle": "{{bin}} ikke funnet",
-    "pointCamera": "Rett kameraet mot en {{bin}}-QR-kode",
+    "pointCamera": "Rett kameraet mot {{bin}}-QR-koden",
     "redirecting": "Videresender...",
     "scanAgain": "Skann igjen",
     "title": "Skann QR-kode",

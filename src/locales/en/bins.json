@@ -45,6 +45,12 @@
     },
     "saveFailed": "Failed to save {{field}}"
   },
+  "backgrounds": {
+    "bin-black-yellow": "Black & Yellow",
+    "bin-blue": "Blue",
+    "bin-gray": "Gray",
+    "bin-green-red": "Green & Red"
+  },
   "bulk": {
     "appearance": {
       "color": "Color",
@@ -115,6 +121,29 @@
     "color": "Color",
     "gray": "Gray",
     "none": "None",
+    "white": "White",
+    "secondary": {
+      "border": "Border Color",
+      "gradient": "End Color",
+      "stripe": "Stripe Color"
+    }
+  },
+  "colors": {
+    "red": "Red",
+    "orange": "Orange",
+    "yellow": "Yellow",
+    "lime": "Lime",
+    "green": "Green",
+    "teal": "Teal",
+    "cyan": "Cyan",
+    "sky": "Sky",
+    "blue": "Blue",
+    "indigo": "Indigo",
+    "purple": "Purple",
+    "pink": "Pink",
+    "rose": "Rose",
+    "gray": "Gray",
+    "black": "Black",
     "white": "White"
   },
   "createDialog": {
@@ -421,6 +450,15 @@
   "photoAnalysis": {
     "analyzeFailed": "Failed to analyze photos",
     "reanalyzeFailed": "Failed to reanalyze photos"
+  },
+  "photoBulkAdd": {
+    "phase": {
+      "photos": "PHOTOS",
+      "analyze": "ANALYZE",
+      "review": "REVIEW",
+      "create": "CREATE"
+    },
+    "stepLabel": "Step {{current}} of {{total}}: {{label}}"
   },
   "photoUpload": {
     "addFromGallery": "Add from gallery",

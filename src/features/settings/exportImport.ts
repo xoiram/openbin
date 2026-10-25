@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/api';
+import i18n from '@/lib/i18n';
 import type { ExportData } from '@/types';
 
 export const MAX_IMPORT_SIZE = 100 * 1024 * 1024;
@@ -16,7 +17,7 @@ export class ImportError extends Error {
 
 async function fetchAndDownload(url: string, filename: string): Promise<void> {
   const resp = await fetch(url, { credentials: 'same-origin' });
-  if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
+  if (!resp.ok) throw new Error(i18n.t('settings:dataActions.exportFailedStatus', { defaultValue: 'Export failed ({{status}})', status: resp.status }));
   const blob = await resp.blob();
   const blobUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
