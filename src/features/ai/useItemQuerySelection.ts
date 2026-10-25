@@ -1,10 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { QueryMatch } from './useInventoryQuery';
+import { type BinQueryMatch, isLooseItemMatch, type QueryMatch } from './useInventoryQuery';
 
 export interface SelectedItem {
   itemId: string;
   binId: string;
   itemName: string;
+}
+
+/** Selection only ever addresses boxes: loose items have no box-item actions yet. */
+function findBinMatch(matches: QueryMatch[], binId: string): BinQueryMatch | undefined {
+  for (const m of matches) {
+    if (!isLooseItemMatch(m) && m.bin_id === binId) return m;
+  }
+  return undefined;
 }
 
 export function useItemQuerySelection(matches: QueryMatch[]) {
@@ -20,7 +28,7 @@ export function useItemQuerySelection(matches: QueryMatch[]) {
   }, []);
 
   const selectAllInBin = useCallback((binId: string) => {
-    const match = matches.find((m) => m.bin_id === binId);
+    const match = findBinMatch(matches, binId);
     if (!match) return;
     setSelected((prev) => {
       const next = new Map(prev);
@@ -36,13 +44,13 @@ export function useItemQuerySelection(matches: QueryMatch[]) {
   const isSelected = useCallback((itemId: string) => selected.has(itemId), [selected]);
 
   const isBinFullySelected = useCallback((binId: string) => {
-    const match = matches.find((m) => m.bin_id === binId);
+    const match = findBinMatch(matches, binId);
     if (!match || match.items.length === 0) return false;
     return match.items.every((it) => selected.has(it.id));
   }, [matches, selected]);
 
   const isAnySelectedInBin = useCallback((binId: string) => {
-    const match = matches.find((m) => m.bin_id === binId);
+    const match = findBinMatch(matches, binId);
     if (!match) return false;
     return match.items.some((it) => selected.has(it.id));
   }, [matches, selected]);
