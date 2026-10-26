@@ -441,6 +441,34 @@
     "move": "Flytt",
     "title": "Flytt til et annet {{location}}"
   },
+  "nestedList": {
+    "inside": "inni {{parent}}",
+    "section": "Nøsting",
+    "hideNested": "Skjul {{bins}} som ligger inni andre",
+    "hideNestedChip": "Bare øverste nivå",
+    "removeHideNestedFilter": "Fjern filteret som skjuler nøstede {{bins}}",
+    "skippedChildren_one": "{{count}} {{bin}} som ligger inni noe annet følger overordnet og ble hoppet over",
+    "skippedChildren_other": "{{count}} {{bins}} som ligger inni andre {{bins}} følger overordnet og ble hoppet over",
+    "deleteWithChildren_one": "{{count}} {{bin}} inni dem havner også i papirkurven.",
+    "deleteWithChildren_other": "{{count}} {{bins}} inni dem havner også i papirkurven.",
+    "result": {
+      "moved": "{{count}} flyttet",
+      "skipped": "{{count}} hoppet over",
+      "failed": "{{count}} mislyktes"
+    },
+    "bulkParent": {
+      "action": "Flytt inn i {{bin}}",
+      "title": "Flytt inn i {{bin}}",
+      "description": "Plasser {{selected}} inni noe annet, eller ta dem ut. De får samme {{area}} og synlighet som det du velger.",
+      "apply": "Flytt",
+      "skipHasChildren_one": "{{count}} {{bin}} inneholder andre {{bins}} og kan ikke legges inni noe, så det hoppes over",
+      "skipHasChildren_other": "{{count}} {{bins}} inneholder andre {{bins}} og kan ikke legges inni noe, så de hoppes over",
+      "skipSelf": "Det du valgte ({{bin}}) kan ikke legges inni seg selv og hoppes over",
+      "skipAlready_one": "{{count}} {{bin}} ligger allerede der og hoppes over",
+      "skipAlready_other": "{{count}} {{bins}} ligger allerede der og hoppes over",
+      "nothingToMove": "Ingenting å flytte med dette valget"
+    }
+  },
   "onboardingFields": {
     "color": "Farge",
     "icon": "Ikon",
@@ -627,5 +655,24 @@
   "visibility": {
     "everyone": "Alle",
     "onlyMe": "Bare meg"
+  },
+  "parentPicker": {
+    "none": "Ingen overordnet {{bin}}",
+    "hasChildren": "Kan ikke plasseres inni noe annet fordi det inneholder andre {{bins}}."
+  },
+  "nesting": {
+    "inside": "Inni",
+    "areaFollowsParent": "Følger overordnet {{bin}}.",
+    "visibilityLockedByParent": "Må være privat så lenge overordnet {{bin}} er privat.",
+    "autoSaveField": "plassering",
+    "breadcrumb": "Plassering",
+    "insideThis": "Inni {{bin}}",
+    "addInside": "Legg til {{bin}} inni",
+    "noneInside": "Ingen {{bins}} her ennå.",
+    "deleteWithChildren_one": "{{count}} {{bin}} inni det flyttes også til papirkurven.",
+    "deleteWithChildren_other": "{{count}} {{bins}} inni det flyttes også til papirkurven.",
+    "moveBlocked": "Ta det ut av overordnet {{bin}} først for å flytte det til andre {{locations}}.",
+    "moveWithChildren_one": "{{count}} {{bin}} inni det flyttes med.",
+    "moveWithChildren_other": "{{count}} {{bins}} inni det flyttes med."
   }
 }

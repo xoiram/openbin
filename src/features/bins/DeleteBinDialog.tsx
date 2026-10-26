@@ -9,9 +9,11 @@ interface DeleteBinDialogProps {
   onOpenChange: (open: boolean) => void;
   binName: string;
   onConfirm: () => void | Promise<void>;
+  /** Number of boxes inside this one; they are trashed with it. */
+  childCount?: number;
 }
 
-export function DeleteBinDialog({ open, onOpenChange, binName, onConfirm }: DeleteBinDialogProps) {
+export function DeleteBinDialog({ open, onOpenChange, binName, onConfirm, childCount = 0 }: DeleteBinDialogProps) {
   const { t } = useTranslation(['bins', 'common']);
   const term = useTerminology();
   const [deleting, setDeleting] = useState(false);
@@ -24,6 +26,17 @@ export function DeleteBinDialog({ open, onOpenChange, binName, onConfirm }: Dele
           <DialogDescription>
             {t('deleteDialog.description', { defaultValue: "This will delete '{{name}}' and all its photos. You can undo this action briefly after deletion.", name: binName })}
           </DialogDescription>
+          {childCount > 0 && (
+            <p className="text-[14px] text-[var(--text-secondary)]">
+              {t('nesting.deleteWithChildren', {
+                count: childCount,
+                bin: term.bin,
+                bins: term.bins,
+                defaultValue_one: 'The {{count}} {{bin}} inside it is moved to the trash too.',
+                defaultValue_other: 'The {{count}} {{bins}} inside it are moved to the trash too.',
+              })}
+            </p>
+          )}
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={deleting}>

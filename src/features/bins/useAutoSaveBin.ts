@@ -5,7 +5,7 @@ import { useTerminology } from '@/lib/terminology';
 import type { Bin, BinVisibility } from '@/types';
 import { updateBin } from './useBins';
 
-type FieldName = 'name' | 'notes' | 'tags' | 'areaId' | 'icon' | 'color' | 'cardStyle' | 'visibility' | 'customFields';
+type FieldName = 'name' | 'notes' | 'tags' | 'areaId' | 'parentBinId' | 'icon' | 'color' | 'cardStyle' | 'visibility' | 'customFields';
 
 export function useAutoSaveBin(bin: Bin | null) {
   const { t } = useTranslation('bins');
@@ -61,6 +61,7 @@ export function useAutoSaveBin(bin: Bin | null) {
         notes: t('autoSave.fields.notes', { defaultValue: 'notes' }),
         tags: t('autoSave.fields.tags', { defaultValue: 'tags' }),
         areaId: t('autoSave.fields.area', { defaultValue: '{{area}}', area: term.area }),
+        parentBinId: t('nesting.autoSaveField', { defaultValue: 'placement' }),
         icon: t('autoSave.fields.icon', { defaultValue: 'icon' }),
         color: t('autoSave.fields.color', { defaultValue: 'color' }),
         cardStyle: t('autoSave.fields.style', { defaultValue: 'style' }),
@@ -102,6 +103,10 @@ export function useAutoSaveBin(bin: Bin | null) {
     doSave('areaId', { areaId });
   }
 
+  function saveParentBinId(parentBinId: string | null) {
+    doSave('parentBinId', { parentBinId });
+  }
+
   function saveIcon(icon: string) {
     doSave('icon', { icon });
   }
@@ -125,7 +130,7 @@ export function useAutoSaveBin(bin: Bin | null) {
   }
 
   return {
-    saveName, saveNotes, saveTags, saveAreaId, saveIcon,
+    saveName, saveNotes, saveTags, saveAreaId, saveParentBinId, saveIcon,
     saveColor, saveCardStyle, saveVisibility, saveCustomFields,
     savedFields, savingFields,
   };

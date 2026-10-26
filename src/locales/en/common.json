@@ -159,9 +159,11 @@
     "clear": "Clear search"
   },
   "binPicker": {
-    "searchPlaceholder": "Search bins...",
-    "noMatches": "No matching bins",
-    "empty": "No other bins available"
+    "searchPlaceholder": "Search {{bins}}...",
+    "noMatches": "No matching {{bins}}",
+    "empty": "No other {{bins}} available",
+    "insideParent": "inside {{parent}}",
+    "hasMore": "Showing the first {{count}}. Search to narrow the list."
   },
   "savedViews": {
     "apply": "Apply saved view: {{name}}",

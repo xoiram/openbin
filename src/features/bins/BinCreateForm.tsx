@@ -29,6 +29,7 @@ import { useBinFormFields } from './useBinFormFields';
 import { useCustomFields } from './useCustomFields';
 import { useDeferredAiFill } from './useDeferredAiFill';
 import { useItemEntry } from './useItemEntry';
+import { useParentBin } from './useParentBin';
 import { usePhotoAnalysis } from './usePhotoAnalysis';
 
 export interface BinCreateFormData {
@@ -43,6 +44,8 @@ export interface BinCreateFormData {
   visibility: BinVisibility;
   customFields: Record<string, string>;
   photos: File[];
+  /** Box this one is created inside; when set, `areaId` is null (the area follows the parent). */
+  parentBinId: string | null;
 }
 
 interface BinCreateFormProps {
@@ -63,6 +66,8 @@ interface BinCreateFormProps {
   onWizardComplete?: () => void;
   /** When true, programmatically clicks the photo file input once on mount (gallery deep-link). */
   triggerFilePickerOnMount?: boolean;
+  /** Box to preselect in the "Inside" field (deep link / "add inside"). The user can still clear it. */
+  initialParentBinId?: string | null;
 }
 
 export function BinCreateForm({
@@ -82,6 +87,7 @@ export function BinCreateForm({
   initialGroups,
   onWizardComplete,
   triggerFilePickerOnMount,
+  initialParentBinId,
 }: BinCreateFormProps) {
   const { t } = useTranslation(['bins', 'common']);
   const term = useTerminology();
@@ -100,6 +106,7 @@ export function BinCreateForm({
   const {
     name, setName,
     areaId, setAreaId,
+    parentBinId, setParentBinId,
     items, setItems,
     notes, setNotes,
     tags, setTags,
@@ -108,13 +115,20 @@ export function BinCreateForm({
     cardStyle, setCardStyle,
     visibility, setVisibility,
     customFields, setCustomFields,
-  } = useBinFormFields({ initialName: prefillName });
+  } = useBinFormFields({ initialName: prefillName, initialParentBinId });
+  const parentBin = useParentBin(parentBinId);
+  const parentPrivate = parentBin?.visibility === 'private';
+  // A stale or hand-edited deep link may name a box that is itself a child: boxes nest one level only.
+  const parentIsChild = !!parentBin?.parent_bin_id;
+  useEffect(() => {
+    if (parentIsChild) setParentBinId(null);
+  }, [parentIsChild, setParentBinId]);
 
   const { fields: customFieldDefs } = useCustomFields(locationId);
 
   const aiFill = useAiFillState();
 
-  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
+  const [moreOptionsOpen, setMoreOptionsOpen] = useState(!!initialParentBinId);
   const [nameError, setNameError] = useState<string | null>(null);
 
   // Onboarding-specific: inline AI setup
@@ -235,11 +249,12 @@ export function BinCreateForm({
       items: binItemsToPayload(items),
       notes: notes.trim(),
       tags,
-      areaId,
+      areaId: parentBinId ? null : areaId,
+      parentBinId,
       icon,
       color,
       cardStyle: cardStyle || '',
-      visibility,
+      visibility: parentPrivate ? 'private' : visibility,
       customFields,
       photos,
     });
@@ -264,7 +279,7 @@ export function BinCreateForm({
     );
   }
 
-  const areaName = areas.find(a => a.id === areaId)?.name ?? '';
+  const areaName = parentBinId ? (parentBin?.area_name ?? '') : (areas.find(a => a.id === areaId)?.name ?? '');
   const renderedHeader = typeof header === 'function'
     ? header({ name, color, items, tags, icon, cardStyle, areaName })
     : header;
@@ -387,6 +402,9 @@ export function BinCreateForm({
             visibility={visibility}
             setVisibility={setVisibility}
             areaName={areaName}
+            parentBinId={parentBinId}
+            setParentBinId={setParentBinId}
+            parentBin={parentBin}
           />
         </>
       ) : (

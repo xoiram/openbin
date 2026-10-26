@@ -441,6 +441,34 @@
     "move": "Move",
     "title": "Move to another {{location}}"
   },
+  "nestedList": {
+    "inside": "inside {{parent}}",
+    "section": "Nesting",
+    "hideNested": "Hide nested {{bins}}",
+    "hideNestedChip": "Top-level only",
+    "removeHideNestedFilter": "Remove hide nested {{bins}} filter",
+    "skippedChildren_one": "{{count}} {{bin}} inside another {{bin}} follows its parent and was skipped",
+    "skippedChildren_other": "{{count}} {{bins}} inside other {{bins}} follow their parent and were skipped",
+    "deleteWithChildren_one": "{{count}} {{bin}} inside them will go to the trash too.",
+    "deleteWithChildren_other": "{{count}} {{bins}} inside them will go to the trash too.",
+    "result": {
+      "moved": "{{count}} moved",
+      "skipped": "{{count}} skipped",
+      "failed": "{{count}} failed"
+    },
+    "bulkParent": {
+      "action": "Move into {{bin}}",
+      "title": "Move into {{bin}}",
+      "description": "Place {{selected}} inside something else, or take them out. They get the same {{area}} and visibility as the one you choose.",
+      "apply": "Move",
+      "skipHasChildren_one": "{{count}} {{bin}} contains other {{bins}} and can’t be placed inside one, so it will be skipped",
+      "skipHasChildren_other": "{{count}} {{bins}} contain other {{bins}} and can’t be placed inside one, so they will be skipped",
+      "skipSelf": "The chosen {{bin}} can’t be placed inside itself and will be skipped",
+      "skipAlready_one": "{{count}} {{bin}} is already there and will be skipped",
+      "skipAlready_other": "{{count}} {{bins}} are already there and will be skipped",
+      "nothingToMove": "Nothing left to move with this choice"
+    }
+  },
   "onboardingFields": {
     "color": "Color",
     "icon": "Icon",
@@ -627,5 +655,24 @@
   "visibility": {
     "everyone": "Everyone",
     "onlyMe": "Only Me"
+  },
+  "parentPicker": {
+    "none": "Not inside another {{bin}}",
+    "hasChildren": "Can't be placed inside anything else because it contains other {{bins}}."
+  },
+  "nesting": {
+    "inside": "Inside",
+    "areaFollowsParent": "Follows the parent {{bin}}.",
+    "visibilityLockedByParent": "Must stay private while the parent {{bin}} is private.",
+    "autoSaveField": "placement",
+    "breadcrumb": "Location path",
+    "insideThis": "Inside this {{bin}}",
+    "addInside": "Add {{bin}} inside",
+    "noneInside": "No {{bins}} inside yet.",
+    "deleteWithChildren_one": "The {{count}} {{bin}} inside it is moved to the trash too.",
+    "deleteWithChildren_other": "The {{count}} {{bins}} inside it are moved to the trash too.",
+    "moveBlocked": "Take it out of its parent {{bin}} first to move it to other {{locations}}.",
+    "moveWithChildren_one": "The {{count}} {{bin}} inside it moves along.",
+    "moveWithChildren_other": "The {{count}} {{bins}} inside it move along."
   }
 }

@@ -12,9 +12,11 @@ interface MoveBinDialogProps {
   binName: string;
   locations: Location[];
   onConfirm: (locationId: string) => void;
+  /** Number of boxes inside this one; they move along with it. */
+  childCount?: number;
 }
 
-export function MoveBinDialog({ open, onOpenChange, binName, locations, onConfirm }: MoveBinDialogProps) {
+export function MoveBinDialog({ open, onOpenChange, binName, locations, onConfirm, childCount = 0 }: MoveBinDialogProps) {
   const { t } = useTranslation(['bins', 'common']);
   const term = useTerminology();
   const [targetId, setTargetId] = useState<string | null>(null);
@@ -32,6 +34,17 @@ export function MoveBinDialog({ open, onOpenChange, binName, locations, onConfir
           <DialogDescription>
             {t('moveDialog.description', { defaultValue: "Select a {{location}} to move the '{{name}}' {{bin}}.", location: term.location, name: binName, bin: term.bin })}
           </DialogDescription>
+          {childCount > 0 && (
+            <p className="text-[13px] text-[var(--text-secondary)]">
+              {t('nesting.moveWithChildren', {
+                count: childCount,
+                bin: term.bin,
+                bins: term.bins,
+                defaultValue_one: 'The {{count}} {{bin}} inside it moves along.',
+                defaultValue_other: 'The {{count}} {{bins}} inside it move along.',
+              })}
+            </p>
+          )}
         </DialogHeader>
         <div className="py-2">
           <LocationSelectList

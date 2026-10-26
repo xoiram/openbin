@@ -74,7 +74,7 @@ export function DashboardPage() {
     items: pinnedBins,
     resetDeps: [activeLocationId],
   });
-  const { bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy } = useBulkActions(pinnedBins, selectedIds, clearSelection, showToast, term);
+  const { selectedChildCount, bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy } = useBulkActions(pinnedBins, selectedIds, clearSelection, showToast, term);
 
   useEffect(() => {
     if (debouncedSearch.trim()) {
@@ -412,7 +412,7 @@ export function DashboardPage() {
         bulk={bulk} selectedIds={selectedIds} clearSelection={clearSelection}
         allTags={allTags} selectable={selectable} isAdmin={isAdmin} canWrite={canWrite}
         bulkDelete={bulkDelete} bulkPinToggle={bulkPinToggle} bulkDuplicate={bulkDuplicate}
-        pinLabel={pinLabel} isBusy={isBusy} bins={pinnedBins} term={term}
+        pinLabel={pinLabel} isBusy={isBusy} bins={pinnedBins} term={term} selectedChildCount={selectedChildCount}
       />
 
       {__EE__ && (

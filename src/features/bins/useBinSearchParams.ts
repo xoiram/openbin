@@ -39,6 +39,7 @@ function parseFiltersFromParams(params: URLSearchParams): BinFilters {
     areas: areasRaw ? areasRaw.split(',').filter(Boolean) : [],
     hasItems: params.get('has_items') === 'true',
     hasNotes: params.get('has_notes') === 'true',
+    hideNested: params.get('hide_nested') === 'true',
     needsOrganizing: params.get('needs_organizing') === 'true' || undefined,
     unusedSince: params.get('unused_since') ?? undefined,
   };
@@ -61,6 +62,7 @@ export function buildViewSearchParams(view: SavedView): string {
   if (f.areas.length > 0) params.set('areas', f.areas.join(','));
   if (f.hasItems) params.set('has_items', 'true');
   if (f.hasNotes) params.set('has_notes', 'true');
+  if (f.hideNested) params.set('hide_nested', 'true');
   if (f.needsOrganizing) params.set('needs_organizing', 'true');
   if (f.unusedSince) params.set('unused_since', f.unusedSince);
   return params.toString();
@@ -141,6 +143,7 @@ export function useBinSearchParams() {
     if (filters.areas.length > 0) params.set('areas', filters.areas.join(','));
     if (filters.hasItems) params.set('has_items', 'true');
     if (filters.hasNotes) params.set('has_notes', 'true');
+    if (filters.hideNested) params.set('hide_nested', 'true');
     if (filters.needsOrganizing) params.set('needs_organizing', 'true');
     if (filters.unusedSince) params.set('unused_since', filters.unusedSince);
 

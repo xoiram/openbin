@@ -56,6 +56,7 @@ export function NewBinPage() {
       notes: data.notes,
       tags: data.tags,
       areaId: data.areaId,
+      parentBinId: data.parentBinId,
       icon: data.icon,
       color: data.color,
       cardStyle: data.cardStyle || undefined,
@@ -69,6 +70,7 @@ export function NewBinPage() {
     navigate('/');
   }, [navigate]);
 
+  const initialParentBinId = searchParams.get('parent');
   const fromAsk = searchParams.get('from') === 'ask';
   const handleCancel = useCallback(() => {
     if (fromAsk) {
@@ -98,6 +100,7 @@ export function NewBinPage() {
         onInitialPhotosConsumed={handleConsumed}
         initialGroups={initialGroups}
         triggerFilePickerOnMount={galleryRequested}
+        initialParentBinId={initialParentBinId}
       />
     </div>
   );

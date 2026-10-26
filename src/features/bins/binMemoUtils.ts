@@ -7,6 +7,8 @@ export function areBinsEqual(a: Bin, b: Bin): boolean {
     a.name === b.name &&
     a.area_id === b.area_id &&
     a.area_name === b.area_name &&
+    a.parent_bin_id === b.parent_bin_id &&
+    a.parent_bin_name === b.parent_bin_name &&
     a.icon === b.icon &&
     a.color === b.color &&
     a.card_style === b.card_style &&

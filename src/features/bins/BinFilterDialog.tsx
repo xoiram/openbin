@@ -277,6 +277,36 @@ export function BinFilterDialog({
             </div>
           )}
 
+          {/* Nesting */}
+          <div className="space-y-2.5">
+            <SectionHeader label={t('nestedList.section', { defaultValue: 'Nesting' })} count={draft.hideNested ? 1 : 0} />
+            <button
+              type="button"
+              role="switch"
+              aria-checked={draft.hideNested}
+              onClick={() => setDraft((d) => ({ ...d, hideNested: !d.hideNested }))}
+              className="row-spread w-full rounded-[var(--radius-sm)] px-1 py-1 cursor-pointer text-left"
+            >
+              <span className="text-[13px] text-[var(--text-secondary)]">
+                {t('nestedList.hideNested', { defaultValue: 'Hide nested {{bins}}', bins: term.bins })}
+              </span>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'relative h-5 w-9 shrink-0 rounded-full transition-colors',
+                  draft.hideNested ? 'bg-[var(--accent)]' : 'bg-[var(--bg-active)]',
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all',
+                    draft.hideNested ? 'left-[18px]' : 'left-0.5',
+                  )}
+                />
+              </span>
+            </button>
+          </div>
+
           {/* Usage — filter by last-used date */}
           <div className="space-y-2.5">
             <SectionHeader label={t('filters.usage', { defaultValue: 'Usage' })} count={draft.unusedSince ? 1 : 0} />

@@ -36,8 +36,9 @@ import { BinListDialogs } from './BinListDialogs';
 import { BinListSkeleton } from './BinListSkeleton';
 import { BinSearchBar } from './BinSearchBar';
 import { BinTableView } from './BinTableView';
+import { BulkDeleteBinsDialog } from './BulkDeleteBinsDialog';
 import { buildBinBulkActions, type Translate } from './buildBinBulkActions';
-import { DeleteBinDialog } from './DeleteBinDialog';
+
 import { SearchBarOverflowMenu } from './SearchBarOverflowMenu';
 import { useBinCreateFromCapture } from './useBinCreateFromCapture';
 import { useBinSearchParams } from './useBinSearchParams';
@@ -113,7 +114,7 @@ export function BinListPage() {
     items: bins,
     resetDeps: [debouncedSearch, sort, sortDir, filters],
   });
-  const { bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy } = useBulkActions(bins, selectedIds, clearSelection, showToast, term);
+  const { selectedChildCount, bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy } = useBulkActions(bins, selectedIds, clearSelection, showToast, term);
 
   const selectedBinIds = useMemo(() => selectedIds.size > 0 ? [...selectedIds] : undefined, [selectedIds]);
   useEffect(() => {
@@ -389,19 +390,21 @@ export function BinListPage() {
         search={search}
         bulk={bulk}
         selectedIds={selectedIds}
+        bins={bins}
         clearSelection={clearSelection}
       />
 
-      <DeleteBinDialog
+      <BulkDeleteBinsDialog
         open={bulkDeleteOpen}
         onOpenChange={setBulkDeleteOpen}
-        binName={t('list.selectedBinCount', {
+        selectionLabel={t('list.selectedBinCount', {
           count: selectedIds.size,
           defaultValue_one: '{{count}} {{bin}}',
           defaultValue_other: '{{count}} {{bins}}',
           bin: term.bin,
           bins: term.bins,
         })}
+        childCount={selectedChildCount}
         onConfirm={bulkDelete}
       />
 
@@ -427,6 +430,8 @@ export function BinListPage() {
             onAppearance: () => bulk.open('appearance'),
             onVisibility: () => bulk.open('visibility'),
             onMoveLocation: () => bulk.open('location'),
+            onMoveInto: () => bulk.open('parent'),
+            canWrite,
             onPin: bulkPinToggle,
             onDuplicate: bulkDuplicate,
             onCustomFields: () => bulk.open('customFields'),

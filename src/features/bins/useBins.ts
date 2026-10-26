@@ -17,6 +17,7 @@ export function binMatchesSearch(bin: Bin, regex: RegExp): boolean {
   return (
     regex.test(bin.name) ||
     regex.test(bin.area_name ?? '') ||
+    regex.test(bin.parent_bin_name ?? '') ||
     (Array.isArray(bin.items) ? bin.items : []).some((item) => regex.test(item.name)) ||
     regex.test(bin.notes) ||
     (Array.isArray(bin.tags) ? bin.tags : []).some((tag: string) => regex.test(tag)) ||
@@ -37,11 +38,13 @@ export interface BinFilters {
   hasItems: boolean;
   hasNotes: boolean;
   needsOrganizing?: boolean;
+  /** Hide boxes that sit inside another box (children). Missing in old saved views = false. */
+  hideNested: boolean;
   unusedSince?: string;  // 'YYYY-MM-DD'
 }
 
 export const EMPTY_FILTERS: BinFilters = {
-  tags: [], tagMode: 'any', areas: [], hasItems: false, hasNotes: false,
+  tags: [], tagMode: 'any', areas: [], hasItems: false, hasNotes: false, hideNested: false,
 };
 
 export function countActiveFilters(f: BinFilters): number {
@@ -51,6 +54,7 @@ export function countActiveFilters(f: BinFilters): number {
   if (f.hasItems) n++;
   if (f.hasNotes) n++;
   if (f.unusedSince) n++;
+  if (f.hideNested) n++;
   return n;
 }
 
@@ -117,6 +121,9 @@ export function useBinList(searchQuery?: string, sort: SortOption = 'updated', f
         filtered = filtered.filter((bin) =>
           bin.area_id ? areaSet.has(bin.area_id) : areaSet.has('__unassigned__')
         );
+      }
+      if (filters.hideNested) {
+        filtered = filtered.filter((bin) => !bin.parent_bin_id);
       }
       if (filters.hasItems) {
         filtered = filtered.filter((bin) => Array.isArray(bin.items) && bin.items.length > 0);
@@ -190,6 +197,7 @@ function buildFilterParams(
     if (filters.hasNotes) p.set('has_notes', 'true');
     if (filters.needsOrganizing) p.set('needs_organizing', 'true');
     if (filters.unusedSince) p.set('unused_since', filters.unusedSince);
+    if (filters.hideNested) p.set('top_level', 'true');
   }
 
   const qs = p.toString();
@@ -259,6 +267,45 @@ export function useBin(id: string | undefined) {
   return { bin, isLoading };
 }
 
+export interface BinSearchOptions {
+  /** Text to match (name, notes, items, tags, area, parent name…); empty returns the first page by name. */
+  search?: string;
+  /** Only boxes that aren't inside another box. */
+  topLevelOnly?: boolean;
+  limit?: number;
+  skip?: boolean;
+}
+
+/**
+ * Boxes of the active location, searched on the server. `GET /api/bins` returns at most 200 boxes,
+ * so pickers must not assume the whole location is in `useBinList`: they search instead.
+ */
+export function useBinSearch({ search, topLevelOnly, limit = 50, skip }: BinSearchOptions = {}) {
+  const { activeLocationId, token } = useAuth();
+  const params = new URLSearchParams({ sort: 'name', sort_dir: 'asc', limit: String(limit) });
+  if (activeLocationId) params.set('location_id', activeLocationId);
+  if (search?.trim()) params.set('q', search.trim());
+  if (topLevelOnly) params.set('top_level', 'true');
+  const { data, isLoading } = useListData<Bin>(
+    !skip && token && activeLocationId ? `/api/bins?${params.toString()}` : null,
+    [Events.BINS],
+  );
+  return { bins: data, isLoading };
+}
+
+/** The boxes directly inside a box (fetched by parent, so it works however many boxes the location has). */
+export function useChildBins(parentId: string | undefined, skip?: boolean) {
+  const { activeLocationId, token } = useAuth();
+  const params = new URLSearchParams({ sort: 'name', sort_dir: 'asc', limit: '200' });
+  if (activeLocationId) params.set('location_id', activeLocationId);
+  if (parentId) params.set('parent', parentId);
+  const { data, isLoading } = useListData<Bin>(
+    !skip && parentId && token && activeLocationId ? `/api/bins?${params.toString()}` : null,
+    [Events.BINS],
+  );
+  return { bins: data, isLoading };
+}
+
 export interface AddBinOptions {
   name: string;
   locationId: string;
@@ -266,6 +313,8 @@ export interface AddBinOptions {
   notes?: string;
   tags?: string[];
   areaId?: string | null;
+  /** Place the new bin inside this bin (a child bin follows its parent's area and visibility). */
+  parentBinId?: string | null;
   icon?: string;
   color?: string;
   cardStyle?: string;
@@ -277,7 +326,8 @@ export async function addBin(options: AddBinOptions): Promise<Bin> {
   const body: Record<string, unknown> = {
     locationId: options.locationId,
     name: options.name,
-    areaId: options.areaId ?? null,
+    // A child bin's area comes from its parent; sending one would be rejected by the server.
+    ...(options.parentBinId ? { parentBinId: options.parentBinId } : { areaId: options.areaId ?? null }),
     items: options.items ?? [],
     notes: options.notes ?? '',
     tags: options.tags ?? [],
@@ -297,7 +347,7 @@ export async function addBin(options: AddBinOptions): Promise<Bin> {
 
 export async function updateBin(
   id: string,
-  changes: Partial<Pick<Bin, 'name' | 'notes' | 'tags' | 'icon' | 'color' | 'card_style' | 'visibility'>> & { areaId?: string | null; items?: (string | { name: string; quantity?: number | null })[]; cardStyle?: string; customFields?: Record<string, string> }
+  changes: Partial<Pick<Bin, 'name' | 'notes' | 'tags' | 'icon' | 'color' | 'card_style' | 'visibility'>> & { areaId?: string | null; parentBinId?: string | null; items?: (string | { name: string; quantity?: number | null })[]; cardStyle?: string; customFields?: Record<string, string> }
 ): Promise<void> {
   await apiFetch(`/api/bins/${id}`, {
     method: 'PUT',

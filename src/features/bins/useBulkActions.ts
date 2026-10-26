@@ -34,13 +34,15 @@ export function useBulkActions(
   const bulkDelete = useCallback(async () => {
     setIsBusy(true);
     try {
-      const snapshots: Bin[] = selected.map((b) => ({ ...b }));
-      await Promise.all(selected.map((b) => deleteBin(b.id)));
+      // A box inside a selected box is trashed together with its parent; deleting it again would fail.
+      const toDelete = selected.filter((b) => !(b.parent_bin_id && selectedIds.has(b.parent_bin_id)));
+      const snapshots: Bin[] = toDelete.map((b) => ({ ...b }));
+      await Promise.all(toDelete.map((b) => deleteBin(b.id)));
       haptic([50, 30, 50]);
       clearSelection();
       showToast({
         message: t('bulk.deleted', {
-          count: snapshots.length,
+          count: selected.length,
           defaultValue_one: 'Deleted {{count}} {{bin}}',
           defaultValue_other: 'Deleted {{count}} {{bins}}',
           bin: term.bin,
@@ -58,7 +60,7 @@ export function useBulkActions(
     } finally {
       setIsBusy(false);
     }
-  }, [selected, clearSelection, showToast, t, term]);
+  }, [selected, selectedIds, clearSelection, showToast, t, term]);
 
   const bulkPinToggle = useCallback(async () => {
     setIsBusy(true);
@@ -86,7 +88,9 @@ export function useBulkActions(
           items: bin.items.map((i) => i.name),
           notes: bin.notes,
           tags: [...bin.tags],
+          // A child's copy stays beside it; the server gives it the parent's area.
           areaId: bin.area_id,
+          parentBinId: bin.parent_bin_id ?? null,
           icon: bin.icon,
           color: bin.color,
           cardStyle: bin.card_style,
@@ -107,5 +111,12 @@ export function useBulkActions(
     }
   }, [selected, activeLocationId, clearSelection, showToast, navigate, t, term]);
 
-  return { bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy };
+  // Boxes that would be trashed along with the selection and aren't selected themselves.
+  const selectedChildCount = useMemo(() => {
+    const inside = selected.reduce((n, b) => n + (b.child_count ?? 0), 0);
+    const alreadySelected = selected.filter((b) => b.parent_bin_id && selectedIds.has(b.parent_bin_id)).length;
+    return Math.max(0, inside - alreadySelected);
+  }, [selected, selectedIds]);
+
+  return { selectedChildCount, bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy };
 }

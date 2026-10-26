@@ -93,6 +93,7 @@ describe('countActiveFilters', () => {
         areas: ['area-1'],
         hasItems: true,
         hasNotes: true,
+        hideNested: false,
       }),
     ).toBe(4);
   });
