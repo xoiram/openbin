@@ -16,6 +16,12 @@ vi.mock('../useBins', () => ({
   updateBin: vi.fn(() => Promise.resolve()),
   moveBin: vi.fn(() => Promise.resolve()),
   useBinList: () => ({ bins: mockBins, isLoading: false }),
+  useBinSearch: ({ topLevelOnly }: { topLevelOnly?: boolean } = {}) => ({
+    bins: topLevelOnly ? mockBins.filter((b) => !b.parent_bin_id) : mockBins,
+    isLoading: false,
+  }),
+  useChildBins: (parentId?: string) => ({ bins: mockBins.filter((b) => b.parent_bin_id === parentId), isLoading: false }),
+  useBin: (id?: string) => ({ bin: mockBins.find((b) => b.id === id), isLoading: false }),
 }));
 vi.mock('@/features/areas/AreaPicker', () => ({
   AreaPicker: ({ onChange }: { onChange: (id: string | null) => void }) => (
@@ -155,8 +161,10 @@ describe('BulkParentDialog', () => {
     render(<BulkParentDialog open onOpenChange={vi.fn()} binIds={['bits', 'cables']} bins={all} onDone={vi.fn()} />);
     // choose the "none" option explicitly
     fireEvent.click(screen.getByRole('button', { name: /Not inside another bin/ }));
-    const none = (await screen.findAllByText(/Not inside another bin/)).pop() as HTMLElement;
-    fireEvent.click(none);
+    await screen.findByPlaceholderText(/Search bins/); // the dropdown is open
+    // the field is the first matching button, the dropdown's "none" row the last
+    const rows = screen.getAllByRole('button', { name: /Not inside another bin/ });
+    fireEvent.click(rows[rows.length - 1]);
     expect(screen.getByText(/1 bin is already there/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Move' }));
     await waitFor(() => expect(updateBin).toHaveBeenCalled());

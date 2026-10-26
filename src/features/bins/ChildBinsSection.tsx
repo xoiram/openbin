@@ -6,7 +6,7 @@ import { resolveIcon } from '@/lib/iconMap';
 import { useTerminology } from '@/lib/terminology';
 import { cn, focusRing, sectionHeader } from '@/lib/utils';
 import type { Bin } from '@/types';
-import { useBinList } from './useBins';
+import { useChildBins } from './useBins';
 
 interface ChildBinsSectionProps {
   bin: Pick<Bin, 'id' | 'parent_bin_id' | 'child_count'>;
@@ -23,10 +23,9 @@ export function ChildBinsSection({ bin, canEdit, onAddInside }: ChildBinsSection
   const term = useTerminology();
   const hasChildren = (bin.child_count ?? 0) > 0;
   const hidden = !!bin.parent_bin_id || (!hasChildren && !canEdit);
-  const { bins } = useBinList(undefined, 'name', undefined, hidden || !hasChildren);
+  const { bins: children } = useChildBins(bin.id, hidden || !hasChildren);
 
   if (hidden) return null;
-  const children = bins.filter((b) => b.parent_bin_id === bin.id);
 
   return (
     <section className="mb-5" aria-labelledby={`child-bins-${bin.id}`} data-testid="child-bins-section">

@@ -267,6 +267,45 @@ export function useBin(id: string | undefined) {
   return { bin, isLoading };
 }
 
+export interface BinSearchOptions {
+  /** Text to match (name, notes, items, tags, area, parent name…); empty returns the first page by name. */
+  search?: string;
+  /** Only boxes that aren't inside another box. */
+  topLevelOnly?: boolean;
+  limit?: number;
+  skip?: boolean;
+}
+
+/**
+ * Boxes of the active location, searched on the server. `GET /api/bins` returns at most 200 boxes,
+ * so pickers must not assume the whole location is in `useBinList`: they search instead.
+ */
+export function useBinSearch({ search, topLevelOnly, limit = 50, skip }: BinSearchOptions = {}) {
+  const { activeLocationId, token } = useAuth();
+  const params = new URLSearchParams({ sort: 'name', sort_dir: 'asc', limit: String(limit) });
+  if (activeLocationId) params.set('location_id', activeLocationId);
+  if (search?.trim()) params.set('q', search.trim());
+  if (topLevelOnly) params.set('top_level', 'true');
+  const { data, isLoading } = useListData<Bin>(
+    !skip && token && activeLocationId ? `/api/bins?${params.toString()}` : null,
+    [Events.BINS],
+  );
+  return { bins: data, isLoading };
+}
+
+/** The boxes directly inside a box (fetched by parent, so it works however many boxes the location has). */
+export function useChildBins(parentId: string | undefined, skip?: boolean) {
+  const { activeLocationId, token } = useAuth();
+  const params = new URLSearchParams({ sort: 'name', sort_dir: 'asc', limit: '200' });
+  if (activeLocationId) params.set('location_id', activeLocationId);
+  if (parentId) params.set('parent', parentId);
+  const { data, isLoading } = useListData<Bin>(
+    !skip && parentId && token && activeLocationId ? `/api/bins?${params.toString()}` : null,
+    [Events.BINS],
+  );
+  return { bins: data, isLoading };
+}
+
 export interface AddBinOptions {
   name: string;
   locationId: string;

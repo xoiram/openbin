@@ -34,6 +34,12 @@ const mockBins: Bin[] = [
 
 vi.mock('../useBins', () => ({
   useBinList: () => ({ bins: mockBins, isLoading: false }),
+  useBinSearch: ({ topLevelOnly }: { topLevelOnly?: boolean } = {}) => ({
+    bins: topLevelOnly ? mockBins.filter((b) => !b.parent_bin_id) : mockBins,
+    isLoading: false,
+  }),
+  useChildBins: (parentId?: string) => ({ bins: mockBins.filter((b) => b.parent_bin_id === parentId), isLoading: false }),
+  useBin: (id?: string) => ({ bin: mockBins.find((b) => b.id === id), isLoading: false }),
 }));
 
 import { BinBreadcrumb } from '../BinBreadcrumb';

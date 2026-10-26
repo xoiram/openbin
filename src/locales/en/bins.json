@@ -658,9 +658,7 @@
   },
   "parentPicker": {
     "none": "Not inside another {{bin}}",
-    "hasChildren": "Can't be placed inside anything else because it contains other {{bins}}.",
-    "title": "Place inside another {{bin}}",
-    "description": "It follows the {{area}} and visibility of the one you choose."
+    "hasChildren": "Can't be placed inside anything else because it contains other {{bins}}."
   },
   "nesting": {
     "inside": "Inside",

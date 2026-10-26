@@ -11,7 +11,10 @@ vi.mock('@/lib/terminology', () => ({
     location: 'sted', locations: 'steder', Location: 'Sted', Locations: 'Steder',
   }),
 }));
-vi.mock('../useBins', () => ({ useBinList: () => ({ bins: [], isLoading: false }) }));
+vi.mock('../useBins', () => ({ useBinList: () => ({ bins: [], isLoading: false }),
+  useBinSearch: () => ({ bins: [], isLoading: false }),
+  useChildBins: () => ({ bins: [], isLoading: false }),
+  useBin: () => ({ bin: undefined, isLoading: false }) }));
 
 const { renderWithI18n } = await import('@/test/i18nTestUtils');
 const { DeleteBinDialog } = await import('../DeleteBinDialog');

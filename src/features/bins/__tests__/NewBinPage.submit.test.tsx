@@ -17,6 +17,9 @@ vi.mock('@/features/bins/useBins', () => ({
   notifyBinsChanged: vi.fn(),
   useAllTags: () => [],
   useBinList: () => ({ bins: [], isLoading: false }),
+  useBinSearch: () => ({ bins: [], isLoading: false }),
+  useChildBins: () => ({ bins: [], isLoading: false }),
+  useBin: () => ({ bin: undefined, isLoading: false }),
 }));
 
 vi.mock('@/lib/api', () => ({ apiFetch: vi.fn() }));

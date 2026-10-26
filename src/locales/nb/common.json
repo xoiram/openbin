@@ -162,7 +162,8 @@
     "searchPlaceholder": "Søk i {{bins}}...",
     "noMatches": "Ingen {{bins}} samsvarer",
     "empty": "Ingen andre {{bins}} tilgjengelig",
-    "insideParent": "inni {{parent}}"
+    "insideParent": "inni {{parent}}",
+    "hasMore": "Viser de første {{count}}. Søk for å begrense listen."
   },
   "savedViews": {
     "apply": "Bruk lagret visning: {{name}}",

@@ -1,10 +1,11 @@
 import { Check } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBinList } from '@/features/bins/useBins';
+import { useBinSearch } from '@/features/bins/useBins';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
 import { useTerminology } from '@/lib/terminology';
+import { useDebounce } from '@/lib/useDebounce';
 import { cn, focusRing } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { BinIconBadge } from './bin-icon-badge';
@@ -19,9 +20,13 @@ export interface BinPickerListProps {
   /** When true, the bin list is fetched lazily (not until visible). */
   paused?: boolean;
   emptyText?: string;
-  /** Only offer bins this returns true for (applied before the search). */
+  /** Only offer bins this returns true for. */
   filter?: (bin: Bin) => boolean;
+  /** Only offer bins that aren't inside another bin (applied on the server). */
+  topLevelOnly?: boolean;
 }
+
+const PAGE = 50;
 
 export function BinPickerList({
   excludeBinId,
@@ -32,22 +37,20 @@ export function BinPickerList({
   paused,
   emptyText,
   filter,
+  topLevelOnly,
 }: BinPickerListProps) {
   const { t } = useTranslation('common');
   const term = useTerminology();
-  const { bins } = useBinList(undefined, 'name', undefined, paused);
+  // Searched on the server: the API returns at most 200 bins, so a location can have more than the list holds.
+  const debouncedSearch = useDebounce(search, 250);
+  const { bins } = useBinSearch({ search: debouncedSearch, topLevelOnly, limit: PAGE, skip: paused });
 
   const filtered = useMemo(() => {
     let list = excludeBinId ? bins.filter((b) => b.id !== excludeBinId) : bins;
     if (filter) list = list.filter(filter);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((b) =>
-        b.name.toLowerCase().includes(q) || b.area_name?.toLowerCase().includes(q),
-      );
-    }
     return list;
-  }, [bins, excludeBinId, search, filter]);
+  }, [bins, excludeBinId, filter]);
+  const mayHaveMore = bins.length >= PAGE;
 
   return (
     <div className="flex flex-col gap-2">
@@ -100,6 +103,11 @@ export function BinPickerList({
           })
         )}
       </div>
+      {mayHaveMore && (
+        <p className="text-[12px] text-[var(--text-tertiary)] text-center">
+          {t('binPicker.hasMore', { defaultValue: 'Showing the first {{count}}. Search to narrow the list.', count: PAGE })}
+        </p>
+      )}
     </div>
   );
 }
