@@ -12,6 +12,7 @@ import { resolveIcon } from '@/lib/iconMap';
 import { cn, formatDate } from '@/lib/utils';
 import type { Bin, CustomField } from '@/types';
 import { areCommonBinCardPropsEqual } from './binMemoUtils';
+import { ParentBinLabel } from './ParentBinLabel';
 import { useBinCardInteraction } from './useBinCardInteraction';
 import type { BinFilters, SortOption } from './useBins';
 import { useFieldLabels } from './useFieldLabels';
@@ -174,9 +175,12 @@ const BinTableRow = React.memo(function BinTableRow({
             <BinIconBadge icon={BinIcon} colorPreset={colorPreset} selected={selectable ? selected : undefined} />
           </button>
         )}
-        <span className="truncate font-medium text-[14px] text-[var(--text-primary)]">
-          <Highlight text={bin.name} query={searchQuery} />
-        </span>
+        <div className="min-w-0 flex flex-col">
+          <span className="truncate font-medium text-[14px] text-[var(--text-primary)]">
+            <Highlight text={bin.name} query={searchQuery} />
+          </span>
+          <ParentBinLabel bin={bin} className="text-[11px]" />
+        </div>
         {bin.visibility === 'private' && (
           <Lock className="h-3 w-3 shrink-0 text-[var(--text-tertiary)]" />
         )}

@@ -90,6 +90,11 @@ export function BinSearchBar({
                 {t('filters.hasNotes', { defaultValue: 'Has notes' })}
               </DismissibleBadge>
             )}
+            {filters.hideNested && (
+              <DismissibleBadge onDismiss={() => setFilters({ ...filters, hideNested: false })} ariaLabel={t('nestedList.removeHideNestedFilter', { defaultValue: 'Remove hide nested {{bins}} filter', bins: term.bins })}>
+                {t('nestedList.hideNestedChip', { defaultValue: 'Top-level only' })}
+              </DismissibleBadge>
+            )}
             {filters.needsOrganizing && (
               <DismissibleBadge onDismiss={() => setFilters({ ...filters, needsOrganizing: false })} ariaLabel={t('searchBar.removeNeedsOrganizingFilter', { defaultValue: 'Remove needs organizing filter' })}>
                 {t('filters.needsOrganizing', { defaultValue: 'Needs organizing' })}

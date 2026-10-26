@@ -17,6 +17,7 @@ export function binMatchesSearch(bin: Bin, regex: RegExp): boolean {
   return (
     regex.test(bin.name) ||
     regex.test(bin.area_name ?? '') ||
+    regex.test(bin.parent_bin_name ?? '') ||
     (Array.isArray(bin.items) ? bin.items : []).some((item) => regex.test(item.name)) ||
     regex.test(bin.notes) ||
     (Array.isArray(bin.tags) ? bin.tags : []).some((tag: string) => regex.test(tag)) ||
@@ -37,11 +38,13 @@ export interface BinFilters {
   hasItems: boolean;
   hasNotes: boolean;
   needsOrganizing?: boolean;
+  /** Hide boxes that sit inside another box (children). Missing in old saved views = false. */
+  hideNested: boolean;
   unusedSince?: string;  // 'YYYY-MM-DD'
 }
 
 export const EMPTY_FILTERS: BinFilters = {
-  tags: [], tagMode: 'any', areas: [], hasItems: false, hasNotes: false,
+  tags: [], tagMode: 'any', areas: [], hasItems: false, hasNotes: false, hideNested: false,
 };
 
 export function countActiveFilters(f: BinFilters): number {
@@ -51,6 +54,7 @@ export function countActiveFilters(f: BinFilters): number {
   if (f.hasItems) n++;
   if (f.hasNotes) n++;
   if (f.unusedSince) n++;
+  if (f.hideNested) n++;
   return n;
 }
 
@@ -117,6 +121,9 @@ export function useBinList(searchQuery?: string, sort: SortOption = 'updated', f
         filtered = filtered.filter((bin) =>
           bin.area_id ? areaSet.has(bin.area_id) : areaSet.has('__unassigned__')
         );
+      }
+      if (filters.hideNested) {
+        filtered = filtered.filter((bin) => !bin.parent_bin_id);
       }
       if (filters.hasItems) {
         filtered = filtered.filter((bin) => Array.isArray(bin.items) && bin.items.length > 0);
@@ -190,6 +197,7 @@ function buildFilterParams(
     if (filters.hasNotes) p.set('has_notes', 'true');
     if (filters.needsOrganizing) p.set('needs_organizing', 'true');
     if (filters.unusedSince) p.set('unused_since', filters.unusedSince);
+    if (filters.hideNested) p.set('top_level', 'true');
   }
 
   const qs = p.toString();

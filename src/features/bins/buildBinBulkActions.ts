@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Clipboard, ClipboardPaste, Copy, Eye, List, MapPin, Paintbrush, Pin, Printer, Shuffle, Sparkles, Tag, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Clipboard, ClipboardPaste, Copy, Eye, FolderInput, List, MapPin, Paintbrush, Pin, Printer, Shuffle, Sparkles, Tag, Trash2 } from 'lucide-react';
 import type { BulkAction } from '@/lib/bulk/BulkActionBar';
 import type { Terminology } from '@/lib/terminology';
 
@@ -22,6 +22,10 @@ export interface BuildBinBulkActionsArgs {
   onAppearance: () => void;
   onVisibility: () => void;
   onMoveLocation: () => void;
+  /** Opens the "Move into {bin}" dialog (nest the selection inside another box, or take it out). */
+  onMoveInto?: () => void;
+  /** Only users who can write see the move-into action. */
+  canWrite?: boolean;
   onPin: () => void;
   onDuplicate: () => void;
   onCustomFields?: () => void;
@@ -44,6 +48,7 @@ export function buildBinBulkActions(args: BuildBinBulkActionsArgs): BulkAction[]
     { id: 'appearance', icon: Paintbrush, label: t('bulk.actions.appearance', { defaultValue: 'Appearance' }), onClick: args.onAppearance, group: 'more', show: args.isAdmin },
     { id: 'visibility', icon: Eye, label: t('bulk.actions.visibility', { defaultValue: 'Change Visibility' }), onClick: args.onVisibility, group: 'more', show: args.isAdmin },
     { id: 'moveLocation', icon: ArrowRightLeft, label: t('bulk.actions.moveLocation', { defaultValue: 'Move to {{Location}}', Location: args.term?.Location ?? 'Location' }), onClick: args.onMoveLocation, group: 'more', show: args.isAdmin },
+    { id: 'moveInto', icon: FolderInput, label: t('nestedList.bulkParent.action', { defaultValue: 'Move into {{bin}}', bin: args.term?.bin ?? 'bin' }), onClick: args.onMoveInto ?? (() => {}), group: 'more', show: Boolean(args.canWrite && args.onMoveInto) },
     { id: 'pin', icon: Pin, label: args.pinLabel, onClick: args.onPin, group: 'more', show: args.isAdmin },
     { id: 'duplicate', icon: Copy, label: t('bulk.actions.duplicate', { defaultValue: 'Duplicate' }), onClick: args.onDuplicate, group: 'more', show: args.isAdmin },
     { id: 'reorganize', icon: Shuffle, label: t('bulk.actions.reorganize', { defaultValue: 'Reorganize' }), onClick: args.onReorganize ?? (() => {}), group: 'more', show: Boolean(args.aiEnabled && args.showReorganize && args.onReorganize) },
