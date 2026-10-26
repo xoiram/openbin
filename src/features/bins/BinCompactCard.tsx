@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { computeBinCardStyles } from './binCardStyles';
 import { areCommonBinCardPropsEqual } from './binMemoUtils';
+import { ParentBinLabel } from './ParentBinLabel';
 import { useBinCardInteraction } from './useBinCardInteraction';
 import type { BinFilters, SortOption } from './useBins';
 import type { FieldKey } from './useColumnVisibility';
@@ -78,6 +79,7 @@ export const BinCompactCard = React.memo(function BinCompactCard({
             <Highlight text={bin.area_name} query={searchQuery} />
           </p>
         )}
+        <ParentBinLabel bin={bin} className="text-[11px] leading-relaxed" style={secondaryStyle} />
       </div>
 
       {/* Icon / checkbox */}

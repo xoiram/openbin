@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { BinFilters, SortOption } from '@/features/bins/useBins';
+import { type BinFilters, EMPTY_FILTERS, type SortOption } from '@/features/bins/useBins';
 import type { ListResponse } from '@/types';
 import { apiFetch } from './api';
 
@@ -27,7 +27,8 @@ function toClient(sv: ServerSavedView): SavedView {
     name: sv.name,
     searchQuery: sv.search_query,
     sort: sv.sort as SortOption,
-    filters: typeof sv.filters === 'string' ? JSON.parse(sv.filters) : sv.filters,
+    // Views saved before a filter existed lack its field: fill the gaps from the defaults.
+    filters: { ...EMPTY_FILTERS, ...(typeof sv.filters === 'string' ? JSON.parse(sv.filters) : sv.filters) },
     createdAt: sv.created_at,
   };
 }

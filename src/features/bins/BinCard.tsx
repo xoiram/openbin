@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { computeBinCardStyles, TAG_PHOTO_STYLE } from './binCardStyles';
 import { areCommonBinCardPropsEqual } from './binMemoUtils';
+import { ParentBinLabel } from './ParentBinLabel';
 import { useBinCardInteraction } from './useBinCardInteraction';
 import type { BinFilters, SortOption } from './useBins';
 import type { FieldKey } from './useColumnVisibility';
@@ -143,6 +144,7 @@ export const BinCard = React.memo(function BinCard({ bin, index = 0, onTagClick,
             <Highlight text={bin.area_name} query={searchQuery} />
           </p>
         )}
+        <ParentBinLabel bin={bin} className="text-[12px] leading-relaxed" style={secondaryStyle} />
         {isVisible?.('items') !== false && bin.items.length > 0 && (
           <p
             className="mt-1 text-[13px] text-[var(--text-tertiary)] line-clamp-1 leading-relaxed"

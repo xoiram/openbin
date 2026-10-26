@@ -1,11 +1,12 @@
 import type { SortDirection } from '@/components/ui/sort-header';
-import type { Area } from '@/types';
+import type { Area, Bin } from '@/types';
 import { BinCreateDialog } from './BinCreateDialog';
 import { BinFilterDialog } from './BinFilterDialog';
 import { BulkAppearanceDialog } from './BulkAppearanceDialog';
 import { BulkAreaDialog } from './BulkAreaDialog';
 import { BulkCustomFieldsDialog } from './BulkCustomFieldsDialog';
 import { BulkLocationDialog } from './BulkLocationDialog';
+import { BulkParentDialog } from './BulkParentDialog';
 import { BulkTagDialog } from './BulkTagDialog';
 import { BulkVisibilityDialog } from './BulkVisibilityDialog';
 import { SaveViewDialog } from './SaveViewDialog';
@@ -33,6 +34,8 @@ interface BinListDialogsProps {
   search: string;
   bulk: { isOpen: (d: BulkDialog) => boolean; open: (d: BulkDialog) => void; close: () => void };
   selectedIds: Set<string>;
+  /** Boxes currently loaded in the list, so bulk dialogs can recognise children and parents. */
+  bins?: Bin[];
   clearSelection: () => void;
 }
 
@@ -44,7 +47,7 @@ export function BinListDialogs({
   allTags, areas,
   filters, setFilters,
   sort, setSort, sortDir, setSortDir, search,
-  bulk, selectedIds, clearSelection,
+  bulk, selectedIds, bins, clearSelection,
 }: BinListDialogsProps) {
   return (
     <>
@@ -81,6 +84,7 @@ export function BinListDialogs({
         open={bulk.isOpen('area')}
         onOpenChange={(v) => v ? bulk.open('area') : bulk.close()}
         binIds={[...selectedIds]}
+        bins={bins}
         onDone={clearSelection}
       />
       <BulkAppearanceDialog
@@ -105,6 +109,14 @@ export function BinListDialogs({
         open={bulk.isOpen('location')}
         onOpenChange={(v) => v ? bulk.open('location') : bulk.close()}
         binIds={[...selectedIds]}
+        bins={bins}
+        onDone={clearSelection}
+      />
+      <BulkParentDialog
+        open={bulk.isOpen('parent')}
+        onOpenChange={(v) => v ? bulk.open('parent') : bulk.close()}
+        binIds={[...selectedIds]}
+        bins={bins}
         onDone={clearSelection}
       />
       <SaveViewDialog
