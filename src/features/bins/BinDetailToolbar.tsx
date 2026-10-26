@@ -105,6 +105,11 @@ export function BinDetailToolbar({
     }
   }
 
+  const moveBlockedHint = t('nesting.moveBlocked', {
+    defaultValue: 'Take it out of its parent {{bin}} first to move it to other {{locations}}.',
+    bin: term.bin,
+    locations: term.locations,
+  });
   const menuItemBase = 'w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-150';
 
   function handleItem(action: () => void) {
@@ -261,10 +266,26 @@ export function BinDetailToolbar({
                 </button>
               )}
               {canEdit && otherLocations.length > 0 && (
-                <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onMove)}>
-                  <ArrowRightLeft className="h-4 w-4 text-[var(--text-tertiary)]" />
-                  {t('detailToolbar.move', { defaultValue: 'Move' })}
-                </button>
+                bin.parent_bin_id ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled
+                    title={moveBlockedHint}
+                    className={cn(menuItemBase, 'cursor-not-allowed items-start opacity-60 hover:bg-transparent')}
+                  >
+                    <ArrowRightLeft className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
+                    <span className="flex flex-col">
+                      {t('detailToolbar.move', { defaultValue: 'Move' })}
+                      <span className="max-w-[220px] text-[11px] text-[var(--text-tertiary)]">{moveBlockedHint}</span>
+                    </span>
+                  </button>
+                ) : (
+                  <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onMove)}>
+                    <ArrowRightLeft className="h-4 w-4 text-[var(--text-tertiary)]" />
+                    {t('detailToolbar.move', { defaultValue: 'Move' })}
+                  </button>
+                )
               )}
               {showShareButton && onShare && (
                 <button type="button" role="menuitem" className={menuItemBase} onClick={() => handleItem(onShare)}>

@@ -26,9 +26,11 @@ interface BinCreateDialogProps {
   initialPhotos?: File[] | null;
   initialGroups?: number[] | null;
   onInitialPhotosConsumed?: () => void;
+  /** Box to preselect in the "Inside" field ("add inside" flows). */
+  parentBinId?: string | null;
 }
 
-export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allTagsProp, initialPhotos, initialGroups, onInitialPhotosConsumed }: BinCreateDialogProps) {
+export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allTagsProp, initialPhotos, initialGroups, onInitialPhotosConsumed, parentBinId }: BinCreateDialogProps) {
   const { activeLocationId } = useAuth();
   const { t } = useTranslation('bins');
   const term = useTerminology();
@@ -59,6 +61,7 @@ export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allT
         notes: data.notes,
         tags: data.tags,
         areaId: data.areaId,
+        parentBinId: data.parentBinId,
         icon: data.icon,
         color: data.color,
         cardStyle: data.cardStyle || undefined,
@@ -135,6 +138,7 @@ export function BinCreateDialog({ open, onOpenChange, prefillName, allTags: allT
                   initialGroups={initialGroups}
                   onInitialPhotosConsumed={onInitialPhotosConsumed}
                   onWizardComplete={() => handleOpenChange(false)}
+                  initialParentBinId={parentBinId}
                 />
               )}
             </div>

@@ -4,6 +4,7 @@ import type { BinItem, BinVisibility } from '@/types';
 export interface BinFormFields {
   name: string; setName: (v: string) => void;
   areaId: string | null; setAreaId: (v: string | null) => void;
+  parentBinId: string | null; setParentBinId: (v: string | null) => void;
   items: BinItem[]; setItems: (v: BinItem[]) => void;
   notes: string; setNotes: (v: string) => void;
   tags: string[]; setTags: (v: string[]) => void;
@@ -16,11 +17,13 @@ export interface BinFormFields {
 
 interface UseBinFormFieldsOptions {
   initialName?: string;
+  initialParentBinId?: string | null;
 }
 
 export function useBinFormFields(options?: UseBinFormFieldsOptions): BinFormFields {
   const [name, setName] = useState(options?.initialName ?? '');
   const [areaId, setAreaId] = useState<string | null>(null);
+  const [parentBinId, setParentBinId] = useState<string | null>(options?.initialParentBinId ?? null);
   const [items, setItems] = useState<BinItem[]>([]);
   const [notes, setNotes] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -33,6 +36,7 @@ export function useBinFormFields(options?: UseBinFormFieldsOptions): BinFormFiel
   return {
     name, setName,
     areaId, setAreaId,
+    parentBinId, setParentBinId,
     items, setItems,
     notes, setNotes,
     tags, setTags,

@@ -143,7 +143,9 @@ export function useBinDetailActions(bin: Bin | null | undefined, id: string | un
         items: bin.items.map((i) => i.name),
         notes: bin.notes,
         tags: [...bin.tags],
+        // A child's copy becomes a sibling (same parent); the area then follows the parent.
         areaId: bin.area_id,
+        parentBinId: bin.parent_bin_id ?? null,
         icon: bin.icon,
         color: bin.color,
         cardStyle: bin.card_style,

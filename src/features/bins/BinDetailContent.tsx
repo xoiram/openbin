@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { AiSuggestionsPanel } from '@/features/ai/AiSuggestionsPanel';
 import type { useDictation } from '@/lib/useDictation';
-import type { AiSuggestions, Bin, CustomField, ItemCheckout, Photo } from '@/types';
+import type { AiSuggestions, Bin, BinVisibility, CustomField, ItemCheckout, Photo } from '@/types';
 import { BinDetailRail } from './BinDetailRail';
 import { BinDetailTabs } from './BinDetailTabs';
+import { ChildBinsSection } from './ChildBinsSection';
 import type { useAutoSaveBin } from './useAutoSaveBin';
 import type { useQuickAdd } from './useQuickAdd';
 
@@ -33,6 +34,10 @@ interface BinDetailContentProps {
     items: { name: string; quantity?: number | null }[];
   }>) => void;
   onClearSuggestions: () => void;
+  /** Opens the create flow with this box preselected as the parent. */
+  onAddInside?: () => void;
+  /** Visibility of this box's parent, when it has one. */
+  parentVisibility?: BinVisibility;
 }
 
 export function BinDetailContent({
@@ -58,6 +63,8 @@ export function BinDetailContent({
   checkouts,
   onApplySuggestions,
   onClearSuggestions,
+  onAddInside,
+  parentVisibility,
 }: BinDetailContentProps) {
   const { t } = useTranslation('bins');
   return (
@@ -91,6 +98,8 @@ export function BinDetailContent({
           </div>
         )}
 
+        {onAddInside && <ChildBinsSection bin={bin} canEdit={canEdit} onAddInside={onAddInside} />}
+
         <BinDetailTabs
           bin={bin}
           autoSave={autoSave}
@@ -117,6 +126,7 @@ export function BinDetailContent({
           onChangeCode={onChangeCode}
           allTags={allTags}
           activeLocationId={activeLocationId}
+          parentVisibility={parentVisibility}
         />
       </div>
     </div>

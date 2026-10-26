@@ -11,12 +11,16 @@ import { useCheckouts } from '@/features/checkouts/useCheckouts';
 import { TourLauncher } from '@/features/tour/TourLauncher';
 import { resolveIcon } from '@/lib/iconMap';
 import { useTerminology } from '@/lib/terminology';
+import { useMountOnOpen } from '@/lib/useMountOnOpen';
 import { usePlan } from '@/lib/usePlan';
 import { BinAppearanceDialog } from './BinAppearanceDialog';
+import { BinBreadcrumb } from './BinBreadcrumb';
+import { BinCreateDialog } from './BinCreateDialog';
 import { BinDetailContent } from './BinDetailContent';
 import { BinDetailSkeleton } from './BinDetailSkeleton';
 import { BinDetailToolbar } from './BinDetailToolbar';
 import { ChangeCodeDialog } from './ChangeCodeDialog';
+import { DeleteBinDialog } from './DeleteBinDialog';
 import { MoveBinDialog } from './MoveBinDialog';
 import { ShareBinDialog } from './ShareBinDialog';
 import { useAutoSaveBin } from './useAutoSaveBin';
@@ -24,6 +28,7 @@ import { useBinDetailActions } from './useBinDetailActions';
 import type { BinFilters, SortOption } from './useBins';
 import { useAllTags, useBin, useBinList } from './useBins';
 import { useCustomFields } from './useCustomFields';
+import { useParentBin } from './useParentBin';
 
 const UpgradeDialog = __EE__
   ? lazy(() => import('@/ee/UpgradeDialog').then(m => ({ default: m.UpgradeDialog })))
@@ -54,6 +59,11 @@ export function BinDetailPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [addInsideOpen, setAddInsideOpen] = useState(false);
+  const addInsideMounted = useMountOnOpen(addInsideOpen);
+  const parentBin = useParentBin(bin?.parent_bin_id);
+  const childCount = bin?.child_count ?? 0;
   const showShareButton = actions.isAdmin && !isLocked;
 
   // Fetch the bin list matching the sort/search/filters the user had active
@@ -159,13 +169,14 @@ export function BinDetailPage() {
             onPrint={() => navigate(`/print?ids=${id}`)}
             onDuplicate={actions.handleDuplicate}
             onMove={() => {
-              if (actions.otherLocations.length === 1) {
+              // With boxes inside, always confirm in the dialog (it says they move along).
+              if (actions.otherLocations.length === 1 && childCount === 0) {
                 actions.handleMove(actions.otherLocations[0].id);
               } else {
                 actions.setMoveOpen(true);
               }
             }}
-            onDelete={actions.handleDelete}
+            onDelete={() => (childCount > 0 ? setDeleteOpen(true) : actions.handleDelete())}
             onShare={() => setShareOpen(true)}
             showShareButton={showShareButton}
             onSaveName={autoSave.saveName}
@@ -174,6 +185,8 @@ export function BinDetailPage() {
         </div>
         <TourLauncher tourId="bin-anatomy" />
       </div>
+
+      <BinBreadcrumb bin={bin} />
 
       {actions.isAnalyzing && (
         <AiProgressBar
@@ -207,6 +220,8 @@ export function BinDetailPage() {
         checkouts={checkouts}
         onApplySuggestions={actions.handleApplySuggestions}
         onClearSuggestions={actions.clearSuggestions}
+        onAddInside={() => setAddInsideOpen(true)}
+        parentVisibility={parentBin?.visibility}
       />
 
       <MoveBinDialog
@@ -215,7 +230,20 @@ export function BinDetailPage() {
         binName={bin.name}
         locations={actions.otherLocations}
         onConfirm={actions.handleMove}
+        childCount={childCount}
       />
+
+      <DeleteBinDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        binName={bin.name}
+        childCount={childCount}
+        onConfirm={actions.handleDelete}
+      />
+
+      {addInsideMounted && (
+        <BinCreateDialog open={addInsideOpen} onOpenChange={setAddInsideOpen} parentBinId={bin.id} />
+      )}
 
       <AiSetupDialog open={actions.aiSetupOpen} onOpenChange={actions.setAiSetupOpen} />
 

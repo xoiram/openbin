@@ -10,7 +10,9 @@ import { AreaPicker } from '@/features/areas/AreaPicker';
 import { useTagStyle } from '@/features/tags/useTagStyle';
 import { useTerminology } from '@/lib/terminology';
 import { cn, focusRing, sectionHeader } from '@/lib/utils';
-import type { Bin } from '@/types';
+import type { Bin, BinVisibility } from '@/types';
+import { InheritedArea } from './InheritedArea';
+import { ParentBinPicker } from './ParentBinPicker';
 import { TagInput } from './TagInput';
 import type { useAutoSaveBin } from './useAutoSaveBin';
 import { VisibilityPicker } from './VisibilityPicker';
@@ -24,6 +26,8 @@ interface BinDetailRailProps {
   onChangeCode: () => void;
   allTags: string[];
   activeLocationId: string | undefined;
+  /** Visibility of the box this one is inside (a child can't be public under a private parent). */
+  parentVisibility?: BinVisibility;
 }
 
 const META_FIELD = 'flex flex-col gap-1';
@@ -42,6 +46,7 @@ export function BinDetailRail({
   onChangeCode,
   allTags,
   activeLocationId,
+  parentVisibility,
 }: BinDetailRailProps) {
   const navigate = useNavigate();
   const getTagStyle = useTagStyle();
@@ -49,6 +54,9 @@ export function BinDetailRail({
   const { t } = useTranslation('bins');
   const term = useTerminology();
   const hasTags = bin.tags.length > 0;
+  const isChild = !!bin.parent_bin_id;
+  const hasChildren = (bin.child_count ?? 0) > 0;
+  const parentPrivate = isChild && parentVisibility === 'private';
 
   // Notes — local state synced with external bin.notes changes (e.g. AI apply)
   const [localNotes, setLocalNotes] = useState(bin.notes);
@@ -143,9 +151,25 @@ export function BinDetailRail({
           </div>
         </div>
 
+        {(canEdit || isChild) && (
+          <div className={cn(META_FIELD, autoSave.savedFields.has('parentBinId') && 'animate-save-flash')}>
+            <span className={sectionHeader}>{t('nesting.inside', { defaultValue: 'Inside' })}</span>
+            <ParentBinPicker
+             
+              value={bin.parent_bin_id ?? null}
+              onChange={(parentId) => autoSave.saveParentBinId(parentId)}
+              binId={bin.id}
+              hasChildren={hasChildren}
+              disabled={!canEdit}
+            />
+          </div>
+        )}
+
         <div className={cn(META_FIELD, autoSave.savedFields.has('areaId') && 'animate-save-flash')}>
           <span className={sectionHeader}>{term.Area}</span>
-          {canEdit ? (
+          {isChild ? (
+            <InheritedArea areaName={bin.area_name} />
+          ) : canEdit ? (
             <AreaPicker
               locationId={activeLocationId}
               value={bin.area_id}
@@ -190,7 +214,14 @@ export function BinDetailRail({
             <VisibilityPicker
               value={bin.visibility}
               onChange={(v) => autoSave.saveVisibility(v)}
+              locationDisabled={parentPrivate}
+              locationDisabledTitle={t('nesting.visibilityLockedByParent', { defaultValue: 'Must stay private while the parent {{bin}} is private.', bin: term.bin })}
             />
+            {parentPrivate && (
+              <p className="text-[11px] text-[var(--text-tertiary)]">
+                {t('nesting.visibilityLockedByParent', { defaultValue: 'Must stay private while the parent {{bin}} is private.', bin: term.bin })}
+              </p>
+            )}
           </div>
         )}
       </div>
