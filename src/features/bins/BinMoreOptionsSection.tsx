@@ -5,11 +5,13 @@ import { AreaPicker } from '@/features/areas/AreaPicker';
 import { getSecondaryColorInfo, setSecondaryColor } from '@/lib/cardStyle';
 import { useTerminology } from '@/lib/terminology';
 import { sectionHeader } from '@/lib/utils';
-import type { BinItem, BinVisibility, CustomField } from '@/types';
+import type { Bin, BinItem, BinVisibility, CustomField } from '@/types';
 import { BinPreviewCard } from './BinPreviewCard';
 import { ColorPicker } from './ColorPicker';
 import { CustomFieldsEditCard } from './CustomFieldsEditCard';
 import { IconPicker } from './IconPicker';
+import { InheritedArea } from './InheritedArea';
+import { ParentBinPicker } from './ParentBinPicker';
 import { StylePicker } from './StylePicker';
 import { TagInput } from './TagInput';
 import { VisibilityPicker } from './VisibilityPicker';
@@ -40,6 +42,11 @@ interface BinMoreOptionsSectionProps {
   visibility: BinVisibility;
   setVisibility: (v: BinVisibility) => void;
   areaName: string;
+  /** The box this one is created inside (null for a top-level box). */
+  parentBinId?: string | null;
+  setParentBinId?: (id: string | null) => void;
+  /** The chosen parent, once loaded: its area is shown and its privacy forces this box private. */
+  parentBin?: Bin;
 }
 
 /**
@@ -72,9 +79,14 @@ export function BinMoreOptionsSection({
   visibility,
   setVisibility,
   areaName,
+  parentBinId = null,
+  setParentBinId,
+  parentBin,
 }: BinMoreOptionsSectionProps) {
   const { t } = useTranslation('bins');
   const term = useTerminology();
+  const hasParent = !!parentBinId;
+  const parentPrivate = parentBin?.visibility === 'private';
   const secondaryInfo = getSecondaryColorInfo(cardStyle);
 
   return (
@@ -85,9 +97,20 @@ export function BinMoreOptionsSection({
       labelClassName="py-2 text-[var(--accent)] cursor-pointer"
     >
       <div className="space-y-5">
+        {setParentBinId && (
+          <div className="space-y-2">
+            <span className={sectionHeader}>{t('nesting.inside', { defaultValue: 'Inside' })}</span>
+            <ParentBinPicker value={parentBinId} onChange={setParentBinId} />
+          </div>
+        )}
+
         <div className="space-y-2">
           <span className={sectionHeader}>{term.Area}</span>
-          <AreaPicker locationId={locationId} value={areaId} onChange={setAreaId} />
+          {hasParent ? (
+            <InheritedArea areaName={parentBin?.area_name ?? ''} />
+          ) : (
+            <AreaPicker locationId={locationId} value={areaId} onChange={setAreaId} />
+          )}
         </div>
 
         <div className="space-y-2">
@@ -151,7 +174,17 @@ export function BinMoreOptionsSection({
 
         <div className="space-y-2">
           <span className={sectionHeader}>{t('moreOptions.visibility', { defaultValue: 'Visibility' })}</span>
-          <VisibilityPicker value={visibility} onChange={setVisibility} />
+          <VisibilityPicker
+            value={parentPrivate ? 'private' : visibility}
+            onChange={setVisibility}
+            locationDisabled={parentPrivate}
+            locationDisabledTitle={t('nesting.visibilityLockedByParent', { defaultValue: 'Must stay private while the parent {{bin}} is private.', bin: term.bin })}
+          />
+          {parentPrivate && (
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              {t('nesting.visibilityLockedByParent', { defaultValue: 'Must stay private while the parent {{bin}} is private.', bin: term.bin })}
+            </p>
+          )}
         </div>
       </div>
     </Disclosure>

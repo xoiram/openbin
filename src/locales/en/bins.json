@@ -633,5 +633,20 @@
     "hasChildren": "Can't be placed inside anything else because it contains other {{bins}}.",
     "title": "Place inside another {{bin}}",
     "description": "It follows the {{area}} and visibility of the one you choose."
+  },
+  "nesting": {
+    "inside": "Inside",
+    "areaFollowsParent": "Follows the parent {{bin}}.",
+    "visibilityLockedByParent": "Must stay private while the parent {{bin}} is private.",
+    "autoSaveField": "placement",
+    "breadcrumb": "Location path",
+    "insideThis": "Inside this {{bin}}",
+    "addInside": "Add {{bin}} inside",
+    "noneInside": "No {{bins}} inside yet.",
+    "deleteWithChildren_one": "The {{count}} {{bin}} inside it is moved to the trash too.",
+    "deleteWithChildren_other": "The {{count}} {{bins}} inside it are moved to the trash too.",
+    "moveBlocked": "Take it out of its parent {{bin}} first to move it to other {{locations}}.",
+    "moveWithChildren_one": "The {{count}} {{bin}} inside it moves along.",
+    "moveWithChildren_other": "The {{count}} {{bins}} inside it move along."
   }
 }

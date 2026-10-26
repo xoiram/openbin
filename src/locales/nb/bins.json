@@ -633,5 +633,20 @@
     "hasChildren": "Kan ikke plasseres inni noe annet fordi det inneholder andre {{bins}}.",
     "title": "Velg overordnet {{bin}}",
     "description": "Arver {{area}} og synlighet fra det du velger."
+  },
+  "nesting": {
+    "inside": "Inni",
+    "areaFollowsParent": "Følger overordnet {{bin}}.",
+    "visibilityLockedByParent": "Må være privat så lenge overordnet {{bin}} er privat.",
+    "autoSaveField": "plassering",
+    "breadcrumb": "Plassering",
+    "insideThis": "Inni {{bin}}",
+    "addInside": "Legg til {{bin}} inni",
+    "noneInside": "Ingen {{bins}} her ennå.",
+    "deleteWithChildren_one": "{{count}} {{bin}} inni det flyttes også til papirkurven.",
+    "deleteWithChildren_other": "{{count}} {{bins}} inni det flyttes også til papirkurven.",
+    "moveBlocked": "Ta det ut av overordnet {{bin}} først for å flytte det til andre {{locations}}.",
+    "moveWithChildren_one": "{{count}} {{bin}} inni det flyttes med.",
+    "moveWithChildren_other": "{{count}} {{bins}} inni det flyttes med."
   }
 }

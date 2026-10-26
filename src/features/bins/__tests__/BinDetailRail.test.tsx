@@ -33,7 +33,7 @@ const baseProps = {
   allTags: [],
   activeLocationId: 'loc-1',
   autoSave: {
-    saveAreaId: vi.fn(), saveTags: vi.fn(), saveVisibility: vi.fn(),
+    saveAreaId: vi.fn(), saveParentBinId: vi.fn(), saveTags: vi.fn(), saveVisibility: vi.fn(),
     saveName: vi.fn(), saveNotes: vi.fn(), saveIcon: vi.fn(),
     saveColor: vi.fn(), saveCardStyle: vi.fn(), saveCustomFields: vi.fn(),
     savedFields: new Set<string>(), savingFields: new Set<string>(),
