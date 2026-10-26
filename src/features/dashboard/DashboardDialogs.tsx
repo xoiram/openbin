@@ -54,6 +54,8 @@ interface DashboardDialogsProps {
   pinLabel: string;
   isBusy?: boolean;
   bins: Bin[];
+  /** Boxes inside the selected boxes that aren't selected themselves; they are trashed along with their parent. */
+  selectedChildCount?: number;
   term: Terminology;
 }
 
@@ -63,7 +65,7 @@ export function DashboardDialogs({
   bulk, selectedIds, clearSelection,
   allTags, selectable, isAdmin, canWrite,
   bulkDelete, bulkPinToggle, bulkDuplicate, pinLabel, isBusy,
-  bins, term,
+  bins, term, selectedChildCount = 0,
 }: DashboardDialogsProps) {
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
@@ -158,7 +160,7 @@ export function DashboardDialogs({
           )}
           {areaMounted && (
             <Suspense fallback={null}>
-              <BulkAreaDialog open={bulk.isOpen('area')} onOpenChange={(v) => v ? bulk.open('area') : bulk.close()} binIds={[...selectedIds]} onDone={clearSelection} />
+              <BulkAreaDialog open={bulk.isOpen('area')} onOpenChange={(v) => v ? bulk.open('area') : bulk.close()} binIds={[...selectedIds]} bins={bins} onDone={clearSelection} />
             </Suspense>
           )}
           {appearanceMounted && (
@@ -178,7 +180,7 @@ export function DashboardDialogs({
           )}
           {locationMounted && (
             <Suspense fallback={null}>
-              <BulkLocationDialog open={bulk.isOpen('location')} onOpenChange={(v) => v ? bulk.open('location') : bulk.close()} binIds={[...selectedIds]} onDone={clearSelection} />
+              <BulkLocationDialog open={bulk.isOpen('location')} onOpenChange={(v) => v ? bulk.open('location') : bulk.close()} binIds={[...selectedIds]} bins={bins} onDone={clearSelection} />
             </Suspense>
           )}
           {deleteMounted && (
@@ -189,7 +191,7 @@ export function DashboardDialogs({
                 bins: term.bins,
                 defaultValue_one: '{{count}} {{bin}}',
                 defaultValue_other: '{{count}} {{bins}}',
-              })} onConfirm={bulkDelete} />
+              })} childCount={selectedChildCount} onConfirm={bulkDelete} />
             </Suspense>
           )}
         </>
