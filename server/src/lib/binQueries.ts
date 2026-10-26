@@ -66,7 +66,7 @@ export function buildBinListQuery(filters: BinListFilterParams): BinListQuery {
   if (filters.q?.trim()) {
     const searchTerm = filters.q.trim();
     whereClauses.push(
-      `(${d.fuzzyMatch('b.name', `$${paramIdx}`)} OR ${d.fuzzyMatch('b.notes', `$${paramIdx}`)} OR ${d.fuzzyMatch('b.short_code', `$${paramIdx}`)} OR ${d.fuzzyMatch("COALESCE(a.name, '')", `$${paramIdx}`)} OR EXISTS (SELECT 1 FROM bin_items bi WHERE bi.bin_id = b.id AND bi.deleted_at IS NULL AND ${d.fuzzyMatch('bi.name', `$${paramIdx}`)}) OR EXISTS (SELECT 1 FROM ${d.jsonEach('b.tags')} WHERE ${d.fuzzyMatch('value', `$${paramIdx}`)}) OR EXISTS (SELECT 1 FROM bin_custom_field_values bcfv WHERE bcfv.bin_id = b.id AND ${d.fuzzyMatch('bcfv.value', `$${paramIdx}`)}))`
+      `(${d.fuzzyMatch('b.name', `$${paramIdx}`)} OR ${d.fuzzyMatch('b.notes', `$${paramIdx}`)} OR ${d.fuzzyMatch('b.short_code', `$${paramIdx}`)} OR ${d.fuzzyMatch("COALESCE(a.name, '')", `$${paramIdx}`)} OR EXISTS (SELECT 1 FROM bin_items bi WHERE bi.bin_id = b.id AND bi.deleted_at IS NULL AND ${d.fuzzyMatch('bi.name', `$${paramIdx}`)}) OR EXISTS (SELECT 1 FROM ${d.jsonEach('b.tags')} WHERE ${d.fuzzyMatch('value', `$${paramIdx}`)}) OR EXISTS (SELECT 1 FROM bin_custom_field_values bcfv WHERE bcfv.bin_id = b.id AND ${d.fuzzyMatch('bcfv.value', `$${paramIdx}`)}) OR EXISTS (SELECT 1 FROM bins pb WHERE pb.id = b.parent_bin_id AND ${d.fuzzyMatch('pb.name', `$${paramIdx}`)}))`
     );
     params.push(searchTerm);
     paramIdx++;
