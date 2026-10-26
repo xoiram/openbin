@@ -266,6 +266,8 @@ export interface AddBinOptions {
   notes?: string;
   tags?: string[];
   areaId?: string | null;
+  /** Place the new bin inside this bin (a child bin follows its parent's area and visibility). */
+  parentBinId?: string | null;
   icon?: string;
   color?: string;
   cardStyle?: string;
@@ -277,7 +279,8 @@ export async function addBin(options: AddBinOptions): Promise<Bin> {
   const body: Record<string, unknown> = {
     locationId: options.locationId,
     name: options.name,
-    areaId: options.areaId ?? null,
+    // A child bin's area comes from its parent; sending one would be rejected by the server.
+    ...(options.parentBinId ? { parentBinId: options.parentBinId } : { areaId: options.areaId ?? null }),
     items: options.items ?? [],
     notes: options.notes ?? '',
     tags: options.tags ?? [],
@@ -297,7 +300,7 @@ export async function addBin(options: AddBinOptions): Promise<Bin> {
 
 export async function updateBin(
   id: string,
-  changes: Partial<Pick<Bin, 'name' | 'notes' | 'tags' | 'icon' | 'color' | 'card_style' | 'visibility'>> & { areaId?: string | null; items?: (string | { name: string; quantity?: number | null })[]; cardStyle?: string; customFields?: Record<string, string> }
+  changes: Partial<Pick<Bin, 'name' | 'notes' | 'tags' | 'icon' | 'color' | 'card_style' | 'visibility'>> & { areaId?: string | null; parentBinId?: string | null; items?: (string | { name: string; quantity?: number | null })[]; cardStyle?: string; customFields?: Record<string, string> }
 ): Promise<void> {
   await apiFetch(`/api/bins/${id}`, {
     method: 'PUT',

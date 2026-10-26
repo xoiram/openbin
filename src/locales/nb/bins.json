@@ -627,5 +627,11 @@
   "visibility": {
     "everyone": "Alle",
     "onlyMe": "Bare meg"
+  },
+  "parentPicker": {
+    "none": "Ingen overordnet {{bin}}",
+    "hasChildren": "Kan ikke plasseres inni noe annet fordi det inneholder andre {{bins}}.",
+    "title": "Velg overordnet {{bin}}",
+    "description": "Arver {{area}} og synlighet fra det du velger."
   }
 }

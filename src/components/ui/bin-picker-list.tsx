@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useBinList } from '@/features/bins/useBins';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
+import { useTerminology } from '@/lib/terminology';
 import { cn, focusRing } from '@/lib/utils';
+import type { Bin } from '@/types';
 import { BinIconBadge } from './bin-icon-badge';
 import { SearchInput } from './search-input';
 
@@ -17,6 +19,8 @@ export interface BinPickerListProps {
   /** When true, the bin list is fetched lazily (not until visible). */
   paused?: boolean;
   emptyText?: string;
+  /** Only offer bins this returns true for (applied before the search). */
+  filter?: (bin: Bin) => boolean;
 }
 
 export function BinPickerList({
@@ -27,12 +31,15 @@ export function BinPickerList({
   onSearchChange,
   paused,
   emptyText,
+  filter,
 }: BinPickerListProps) {
   const { t } = useTranslation('common');
+  const term = useTerminology();
   const { bins } = useBinList(undefined, 'name', undefined, paused);
 
   const filtered = useMemo(() => {
     let list = excludeBinId ? bins.filter((b) => b.id !== excludeBinId) : bins;
+    if (filter) list = list.filter(filter);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((b) =>
@@ -40,7 +47,7 @@ export function BinPickerList({
       );
     }
     return list;
-  }, [bins, excludeBinId, search]);
+  }, [bins, excludeBinId, search, filter]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -48,20 +55,24 @@ export function BinPickerList({
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         onClear={search ? () => onSearchChange('') : undefined}
-        placeholder={t('binPicker.searchPlaceholder', { defaultValue: 'Search bins...' })}
+        placeholder={t('binPicker.searchPlaceholder', { defaultValue: 'Search {{bins}}...', bins: term.bins })}
       />
       <div className="max-h-52 overflow-y-auto flex flex-col gap-1">
         {filtered.length === 0 ? (
           <p className="text-[13px] text-[var(--text-tertiary)] text-center py-4">
             {search
-              ? t('binPicker.noMatches', { defaultValue: 'No matching bins' })
-              : emptyText ?? t('binPicker.empty', { defaultValue: 'No other bins available' })}
+              ? t('binPicker.noMatches', { defaultValue: 'No matching {{bins}}', bins: term.bins })
+              : emptyText ?? t('binPicker.empty', { defaultValue: 'No other {{bins}} available', bins: term.bins })}
           </p>
         ) : (
           filtered.map((b) => {
             const BinIcon = resolveIcon(b.icon);
             const colorPreset = resolveColor(b.color);
             const isSelected = selectedBinId === b.id;
+            const subtitle = [
+              b.area_name,
+              b.parent_bin_name ? t('binPicker.insideParent', { defaultValue: 'inside {{parent}}', parent: b.parent_bin_name }) : '',
+            ].filter(Boolean).join(' · ');
             return (
               <button
                 key={b.id}
@@ -79,8 +90,8 @@ export function BinPickerList({
                 <BinIconBadge icon={BinIcon} colorPreset={colorPreset} />
                 <div className="flex-1 min-w-0">
                   <span className="text-[14px] truncate block text-[var(--text-primary)]">{b.name}</span>
-                  {b.area_name && (
-                    <span className="text-[12px] text-[var(--text-tertiary)] truncate block">{b.area_name}</span>
+                  {subtitle && (
+                    <span className="text-[12px] text-[var(--text-tertiary)] truncate block">{subtitle}</span>
                   )}
                 </div>
                 {isSelected && <Check className="h-4 w-4 shrink-0 text-[var(--accent)]" />}

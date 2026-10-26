@@ -159,9 +159,10 @@
     "clear": "Tøm søk"
   },
   "binPicker": {
-    "searchPlaceholder": "Søk i bokser...",
-    "noMatches": "Ingen bokser samsvarer",
-    "empty": "Ingen andre bokser tilgjengelig"
+    "searchPlaceholder": "Søk i {{bins}}...",
+    "noMatches": "Ingen {{bins}} samsvarer",
+    "empty": "Ingen andre {{bins}} tilgjengelig",
+    "insideParent": "inni {{parent}}"
   },
   "savedViews": {
     "apply": "Bruk lagret visning: {{name}}",
