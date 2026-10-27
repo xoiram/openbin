@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { ItemTableView } from '../ItemTableView';
@@ -172,5 +172,76 @@ describe('ItemTableView items without a box', () => {
     );
     fireEvent.click(screen.getByLabelText('Hammer (3) in Tools'));
     expect(screen.getByText('BIN PAGE')).toBeInTheDocument();
+  });
+});
+
+describe('ItemTableView location column', () => {
+  const boxless = { bin_id: null, bin_name: null, bin_icon: null, bin_color: null } as const;
+  const cell = () => screen.getByTestId('item-location');
+
+  it('has a header that says where the item is stored', () => {
+    render(<MemoryRouter><ItemTableView items={[makeItem()]} {...defaultProps} /></MemoryRouter>);
+    expect(screen.getByRole('button', { name: 'Sort by Stored in' })).toBeInTheDocument();
+  });
+
+  it('a box item shows the box badge and name, not the area', () => {
+    render(<MemoryRouter><ItemTableView items={[makeItem({ area_id: 'a1', area_name: 'Garage' })]} {...defaultProps} /></MemoryRouter>);
+    expect(within(cell()).getByTestId('bin-icon-badge')).toBeInTheDocument();
+    expect(within(cell()).getByText('Tools')).toBeInTheDocument();
+    expect(within(cell()).queryByText('Garage')).toBeNull();
+  });
+
+  it('an item in an area shows a folder icon and the area name', () => {
+    const { container } = render(
+      <MemoryRouter><ItemTableView items={[makeItem({ ...boxless, area_id: 'a1', area_name: 'Garage' })]} {...defaultProps} /></MemoryRouter>,
+    );
+    expect(within(cell()).getByText('Garage')).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="item-location"] svg.lucide-folder-tree')).not.toBeNull();
+    expect(within(cell()).queryByTestId('bin-icon-badge')).toBeNull();
+  });
+
+  it('an unassigned item shows an italic Unassigned with no icon', () => {
+    const { container } = render(
+      <MemoryRouter><ItemTableView items={[makeItem({ ...boxless })]} {...defaultProps} /></MemoryRouter>,
+    );
+    expect(within(cell()).getByText('Unassigned').className).toContain('italic');
+    expect(container.querySelector('[data-testid="item-location"] svg')).toBeNull();
+  });
+});
+
+describe('ItemTableView row actions', () => {
+  const handlers = () => ({ onEdit: vi.fn(), onCheckout: vi.fn(), onMove: vi.fn(), onDelete: vi.fn() });
+
+  it('renders no menu without handlers', () => {
+    render(<MemoryRouter><ItemTableView items={[makeItem()]} {...defaultProps} /></MemoryRouter>);
+    expect(screen.queryByRole('button', { name: 'Item actions' })).toBeNull();
+  });
+
+  it.each([
+    ['Edit', 'onEdit'],
+    ['Check out', 'onCheckout'],
+    ['Move…', 'onMove'],
+    ['Delete', 'onDelete'],
+  ] as const)('%s calls %s with the row entry', (label, key) => {
+    const h = handlers();
+    const entry = makeItem();
+    render(<MemoryRouter><ItemTableView items={[entry]} {...defaultProps} rowActions={h} /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: 'Item actions' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: label }));
+    expect(h[key]).toHaveBeenCalledWith(entry);
+  });
+
+  it('opening the menu does not navigate to the box', () => {
+    render(
+      <MemoryRouter initialEntries={['/items']}>
+        <Routes>
+          <Route path="/items" element={<ItemTableView items={[makeItem()]} {...defaultProps} rowActions={handlers()} />} />
+          <Route path="/bin/:id" element={<div>BIN PAGE</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Item actions' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }));
+    expect(screen.queryByText('BIN PAGE')).toBeNull();
   });
 });

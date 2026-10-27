@@ -14,7 +14,21 @@ export interface ItemEntry {
   area_name: string | null;
 }
 
-export function usePaginatedItemList(search?: string, sort?: string, order?: 'asc' | 'desc', pageSize = 40) {
+/** Server-side item filters. `areaId` and `unassigned` are mutually exclusive (the API answers 422 to both). */
+export interface ItemFilters {
+  areaId?: string | null;
+  unassigned?: boolean;
+  /** Only items that are not in a box. */
+  loose?: boolean;
+}
+
+export function usePaginatedItemList(
+  search?: string,
+  sort?: string,
+  order?: 'asc' | 'desc',
+  filters?: ItemFilters,
+  pageSize = 40,
+) {
   const { activeLocationId } = useAuth();
 
   let basePath: string | null = null;
@@ -29,6 +43,9 @@ export function usePaginatedItemList(search?: string, sort?: string, order?: 'as
     if (order === 'desc') {
       params.set('sort_dir', 'desc');
     }
+    if (filters?.areaId && !filters.unassigned) params.set('area_id', filters.areaId);
+    if (filters?.unassigned) params.set('unassigned', 'true');
+    if (filters?.loose) params.set('loose', 'true');
     basePath = `/api/items?${params.toString()}`;
   }
 

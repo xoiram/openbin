@@ -1,7 +1,7 @@
-import { ArrowRightLeft, ClipboardList, Hash, PackageOpen, Sparkles, Trash2 } from 'lucide-react';
-import { lazy, Suspense, useState } from 'react';
+import { ArrowRightLeft, ClipboardList, Hash, PackageOpen, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crossfade } from '@/components/ui/crossfade';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -18,8 +18,14 @@ import { useMountOnOpen } from '@/lib/useMountOnOpen';
 import { usePermissions } from '@/lib/usePermissions';
 import { useTableSearchParams } from '@/lib/useTableSearchParams';
 import { cn } from '@/lib/utils';
-import { type ItemSortColumn, ItemTableView } from './ItemTableView';
+import { AddItemDialog } from './AddItemDialog';
+import { DeleteItemDialog } from './DeleteItemDialog';
+import { EditItemDialog } from './EditItemDialog';
+import { ItemFilterBar } from './ItemFilterBar';
+import { type ItemRowActionHandlers, type ItemSortColumn, ItemTableView } from './ItemTableView';
 import { useItemBulkActions } from './useItemBulkActions';
+import { useItemFilters } from './useItemFilters';
+import { useItemRowActions } from './useItemRowActions';
 import { usePaginatedItemList } from './useItems';
 
 const BulkDeleteItemsDialog = lazy(() =>
@@ -40,19 +46,48 @@ export function ItemsPage() {
   const term = useTerminology();
   const { search, sortColumn, sortDirection, setSearch, setSort } = useTableSearchParams<ItemSortColumn>('alpha');
   const debouncedSearch = useDebounce(search, 300);
+  const { filters, hasFilters, setAreaId, setUnassigned, setLoose, clearFilters } = useItemFilters();
   const { items, totalCount, isLoading, isLoadingMore, hasMore, loadMore } = usePaginatedItemList(
     debouncedSearch,
     sortColumn,
     sortDirection,
+    filters,
   );
 
   const { showToast } = useToast();
   const { canWrite } = usePermissions();
   const { selectedIds, selectable, toggleSelect, clearSelection } = useBulkSelection({
     items,
-    resetDeps: [debouncedSearch, sortColumn, sortDirection],
+    resetDeps: [debouncedSearch, sortColumn, sortDirection, filters],
   });
   const { bulkDelete, bulkCheckout, bulkMove, bulkQuantity, isBusy } = useItemBulkActions(clearSelection, showToast);
+
+  const rowActions = useItemRowActions(showToast);
+  const rowHandlers: ItemRowActionHandlers | undefined = canWrite
+    ? {
+        onEdit: rowActions.setEditing,
+        onCheckout: rowActions.checkout,
+        onMove: rowActions.setMoving,
+        onDelete: rowActions.setDeleting,
+      }
+    : undefined;
+
+  // Deep link: `?add=1` (optionally with `area_id`) opens the Add item dialog once, then drops `add`.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [addOpen, setAddOpen] = useState(false);
+  const [addAreaId, setAddAreaId] = useState<string | null>(null);
+  const wantsAdd = searchParams.get('add') === '1';
+  useEffect(() => {
+    // Viewers can't add items; leave the URL alone until we know the user can (permissions may still be loading).
+    if (!wantsAdd || !canWrite) return;
+    setAddAreaId(searchParams.get('area_id') || null);
+    setAddOpen(true);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('add');
+      return next;
+    }, { replace: true });
+  }, [wantsAdd, canWrite, searchParams, setSearchParams]);
 
   const [openDialog, setOpenDialog] = useState<'delete' | 'checkout' | 'move' | 'quantity' | null>(null);
   const deleteMounted = useMountOnOpen(openDialog === 'delete');
@@ -71,14 +106,33 @@ export function ItemsPage() {
 
   return (
     <div className="page-content-wide">
-      <PageHeader title={t('page.title', { defaultValue: 'Items' })} />
+      <PageHeader
+        title={t('page.title', { defaultValue: 'Items' })}
+        actions={canWrite ? (
+          <Button size="sm" onClick={() => { setAddAreaId(null); setAddOpen(true); }}>
+            <Plus className="h-4 w-4" />
+            {t('looseItems.add.button', { defaultValue: 'Add item' })}
+          </Button>
+        ) : undefined}
+      />
 
-      {(totalCount > 0 || search) && (
+      {(totalCount > 0 || search || hasFilters) && (
         <SearchInput
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={search ? () => setSearch('') : undefined}
           placeholder={t('page.searchPlaceholder', { defaultValue: 'Search items...' })}
+        />
+      )}
+
+      {(totalCount > 0 || search || hasFilters) && (
+        <ItemFilterBar
+          filters={filters}
+          hasFilters={hasFilters}
+          onAreaChange={setAreaId}
+          onUnassignedChange={setUnassigned}
+          onLooseChange={setLoose}
+          onClear={clearFilters}
         />
       )}
 
@@ -111,16 +165,25 @@ export function ItemsPage() {
       >
         {items.length === 0 ? (
           <EmptyState
-            icon={search ? ClipboardList : PackageOpen}
-            title={search
-              ? t('page.empty.noMatchesTitle', { defaultValue: 'No items match your search' })
-              : t('page.empty.title', { defaultValue: 'No items yet' })}
-            subtitle={search
-              ? t('page.empty.noMatchesSubtitle', { defaultValue: 'Try a different search term' })
-              : t('page.empty.subtitle', { defaultValue: 'Items added to {{bins}} will appear here', bins: term.bins })}
-            variant={search ? 'search' : undefined}
+            icon={search || hasFilters ? ClipboardList : PackageOpen}
+            title={hasFilters
+              ? t('looseItems.empty.filteredTitle', { defaultValue: 'No items match these filters' })
+              : search
+                ? t('page.empty.noMatchesTitle', { defaultValue: 'No items match your search' })
+                : t('page.empty.title', { defaultValue: 'No items yet' })}
+            subtitle={hasFilters
+              ? t('looseItems.empty.filteredSubtitle', { defaultValue: 'Try removing a filter' })
+              : search
+                ? t('page.empty.noMatchesSubtitle', { defaultValue: 'Try a different search term' })
+                : t('page.empty.subtitle', { defaultValue: 'Items added to {{bins}} will appear here', bins: term.bins })}
+            variant={search || hasFilters ? 'search' : undefined}
           >
-            {!search && (
+            {hasFilters && (
+              <Button variant="secondary" size="sm" onClick={clearFilters}>
+                {t('looseItems.filters.clear', { defaultValue: 'Clear filters' })}
+              </Button>
+            )}
+            {!search && !hasFilters && (
               <Link to="/bins">
                 <Button variant="secondary" size="sm">
                   {t('page.empty.browse', { defaultValue: 'Browse {{bins}}', bins: term.bins })}
@@ -142,6 +205,7 @@ export function ItemsPage() {
               selectable={selectable}
               selectedIds={selectedIds}
               onSelect={toggleSelect}
+              rowActions={rowHandlers}
             />
           </div>
         )}
@@ -161,6 +225,21 @@ export function ItemsPage() {
         />
       )}
 
+      {canWrite && (
+        <>
+          <AddItemDialog open={addOpen} onOpenChange={setAddOpen} initialAreaId={addAreaId} />
+          <EditItemDialog
+            entry={rowActions.editing}
+            onOpenChange={(v) => !v && rowActions.setEditing(null)}
+            onSave={rowActions.save}
+          />
+          <DeleteItemDialog
+            entry={rowActions.deleting}
+            onOpenChange={(v) => !v && rowActions.setDeleting(null)}
+            onConfirm={rowActions.remove}
+          />
+        </>
+      )}
       {deleteMounted && (
         <Suspense fallback={null}>
           <BulkDeleteItemsDialog
@@ -188,6 +267,16 @@ export function ItemsPage() {
             onOpenChange={(v) => (v ? setOpenDialog('move') : setOpenDialog(null))}
             selectedIds={ids}
             onApply={bulkMove}
+          />
+        </Suspense>
+      )}
+      {rowActions.moving && (
+        <Suspense fallback={null}>
+          <BulkMoveItemsDialog
+            open
+            onOpenChange={(v) => !v && rowActions.setMoving(null)}
+            selectedIds={[rowActions.moving.id]}
+            onApply={(moveIds, target, name) => bulkMove(moveIds, target, name)}
           />
         </Suspense>
       )}
