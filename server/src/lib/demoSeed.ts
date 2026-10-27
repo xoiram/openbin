@@ -364,6 +364,23 @@ async function createNestedBoxes(
   }
 }
 
+const DEMO_LOOSE_ITEMS: Array<{ name: string; quantity: number | null; area: string | null }> = [
+  { name: 'Step ladder', quantity: null, area: 'Workbench' },
+  { name: 'Extension cord', quantity: 2, area: 'Workbench' },
+  { name: 'Spare light bulbs', quantity: 6, area: null },
+];
+
+async function createLooseItems(tx: TxQueryFn, homeLocationId: string, areaMap: Map<string, string>): Promise<void> {
+  for (let i = 0; i < DEMO_LOOSE_ITEMS.length; i++) {
+    const item = DEMO_LOOSE_ITEMS[i];
+    const areaId = item.area ? (areaMap.get(item.area) ?? null) : null;
+    await tx(
+      'INSERT INTO bin_items (id, bin_id, area_id, location_id, name, quantity, position) VALUES ($1, NULL, $2, $3, $4, $5, $6)',
+      [generateUuid(), areaId, homeLocationId, item.name, item.quantity, i],
+    );
+  }
+}
+
 async function seedTagColors(tx: TxQueryFn, homeLocationId: string, storageLocationId: string, tagColors: Record<string, string>, hierarchy: Record<string, string[]>): Promise<void> {
   // Build reverse map: child → parent
   const childToParent = new Map<string, string>();
@@ -861,6 +878,7 @@ export async function seedDemoData(): Promise<void> {
       const binIdMap = await createBins(tx, homeLocationId, storageLocationId, areaMap, userIdMap, bins);
       await createTrashedBins(tx, homeLocationId, storageLocationId, areaMap, userIdMap, binIdMap, trashedBinsList);
       await createNestedBoxes(tx, homeLocationId, areaMap, userIdMap, binIdMap);
+      await createLooseItems(tx, homeLocationId, areaMap);
 
       await seedTagColors(tx, homeLocationId, storageLocationId, tagColorDefs, tagHierarchyDefs);
       await seedPins(tx, userId, userIdMap.get('pat')!, binIdMap, pinnedNames, pinnedNamesPat);

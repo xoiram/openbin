@@ -37,9 +37,11 @@ describe('seedDemoData', () => {
       expect(child.location_id).toBe(parent.rows[0].location_id);
     }
 
-    // loose and unassigned items are not seeded until the UI for them exists
-    const loose = await query('SELECT id FROM bin_items WHERE bin_id IS NULL');
-    expect(loose.rows).toHaveLength(0);
+    const loose = await query<{ name: string; area_id: string | null }>(
+      'SELECT name, area_id FROM bin_items WHERE bin_id IS NULL ORDER BY name',
+    );
+    expect(loose.rows.map((r) => r.name)).toEqual(['Extension cord', 'Spare light bulbs', 'Step ladder']);
+    expect(loose.rows.filter((r) => r.area_id === null).map((r) => r.name)).toEqual(['Spare light bulbs']);
 
     const missingLocation = await query('SELECT id FROM bin_items WHERE location_id IS NULL');
     expect(missingLocation.rows).toHaveLength(0);
