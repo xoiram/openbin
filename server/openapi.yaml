@@ -442,10 +442,13 @@ components:
           description: Number of non-deleted bins in this area and all its descendants (only present in list response)
         item_count:
           type: integer
-          description: Loose items directly in this area (items not inside a box). Items inside boxes are not counted here. Only present in list response
+          description: Every item the area holds, loose items plus items in its boxes (child boxes included); matches `GET /api/items?area_id=`. Items in other users' private boxes are excluded. Only present in list response
         descendant_item_count:
           type: integer
-          description: Loose items in this area and all its sub-areas. Only present in list response
+          description: Same as item_count for this area and all its sub-areas. Only present in list response
+        loose_item_count:
+          type: integer
+          description: Only the items placed directly in this area (not in a box); these become unassigned if the area is deleted. Only present in list response
         created_by:
           type: string
           format: uuid
@@ -3183,6 +3186,9 @@ paths:
                   unassigned_count:
                     type: integer
                     description: Number of non-deleted boxes with no area assigned (a count of boxes, not items)
+                  unassigned_item_count:
+                    type: integer
+                    description: Number of items whose effective area is none (matches `GET /api/items?unassigned=true`)
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
