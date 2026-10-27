@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
+import { checkoutItemSafe, removeItemSafe } from '@/features/items/itemActions';
 import { useAuth } from '@/lib/auth';
 import { usePermissions } from '@/lib/usePermissions';
 import { cn, flatCard, getErrorMessage } from '@/lib/utils';
@@ -52,7 +53,6 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
     }
     return deduped;
   }, [matches]);
-  // Loose items are display-only: they never reach selection or any action.
   const binMatches = useMemo(
     () => visibleMatches.filter((m): m is BinQueryMatch => !isLooseItemMatch(m)),
     [visibleMatches],
@@ -69,10 +69,15 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
     const targetedIds = [...selection.selected.keys()];
     setIsBusy(true);
     try {
+      // Box items go through the batch endpoint, grouped per box; loose items have no box, so each one goes
+      // through the location-scoped item routes.
+      const selectedAll = [...selection.selected.values()];
+      const boxSelected = new Map(selectedAll.filter((s) => s.binId !== null).map((s) => [s.itemId, s]));
+      const looseSelected = selectedAll.filter((s) => s.binId === null);
       const actions: CommandAction[] =
         kind === 'checkout'
-          ? buildCheckoutActions(selection.selected, binMatches)
-          : buildRemoveActions(selection.selected, binMatches);
+          ? buildCheckoutActions(boxSelected, binMatches)
+          : buildRemoveActions(boxSelected, binMatches);
 
       // Chunk here so selecting many items never trips the server limit.
       // Keep BATCH_CAP in sync with MAX_OPS in server/src/routes/batch.ts.
@@ -89,13 +94,24 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
         completed += result.completedActions.length;
         failed += result.failedCount;
       }
+      const removedLooseIds: string[] = [];
+      for (const s of looseSelected) {
+        const home = { binId: null, locationId: activeLocationId } as const;
+        const r = kind === 'checkout' ? await checkoutItemSafe(home, s.itemId) : await removeItemSafe(home, s.itemId);
+        if (r.ok) {
+          completed += 1;
+          if (kind === 'remove') removedLooseIds.push(s.itemId);
+        } else {
+          failed += 1;
+        }
+      }
 
       if (failed > 0) {
         showToast({
           message: t('itemQuery.partialSuccess', {
             defaultValue: '{{completed}} of {{total}} actions completed',
             completed,
-            total: actions.length,
+            total: actions.length + looseSelected.length,
           }),
           variant: 'error',
         });
@@ -115,10 +131,12 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
                 }),
         });
       }
-      if (kind === 'remove' && failed === 0) {
+      if (kind === 'remove' && (failed === 0 || removedLooseIds.length > 0)) {
         setRemovedItemIds((prev) => {
           const next = new Set(prev);
-          for (const id of targetedIds) next.add(id);
+          // All-succeeded: every targeted item is gone. Otherwise only the loose ones known to have gone
+          // (box items were batched, so a partial failure can't say which).
+          for (const id of failed === 0 ? targetedIds : removedLooseIds) next.add(id);
           return next;
         });
       }
@@ -157,7 +175,13 @@ export function ItemQueryResults({ matches, onBinClick }: ItemQueryResultsProps)
           <ul className="divide-y divide-[var(--border-subtle)]">
             {looseMatches.map((match) => (
               <li key={match.item_id}>
-                <LooseItemRow match={match} />
+                <LooseItemRow
+                  match={match}
+                  canWrite={canWrite}
+                  selected={selection.isSelected(match.item_id)}
+                  onToggleSelect={() => selection.toggleItem(match.item_id, null, match.name)}
+                  externallyRemoved={removedItemIds.has(match.item_id)}
+                />
               </li>
             ))}
           </ul>
@@ -222,6 +246,7 @@ function buildCheckoutActions(
   const nameByBinId = indexByBinId(matches);
   const actions: CommandAction[] = [];
   for (const s of selected.values()) {
+    if (s.binId === null) continue;
     actions.push({
       type: 'checkout_item',
       bin_id: s.binId,
@@ -239,6 +264,7 @@ function buildRemoveActions(
   const nameByBinId = indexByBinId(matches);
   const byBin = new Map<string, { bin_name: string; items: string[] }>();
   for (const s of selected.values()) {
+    if (s.binId === null) continue;
     const bucket = byBin.get(s.binId) ?? { bin_name: nameByBinId.get(s.binId) ?? '', items: [] };
     bucket.items.push(s.itemName);
     byBin.set(s.binId, bucket);

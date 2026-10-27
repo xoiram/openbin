@@ -320,5 +320,8 @@
     "executing": "Utfører",
     "parsing": "Tenker",
     "querying": "Søker"
+  },
+  "looseItemRows": {
+    "removeItemDescription": "Dette fjerner \"{{name}}\" permanent."
   }
 }

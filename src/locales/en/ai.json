@@ -320,5 +320,8 @@
     "executing": "Applying",
     "parsing": "Thinking",
     "querying": "Searching"
+  },
+  "looseItemRows": {
+    "removeItemDescription": "This will permanently remove \"{{name}}\"."
   }
 }

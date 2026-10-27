@@ -3,11 +3,12 @@ import { type BinQueryMatch, isLooseItemMatch, type QueryMatch } from './useInve
 
 export interface SelectedItem {
   itemId: string;
-  binId: string;
+  /** The box the item is in; null for a loose item (in an area or unassigned). */
+  binId: string | null;
   itemName: string;
 }
 
-/** Selection only ever addresses boxes: loose items have no box-item actions yet. */
+/** Finds a box match by id. Loose items are selected one by one (keyed by item id), never as a group. */
 function findBinMatch(matches: QueryMatch[], binId: string): BinQueryMatch | undefined {
   for (const m of matches) {
     if (!isLooseItemMatch(m) && m.bin_id === binId) return m;
@@ -18,7 +19,7 @@ function findBinMatch(matches: QueryMatch[], binId: string): BinQueryMatch | und
 export function useItemQuerySelection(matches: QueryMatch[]) {
   const [selected, setSelected] = useState<Map<string, SelectedItem>>(new Map());
 
-  const toggleItem = useCallback((itemId: string, binId: string, itemName: string) => {
+  const toggleItem = useCallback((itemId: string, binId: string | null, itemName: string) => {
     setSelected((prev) => {
       const next = new Map(prev);
       if (next.has(itemId)) next.delete(itemId);
