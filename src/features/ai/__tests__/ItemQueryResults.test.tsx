@@ -11,8 +11,14 @@ vi.mock('../useActionExecutor', () => ({
   executeBatch: (...args: unknown[]) => executeBatch(...args),
 }));
 
+const perms = vi.hoisted(() => ({ canWrite: true }));
+const actions = vi.hoisted(() => ({
+  checkoutItemSafe: vi.fn(),
+  removeItemSafe: vi.fn(),
+}));
+
 vi.mock('@/lib/usePermissions', () => ({
-  usePermissions: () => ({ canWrite: true }),
+  usePermissions: () => ({ canWrite: perms.canWrite }),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -24,8 +30,8 @@ vi.mock('@/components/ui/toast', () => ({
 }));
 
 vi.mock('@/features/items/itemActions', () => ({
-  checkoutItemSafe: vi.fn().mockResolvedValue({ ok: true }),
-  removeItemSafe: vi.fn().mockResolvedValue({ ok: true }),
+  checkoutItemSafe: (...a: unknown[]) => actions.checkoutItemSafe(...a),
+  removeItemSafe: (...a: unknown[]) => actions.removeItemSafe(...a),
   renameItemSafe: vi.fn().mockResolvedValue({ ok: true }),
   updateQuantitySafe: vi.fn().mockResolvedValue({ ok: true, quantity: null }),
 }));
@@ -75,7 +81,12 @@ function renderResults(matches: QueryMatch[]) {
 }
 
 describe('ItemQueryResults', () => {
-  beforeEach(() => executeBatch.mockReset());
+  beforeEach(() => {
+    executeBatch.mockReset();
+    perms.canWrite = true;
+    actions.checkoutItemSafe.mockReset().mockResolvedValue({ ok: true });
+    actions.removeItemSafe.mockReset().mockResolvedValue({ ok: true });
+  });
 
   it('renders nothing for no matches', () => {
     const { container } = renderResults([]);
@@ -119,7 +130,18 @@ describe('ItemQueryResults', () => {
     expect(screen.getByText('Loose items')).toBeDefined();
   });
 
-  it('gives loose items no checkbox, button or actions', () => {
+  it('gives loose items a checkbox and actions menu for writers, with no Open bin', async () => {
+    renderResults([loose('l1', 'Hammer')]);
+    const row = screen.getByTestId('loose-item-row');
+    expect(within(row).getAllByRole('checkbox')).toHaveLength(1);
+    await userEvent.click(within(row).getByRole('button', { name: /item actions/i }));
+    expect(screen.queryByRole('menuitem', { name: /open bin/i })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /restore/i })).toBeNull();
+    expect(screen.getByRole('menuitem', { name: /checkout/i })).toBeDefined();
+  });
+
+  it('gives loose items no checkbox, button or actions for viewers', () => {
+    perms.canWrite = false;
     renderResults([loose('l1', 'Hammer')]);
     const row = screen.getByTestId('loose-item-row');
     expect(within(row).queryAllByRole('button')).toHaveLength(0);
@@ -127,16 +149,43 @@ describe('ItemQueryResults', () => {
     expect(screen.queryByRole('toolbar')).toBeNull();
   });
 
-  it('bulk checkout only ever addresses boxes, never loose items', async () => {
+  it('bulk checkout sends box items to the batch and loose items to the location routes, then clears', async () => {
     executeBatch.mockResolvedValue({ completedActions: [{}], failedCount: 0 });
-    renderResults([loose('l1', 'Hammer'), box('b1', 'Toolbox')]);
-    await userEvent.click(screen.getByRole('checkbox', { name: /hammer/i }));
-    await userEvent.click(screen.getByRole('button', { name: /checkout/i }));
+    renderResults([loose('l1', 'Hammer'), loose('l2', 'Hammer'), box('b1', 'Toolbox')]);
+    const boxes = screen.getAllByRole('checkbox', { name: /hammer/i });
+    expect(boxes).toHaveLength(3); // two loose + one inside the box
+    for (const c of boxes) await userEvent.click(c);
+    await userEvent.click(screen.getByRole('button', { name: /^checkout/i }));
     expect(executeBatch).toHaveBeenCalledTimes(1);
-    const { actions } = executeBatch.mock.calls[0][0];
-    expect(actions).toEqual([
+    expect(executeBatch.mock.calls[0][0].actions).toEqual([
       { type: 'checkout_item', bin_id: 'b1', bin_name: 'Toolbox', item_name: 'Hammer' },
     ]);
+    expect(actions.checkoutItemSafe).toHaveBeenCalledTimes(2);
+    expect(actions.checkoutItemSafe).toHaveBeenCalledWith({ binId: null, locationId: 'loc1' }, 'l1');
+    expect(actions.checkoutItemSafe).toHaveBeenCalledWith({ binId: null, locationId: 'loc1' }, 'l2');
+    expect(screen.queryByRole('toolbar')).toBeNull();
+  });
+
+  it('bulk remove removes loose items individually and hides their rows', async () => {
+    executeBatch.mockResolvedValue({ completedActions: [{}], failedCount: 0 });
+    renderResults([loose('l1', 'Tape'), box('b1', 'Toolbox')]);
+    await userEvent.click(screen.getByRole('checkbox', { name: /tape/i }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /hammer/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^remove/i }));
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^remove/i }));
+    expect(actions.removeItemSafe).toHaveBeenCalledWith({ binId: null, locationId: 'loc1' }, 'l1');
+    expect(executeBatch.mock.calls[0][0].actions).toEqual([
+      { type: 'remove_items', bin_id: 'b1', bin_name: 'Toolbox', items: ['Hammer'] },
+    ]);
+    expect(screen.queryByTestId('loose-item-row')).toBeNull();
+  });
+
+  it('selecting only loose items makes no batch call', async () => {
+    renderResults([loose('l1', 'Tape')]);
+    await userEvent.click(screen.getByRole('checkbox', { name: /tape/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^checkout/i }));
+    expect(executeBatch).not.toHaveBeenCalled();
+    expect(actions.checkoutItemSafe).toHaveBeenCalledTimes(1);
   });
 
   it('applies the 8-match limit across boxes and loose items together', () => {

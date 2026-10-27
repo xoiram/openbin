@@ -5,6 +5,12 @@ import { LooseItemRow } from '../LooseItemRow';
 import type { LooseItemQueryMatch } from '../useInventoryQuery';
 
 vi.unmock('react-i18next');
+vi.mock('@/lib/auth', () => ({ useAuth: () => ({ activeLocationId: 'loc1' }) }));
+vi.mock('@/components/ui/toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
+vi.mock('react-router-dom', async (orig) => ({
+  ...(await orig<typeof import('react-router-dom')>()),
+  useNavigate: () => vi.fn(),
+}));
 
 const match = (over: Partial<LooseItemQueryMatch> = {}): LooseItemQueryMatch => ({
   kind: 'loose_item',
