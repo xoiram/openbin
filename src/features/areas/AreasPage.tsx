@@ -32,7 +32,7 @@ import { AreaCard, CreateAreaCard, UnassignedAreaCard } from './AreaCard';
 import { CreateAreaDialog, DeleteAreaDialog } from './AreaDialogs';
 import { LocationSettingsMenu } from './LocationSettingsMenu';
 import { LocationTabs } from './LocationTabs';
-import { type AreaTreeNode, flattenAreaTree, updateArea, useAreaList } from './useAreas';
+import { type AreaTreeNode, flattenAreaTree, sumLooseItems, updateArea, useAreaList } from './useAreas';
 
 const UpgradePrompt = __EE__
   ? lazy(() => import('@/ee/UpgradePrompt').then(m => ({ default: m.UpgradePrompt })))
@@ -45,7 +45,7 @@ export function AreasPage() {
   const { user, activeLocationId, setActiveLocationId } = useAuth();
   const { locations, isLoading: locationsLoading } = useLocationList();
   const { showToast } = useToast();
-  const { areas, areaTree, unassignedCount } = useAreaList(activeLocationId);
+  const { areas, areaTree, unassignedCount, unassignedItemCount } = useAreaList(activeLocationId);
   const { isGated, isSelfHosted, planInfo } = usePlan();
   const customFieldsGated = !isSelfHosted && isGated('customFields');
 
@@ -64,14 +64,14 @@ export function AreasPage() {
   const [createAreaOpen, setCreateAreaOpen] = useState(false);
 
   // Delete area state
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; binCount: number; descendantAreaCount?: number; descendantBinCount?: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; binCount: number; descendantAreaCount?: number; descendantBinCount?: number; looseItemCount?: number } | null>(null);
 
   // Leave confirmation state
   const [leaveLocationId, setLeaveLocationId] = useState<string | null>(null);
 
   const activeLocation = locations.find((l) => l.id === activeLocationId);
 
-  const { isAdmin, isViewer } = usePermissions();
+  const { isAdmin, isViewer, canWrite } = usePermissions();
 
   function handleAreaClick(areaId: string) {
     navigate(`/bins?areas=${encodeURIComponent(areaId)}`);
@@ -79,6 +79,18 @@ export function AreasPage() {
 
   function handleUnassignedClick() {
     navigate('/bins?areas=__unassigned__');
+  }
+
+  function handleShowAreaItems(areaId: string) {
+    navigate(`/items?area_id=${encodeURIComponent(areaId)}`);
+  }
+
+  function handleAddAreaItem(areaId: string) {
+    navigate(`/items?add=1&area_id=${encodeURIComponent(areaId)}`);
+  }
+
+  function handleUnassignedItemsClick() {
+    navigate('/items?unassigned=true');
   }
 
   async function handleRenameArea(areaId: string, newName: string) {
@@ -97,8 +109,8 @@ export function AreasPage() {
     }
   }
 
-  function handleDeleteAreaRequest(areaId: string, name: string, binCount: number, descendantAreaCount?: number, descendantBinCount?: number) {
-    setDeleteTarget({ id: areaId, name, binCount, descendantAreaCount, descendantBinCount });
+  function handleDeleteAreaRequest(areaId: string, name: string, binCount: number, descendantAreaCount?: number, descendantBinCount?: number, looseItemCount?: number) {
+    setDeleteTarget({ id: areaId, name, binCount, descendantAreaCount, descendantBinCount, looseItemCount });
   }
 
   async function handleLeaveConfirmed() {
@@ -321,7 +333,7 @@ export function AreasPage() {
             </div>
 
             {/* Area grid */}
-            {areas.length === 0 && unassignedCount === 0 ? (
+            {areas.length === 0 && unassignedCount === 0 && unassignedItemCount === 0 ? (
               <EmptyState
                 icon={MapPinned}
                 title={t('page.noAreas', { defaultValue: 'No {{areas}} yet', areas: term.areas })}
@@ -362,19 +374,27 @@ export function AreasPage() {
                       name={node.name}
                       binCount={node.bin_count}
                       descendantBinCount={node.descendant_bin_count}
+                      itemCount={node.item_count}
+                      descendantItemCount={node.descendant_item_count}
+                      looseItemCount={sumLooseItems(node)}
                       depth={node.depth}
                       hasChildren={node.children.length > 0}
                       isAdmin={isAdmin}
+                      canAddItem={canWrite}
                       onNavigate={handleAreaClick}
+                      onShowItems={handleShowAreaItems}
+                      onAddItem={handleAddAreaItem}
                       onRename={handleRenameArea}
                       onDelete={handleDeleteAreaRequest}
                     />
                   </div>
                 ))}
-                {unassignedCount > 0 && (
+                {(unassignedCount > 0 || unassignedItemCount > 0) && (
                   <UnassignedAreaCard
                     count={unassignedCount}
+                    itemCount={unassignedItemCount}
                     onNavigate={handleUnassignedClick}
+                    onShowItems={handleUnassignedItemsClick}
                   />
                 )}
                 {isAdmin && (

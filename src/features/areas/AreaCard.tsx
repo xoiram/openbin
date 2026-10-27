@@ -15,24 +15,85 @@ interface AreaCardProps {
   name: string;
   binCount: number;
   descendantBinCount: number;
+  /** Every item the area holds (loose + in its boxes). */
+  itemCount: number;
+  /** itemCount summed over the area and its sub-areas. */
+  descendantItemCount: number;
+  /** Items deleting the area leaves unassigned: loose items of the area and its sub-areas. */
+  looseItemCount: number;
   depth: number;
   hasChildren: boolean;
   isAdmin: boolean;
+  /** Whether the user may add items (members and admins). */
+  canAddItem: boolean;
   onNavigate: (areaId: string) => void;
+  onShowItems: (areaId: string) => void;
+  onAddItem: (areaId: string) => void;
   onRename: (id: string, newName: string) => Promise<void>;
-  onDelete: (id: string, name: string, binCount: number, descendantAreaCount?: number, descendantBinCount?: number) => void;
+  onDelete: (
+    id: string,
+    name: string,
+    binCount: number,
+    descendantAreaCount?: number,
+    descendantBinCount?: number,
+    looseItemCount?: number,
+  ) => void;
 }
 
 interface UnassignedCardProps {
   count: number;
+  itemCount: number;
   onNavigate: () => void;
+  onShowItems: () => void;
+}
+
+interface ItemCountLinkProps {
+  count: number;
+  /** Shown as "(N total)" when larger than count. */
+  total?: number;
+  /** Name used in the accessible label ("Show the 5 items in Garage"). */
+  label: string;
+  onClick: () => void;
+}
+
+/**
+ * The item count as its own small button inside a card that is itself clickable.
+ * Click and key events are stopped so they don't also trigger the card's navigation.
+ */
+function ItemCountLink({ count, total, label, onClick }: ItemCountLinkProps) {
+  const { t } = useTranslation('areas');
+  const showTotal = total != null && total > count;
+  if (count === 0 && !showTotal) return null;
+  return (
+    <>
+      <span aria-hidden="true"> &middot; </span>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onKeyDown={(e) => e.stopPropagation()}
+        aria-label={t('areaItems.show', {
+          count,
+          name: label,
+          defaultValue_one: 'Show the {{count}} item in {{name}}',
+          defaultValue_other: 'Show the {{count}} items in {{name}}',
+        })}
+        className="underline-offset-2 hover:underline hover:text-[var(--text-primary)] focus-visible:underline focus-visible:text-[var(--text-primary)] cursor-pointer transition-colors"
+      >
+        {t('areaItems.count', { count, defaultValue_one: '{{count}} item', defaultValue_other: '{{count}} items' })}
+        {showTotal && ` ${t('card.total', { defaultValue: '({{n}} total)', n: total })}`}
+      </button>
+    </>
+  );
 }
 
 interface CreateCardProps {
   onCreate: () => void;
 }
 
-export function AreaCard({ id, name, binCount, descendantBinCount, depth, hasChildren, isAdmin, onNavigate, onRename, onDelete }: AreaCardProps) {
+export function AreaCard({
+  id, name, binCount, descendantBinCount, itemCount, descendantItemCount, looseItemCount, depth, hasChildren,
+  isAdmin, canAddItem, onNavigate, onShowItems, onAddItem, onRename, onDelete,
+}: AreaCardProps) {
   const term = useTerminology();
   const { t } = useTranslation('areas');
   const { visible, animating, close, toggle } = usePopover();
@@ -89,6 +150,7 @@ export function AreaCard({ id, name, binCount, descendantBinCount, depth, hasChi
   }
 
   const indentPx = depth * 24;
+  const showMenu = isAdmin || canAddItem;
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: custom card with contextual menu cannot be a plain button
@@ -105,7 +167,7 @@ export function AreaCard({ id, name, binCount, descendantBinCount, depth, hasChi
         <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
           <Folder className="h-4.5 w-4.5 text-[var(--accent)]" />
         </div>
-        <div className={cn("flex-1 min-w-0", isAdmin && "pr-7")}>
+        <div className={cn("flex-1 min-w-0", showMenu && "pr-7")}>
           <span className="text-[15px] font-semibold text-[var(--text-primary)] truncate block">
             {name}
           </span>
@@ -123,12 +185,18 @@ export function AreaCard({ id, name, binCount, descendantBinCount, depth, hasChi
                 {t('card.total', { defaultValue: '({{n}} total)', n: descendantBinCount })}
               </span>
             )}
+            <ItemCountLink
+              count={itemCount}
+              total={hasChildren ? descendantItemCount : undefined}
+              label={name}
+              onClick={() => onShowItems(id)}
+            />
           </span>
         </div>
-        {!isAdmin && <ChevronRight className="h-4 w-4 text-[var(--text-tertiary)] opacity-40 shrink-0" />}
+        {!showMenu && <ChevronRight className="h-4 w-4 text-[var(--text-tertiary)] opacity-40 shrink-0" />}
       </div>
 
-      {isAdmin && (
+      {showMenu && (
         <div
           className="absolute top-2.5 right-2.5"
           ref={menuRef}
@@ -149,8 +217,9 @@ export function AreaCard({ id, name, binCount, descendantBinCount, depth, hasChi
             animating={animating}
             triggerRef={menuRef}
             onClose={close}
-            onRename={startEdit}
-            onDelete={() => { close(); onDelete(id, name, binCount, undefined, hasChildren ? descendantBinCount : undefined); }}
+            onAddItem={canAddItem ? () => { close(); onAddItem(id); } : undefined}
+            onRename={isAdmin ? startEdit : undefined}
+            onDelete={isAdmin ? () => { close(); onDelete(id, name, binCount, undefined, hasChildren ? descendantBinCount : undefined, looseItemCount); } : undefined}
           />
         </div>
       )}
@@ -158,13 +227,17 @@ export function AreaCard({ id, name, binCount, descendantBinCount, depth, hasChi
   );
 }
 
-export function UnassignedAreaCard({ count, onNavigate }: UnassignedCardProps) {
+export function UnassignedAreaCard({ count, itemCount, onNavigate, onShowItems }: UnassignedCardProps) {
   const term = useTerminology();
   const { t } = useTranslation('areas');
+  const label = t('card.unassigned', { defaultValue: 'Unassigned' });
   return (
-    <button
-      type="button"
+    // biome-ignore lint/a11y/useSemanticElements: contains the item count button, which cannot nest in a <button>
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onNavigate}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate(); } }}
       className="flat-card rounded-[var(--radius-lg)] p-4 cursor-pointer hover:bg-[var(--bg-hover)] transition-colors duration-150 active:bg-[var(--bg-active)] text-left"
     >
       <div className="flex items-center gap-3">
@@ -173,21 +246,22 @@ export function UnassignedAreaCard({ count, onNavigate }: UnassignedCardProps) {
         </div>
         <div className="flex-1 min-w-0">
           <span className="text-[15px] font-semibold text-[var(--text-secondary)] truncate block">
-            {t('card.unassigned', { defaultValue: 'Unassigned' })}
+            {label}
           </span>
           <span className="text-[13px] text-[var(--text-tertiary)] mt-0.5 block">
-{t('binCount', {
+            {t('binCount', {
               count: count,
               bin: term.bin,
               bins: term.bins,
               defaultValue_one: '{{count}} {{bin}}',
               defaultValue_other: '{{count}} {{bins}}',
             })}
+            <ItemCountLink count={itemCount} label={label} onClick={onShowItems} />
           </span>
         </div>
         <ChevronRight className="h-4 w-4 text-[var(--text-tertiary)] opacity-40 shrink-0" />
       </div>
-    </button>
+    </div>
   );
 }
 

@@ -1,4 +1,13 @@
 {
+  "areaItems": {
+    "add": "Add item",
+    "count_one": "{{count}} item",
+    "count_other": "{{count}} items",
+    "deleteLoose_one": "{{count}} item placed directly in it will become unassigned.",
+    "deleteLoose_other": "{{count}} items placed directly in it will become unassigned.",
+    "show_one": "Show the {{count}} item in {{name}}",
+    "show_other": "Show the {{count}} items in {{name}}"
+  },
   "binCount_one": "{{count}} {{bin}}",
   "binCount_other": "{{count}} {{bins}}",
   "card": {

@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { PackagePlus, Pencil, Trash2 } from 'lucide-react';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,11 +10,15 @@ interface AreaActionMenuProps {
   animating: 'enter' | 'exit' | null;
   triggerRef: RefObject<HTMLElement | null>;
   onClose: () => void;
-  onRename: () => void;
-  onDelete: () => void;
+  /** Admin-only; omit to hide the entry. */
+  onRename?: () => void;
+  /** Admin-only; omit to hide the entry. */
+  onDelete?: () => void;
+  /** For everyone who can write items; omit to hide the entry. */
+  onAddItem?: () => void;
 }
 
-export function AreaActionMenu({ visible, animating, triggerRef, onClose, onRename, onDelete }: AreaActionMenuProps) {
+export function AreaActionMenu({ visible, animating, triggerRef, onClose, onRename, onDelete, onAddItem }: AreaActionMenuProps) {
   const { t } = useTranslation('areas');
   const dialogPortal = useDialogPortal();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -62,23 +66,39 @@ export function AreaActionMenu({ visible, animating, triggerRef, onClose, onRena
       )}
       style={{ top: pos.top, right: pos.right }}
     >
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onRename(); }}
-        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
-      >
-        <Pencil className="h-4 w-4" />
-        {t('menu.rename', { defaultValue: 'Rename' })}
-      </button>
-      <div className="my-1 border-t border-[var(--border-flat)]" />
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--destructive)] hover:bg-[var(--bg-hover)] transition-colors"
-      >
-        <Trash2 className="h-4 w-4" />
-        {t('common:actions.delete', { defaultValue: 'Delete' })}
-      </button>
+      {onAddItem && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onAddItem(); }}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+        >
+          <PackagePlus className="h-4 w-4" />
+          {t('areaItems.add', { defaultValue: 'Add item' })}
+        </button>
+      )}
+      {onRename && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onRename(); }}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+        >
+          <Pencil className="h-4 w-4" />
+          {t('menu.rename', { defaultValue: 'Rename' })}
+        </button>
+      )}
+      {onDelete && (
+        <>
+          {(onAddItem || onRename) && <div className="my-1 border-t border-[var(--border-flat)]" />}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] text-[var(--destructive)] hover:bg-[var(--bg-hover)] transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+            {t('common:actions.delete', { defaultValue: 'Delete' })}
+          </button>
+        </>
+      )}
     </div>
   );
 

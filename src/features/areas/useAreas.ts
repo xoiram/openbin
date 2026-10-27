@@ -46,6 +46,11 @@ export function buildAreaTree(areas: Area[]): AreaTreeNode[] {
   return roots;
 }
 
+/** Items placed directly in this area and in all of its sub-areas (what deleting the area leaves unassigned). */
+export function sumLooseItems(node: AreaTreeNode): number {
+  return node.loose_item_count + node.children.reduce((sum, child) => sum + sumLooseItems(child), 0);
+}
+
 /** Flatten a tree into a depth-first ordered list with depth values. */
 export function flattenAreaTree(roots: AreaTreeNode[]): AreaTreeNode[] {
   const result: AreaTreeNode[] = [];
