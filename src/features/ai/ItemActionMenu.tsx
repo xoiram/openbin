@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { ActionMenu, MenuDivider, MenuItem } from '@/components/ui/action-menu';
 
 interface ItemActionMenuProps {
-  onOpenBin: () => void;
+  /** Omitted for items with no box to open (loose items). */
+  onOpenBin?: () => void;
   onCheckout?: () => void;
   onAdjustQuantity?: () => void;
   onRename?: () => void;
@@ -18,6 +19,8 @@ export function ItemActionMenu({
   canWrite, isTrashed,
 }: ItemActionMenuProps) {
   const { t } = useTranslation('ai');
+  // Nothing to offer: a loose item for someone who can't write has no box to open either.
+  if (!onOpenBin && !canWrite && !isTrashed) return null;
   return (
     <ActionMenu
       triggerAriaLabel={t('itemQuery.actionsAriaLabel', { defaultValue: 'Item actions' })}
@@ -28,14 +31,16 @@ export function ItemActionMenu({
         <MenuItem
           icon={Undo2}
           label={t('itemQuery.restoreAndOpen', { defaultValue: 'Restore & open' })}
-          onClick={onRestoreBin ?? onOpenBin}
+          onClick={onRestoreBin ?? onOpenBin ?? (() => {})}
         />
       ) : (
         <>
-          <MenuItem icon={ExternalLink} label={t('itemQuery.openBin', { defaultValue: 'Open bin' })} onClick={onOpenBin} />
+          {onOpenBin && (
+            <MenuItem icon={ExternalLink} label={t('itemQuery.openBin', { defaultValue: 'Open bin' })} onClick={onOpenBin} />
+          )}
           {canWrite && (
             <>
-              <MenuDivider />
+              {onOpenBin && <MenuDivider />}
               <MenuItem icon={PackageMinus} label={t('itemQuery.checkout', { defaultValue: 'Checkout' })} onClick={onCheckout} />
               <MenuItem icon={Hash} label={t('itemQuery.adjustQuantity', { defaultValue: 'Adjust quantity' })} onClick={onAdjustQuantity} />
               <MenuItem icon={Pencil} label={t('itemQuery.rename', { defaultValue: 'Rename' })} onClick={onRename} />

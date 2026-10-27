@@ -87,5 +87,65 @@
     "unassigned": "Unassigned",
     "rowLabelUnassigned": "{{name}}, unassigned",
     "rowLabelWithQuantityUnassigned": "{{name}} ({{quantity}}), unassigned"
+  },
+  "looseItems": {
+    "table": {
+      "location": "Stored in"
+    },
+    "filters": {
+      "areaLabel": "Filter by {{area}}",
+      "allAreas": "All {{areas}}",
+      "unassigned": "Unassigned",
+      "notInBin": "Not in a {{bin}}",
+      "clear": "Clear filters"
+    },
+    "empty": {
+      "filteredTitle": "No items match these filters",
+      "filteredSubtitle": "Try removing a filter"
+    },
+    "place": {
+      "label": "Where it goes",
+      "bin": "In a {{bin}}",
+      "area": "In an {{area}}",
+      "none": "Not placed"
+    },
+    "add": {
+      "button": "Add item",
+      "title": "Add item",
+      "description": "Put the item in a {{bin}} or in an {{area}}, or leave it unplaced.",
+      "name": "Name",
+      "namePlaceholder": "Item name",
+      "nameRequired": "Enter a name",
+      "quantity": "Quantity (optional)",
+      "quantityInvalid": "Quantity must be a whole number above zero",
+      "noneHint": "The item stays unassigned until you move it.",
+      "addAnother": "Add another",
+      "submit": "Add item",
+      "submitting": "Adding…",
+      "added": "Added {{name}}",
+      "addedTo": "Added {{name}} to {{place}}"
+    },
+    "edit": {
+      "title": "Edit item",
+      "quantity": "Quantity",
+      "save": "Save",
+      "saved": "Updated {{name}}"
+    },
+    "delete": {
+      "title": "Delete {{name}}?",
+      "description": "This cannot be undone."
+    },
+    "actions": {
+      "menuLabel": "Item actions",
+      "edit": "Edit",
+      "checkout": "Check out",
+      "move": "Move…",
+      "checkedOut": "Checked out {{name}}",
+      "deleted": "Deleted {{name}}"
+    },
+    "move": {
+      "description": "Choose where to put the items: in a {{bin}}, in an {{area}}, or unassigned.",
+      "noneHint": "The items will be in no {{bin}} and no {{area}}."
+    }
   }
 }

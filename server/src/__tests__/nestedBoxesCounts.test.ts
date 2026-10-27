@@ -112,7 +112,7 @@ describe('GET /api/locations/:id/stats with nested boxes and loose items', () =>
 });
 
 describe('GET /api/locations/:locationId/areas item counts', () => {
-  it('counts loose items per area and across the subtree', async () => {
+  it('counts every item an area holds (loose and in its boxes) per area and across the subtree', async () => {
     const { token } = await createTestUser(app);
     const location = await createTestLocation(app, token);
     const garage = await createTestArea(app, token, location.id, 'Garage');
@@ -130,7 +130,7 @@ describe('GET /api/locations/:locationId/areas item counts', () => {
     await addItem(location.id, { areaId: workbench.id }, 'Drill press');
     await addItem(location.id, { areaId: kitchen.id }, 'Spare batteries');
 
-    // A box in the workbench area: its items are box items, not loose items.
+    // A box in the workbench area: its items count toward the area too, but they are not loose items.
     const box = await createBinInArea(token, location.id, 'Tool Chest', workbench.id);
     await addItem(location.id, { binId: box.id }, 'Ratchet');
 
@@ -144,16 +144,75 @@ describe('GET /api/locations/:locationId/areas item counts', () => {
     expect((res.body.results as Array<{ name: string }>).map((a) => a.name)).toEqual(['Garage', 'Kitchen', 'Workbench']);
 
     expect(Number(byName.Garage.item_count)).toBe(2);
-    expect(Number(byName.Garage.descendant_item_count)).toBe(3);
+    expect(Number(byName.Garage.loose_item_count)).toBe(2);
+    expect(Number(byName.Garage.descendant_item_count)).toBe(4); // its own 2 + Workbench's loose + boxed item
     expect(Number(byName.Garage.bin_count)).toBe(0);
     expect(Number(byName.Garage.descendant_bin_count)).toBe(1);
 
-    expect(Number(byName.Workbench.item_count)).toBe(1);
-    expect(Number(byName.Workbench.descendant_item_count)).toBe(1);
+    expect(Number(byName.Workbench.item_count)).toBe(2); // Drill press (loose) + Ratchet (in Tool Chest)
+    expect(Number(byName.Workbench.loose_item_count)).toBe(1);
+    expect(Number(byName.Workbench.descendant_item_count)).toBe(2);
     expect(Number(byName.Workbench.bin_count)).toBe(1);
 
     expect(Number(byName.Kitchen.item_count)).toBe(1);
+    expect(Number(byName.Kitchen.loose_item_count)).toBe(1);
     expect(Number(byName.Kitchen.descendant_item_count)).toBe(1);
+  });
+
+  it('counts items in child boxes toward the area, but not items in trashed boxes or other people\'s private boxes', async () => {
+    const owner = await createTestUser(app);
+    const location = await createTestLocation(app, owner.token);
+    const garage = await createTestArea(app, owner.token, location.id, 'Garage');
+
+    const parent = await createBinInArea(owner.token, location.id, 'Toolbox', garage.id);
+    const child = (await request(app).post('/api/bins').set('Authorization', `Bearer ${owner.token}`)
+      .send({ locationId: location.id, name: 'Drill bits', parentBinId: parent.id })).body as { id: string };
+    await addItem(location.id, { binId: parent.id }, 'Hammer');
+    await addItem(location.id, { binId: child.id }, 'Masonry bit');
+    await addItem(location.id, { areaId: garage.id }, 'Ladder');
+
+    // a trashed box: its items are gone from the count
+    const trashed = await createBinInArea(owner.token, location.id, 'Old crate', garage.id);
+    await addItem(location.id, { binId: trashed.id }, 'Rusty nails');
+    await request(app).delete(`/api/bins/${trashed.id}`).set('Authorization', `Bearer ${owner.token}`);
+
+    // a private box of the owner, and a second member who must not see its items counted
+    const secret = (await request(app).post('/api/bins').set('Authorization', `Bearer ${owner.token}`)
+      .send({ locationId: location.id, name: 'Private', areaId: garage.id, visibility: 'private' })).body as { id: string };
+    await addItem(location.id, { binId: secret.id }, 'Diary');
+
+    const other = await createTestUser(app);
+    const join = await request(app).post('/api/locations/join').set('Authorization', `Bearer ${other.token}`)
+      .send({ inviteCode: (await query<{ invite_code: string }>('SELECT invite_code FROM locations WHERE id = $1', [location.id])).rows[0].invite_code });
+    expect(join.status).toBeLessThan(300);
+
+    const garageRow = async (token: string) => {
+      const res = await request(app).get(`/api/locations/${location.id}/areas`).set('Authorization', `Bearer ${token}`);
+      return (res.body.results as Array<Record<string, unknown>>).find((a) => a.name === 'Garage') as Record<string, unknown>;
+    };
+    // owner sees Hammer, Masonry bit (child box), Ladder (loose) and Diary (own private box)
+    expect(Number((await garageRow(owner.token)).item_count)).toBe(4);
+    // the other member sees everything but the private box's Diary
+    expect(Number((await garageRow(other.token)).item_count)).toBe(3);
+    await expectNoHierarchyViolations();
+  });
+
+  it('counts unassigned items: loose ones with no area, and items in boxes that have no area', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const garage = await createTestArea(app, token, location.id, 'Garage');
+    const looseBox = await createBinInArea(token, location.id, 'No area box');
+    const garageBox = await createBinInArea(token, location.id, 'Garage box', garage.id);
+
+    await addItem(location.id, {}, 'Floating item'); // neither box nor area
+    await addItem(location.id, { binId: looseBox.id }, 'In area-less box');
+    await addItem(location.id, { binId: garageBox.id }, 'In garage box'); // has an area: not counted
+    await addItem(location.id, { areaId: garage.id }, 'Loose in garage'); // has an area: not counted
+    await addItem(location.id, { deleted: true }, 'Deleted floating'); // trashed: not counted
+
+    const res = await request(app).get(`/api/locations/${location.id}/areas`).set('Authorization', `Bearer ${token}`);
+    expect(Number(res.body.unassigned_item_count)).toBe(2);
+    expect(Number(res.body.unassigned_count)).toBe(1); // the area-less box
   });
 
   it('reports a deleted area\'s loose items as unassigned, not on the parent', async () => {
@@ -180,5 +239,29 @@ describe('GET /api/locations/:locationId/areas item counts', () => {
 
     const orphan = await query<{ area_id: string | null }>('SELECT area_id FROM bin_items WHERE name = $1', ['Mower']);
     expect(orphan.rows[0].area_id).toBeNull();
+  });
+  it('leaves loose items of a deleted area and of its sub-areas unassigned', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const garage = await createTestArea(app, token, location.id, 'Garage');
+    const shed = await request(app)
+      .post(`/api/locations/${location.id}/areas`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Shed', parent_id: garage.id });
+    await addItem(location.id, { areaId: garage.id }, 'Ladder');
+    await addItem(location.id, { areaId: shed.body.id }, 'Mower');
+
+    const del = await request(app)
+      .delete(`/api/locations/${location.id}/areas/${garage.id}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(del.status).toBe(200);
+
+    const rows = await query<{ name: string; area_id: string | null }>('SELECT name, area_id FROM bin_items ORDER BY name');
+    expect(rows.rows).toEqual([
+      { name: 'Ladder', area_id: null },
+      { name: 'Mower', area_id: null },
+    ]);
+    const res = await request(app).get(`/api/locations/${location.id}/areas`).set('Authorization', `Bearer ${token}`);
+    expect(res.body.unassigned_item_count).toBe(2);
   });
 });

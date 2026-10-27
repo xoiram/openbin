@@ -2,12 +2,22 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '@/lib/api';
 import { Events, notify } from '@/lib/eventBus';
+import { notifyItemsChanged } from './looseItems';
 
 type ToastFn = (toast: {
   message: string;
   variant?: 'error' | 'success';
   action?: { label: string; onClick: () => void };
 }) => void;
+
+/** Where moved items go: exactly one of a box, an area or "unassigned" (in no box and no area). */
+export type ItemMoveTarget = { binId: string } | { areaId: string } | { unassigned: true };
+
+export function moveTargetBody(target: ItemMoveTarget): Record<string, unknown> {
+  if ('binId' in target) return { targetBinId: target.binId };
+  if ('areaId' in target) return { targetAreaId: target.areaId };
+  return { unassigned: true };
+}
 
 export type QuantityOp = 'set' | 'clear' | 'inc' | 'dec';
 
@@ -67,19 +77,19 @@ export function useItemBulkActions(clearSelection: () => void, showToast: ToastF
     }
   }, [clearSelection, showToast, t]);
 
-  const bulkMove = useCallback(async (ids: string[], targetBinId: string, targetBinName: string) => {
+  const bulkMove = useCallback(async (ids: string[], target: ItemMoveTarget, targetName: string) => {
     setIsBusy(true);
     try {
       const { moved } = await apiFetch<{ moved: number }>('/api/items/bulk-move', {
         method: 'POST',
-        body: { ids, targetBinId },
+        body: { ids, ...moveTargetBody(target) },
       });
-      notify(Events.BINS);
+      notifyItemsChanged();
       clearSelection();
       showToast({
         message: t('bulkToasts.moved', {
           count: moved,
-          name: targetBinName,
+          name: targetName,
           defaultValue_one: 'Moved {{count}} item to {{name}}',
           defaultValue_other: 'Moved {{count}} items to {{name}}',
         }),

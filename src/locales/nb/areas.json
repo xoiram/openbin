@@ -1,4 +1,13 @@
 {
+  "areaItems": {
+    "add": "Legg til gjenstand",
+    "count_one": "{{count}} gjenstand",
+    "count_other": "{{count}} gjenstander",
+    "deleteLoose_one": "{{count}} gjenstand som ligger rett i den blir ikke lenger tilordnet.",
+    "deleteLoose_other": "{{count}} gjenstander som ligger rett i den blir ikke lenger tilordnet.",
+    "show_one": "Vis {{count}} gjenstand i {{name}}",
+    "show_other": "Vis {{count}} gjenstander i {{name}}"
+  },
   "binCount_one": "{{count}} {{bin}}",
   "binCount_other": "{{count}} {{bins}}",
   "card": {

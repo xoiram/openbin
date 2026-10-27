@@ -13,6 +13,10 @@ router.use(authenticate);
 // GET /api/locations/:locationId/areas — list areas for a location
 router.get('/:locationId/areas', requireLocationMember('locationId'), asyncHandler(async (req, res) => {
   const { locationId } = req.params;
+  const userId = req.user!.id;
+  // item_count / descendant_item_count count *all* items an area holds: items placed directly in it (loose)
+  // plus items inside the boxes located in it (child boxes share their parent's area, so they are included).
+  // Items in other people's private boxes are not counted. loose_item_count is only the directly placed ones.
   const result = await query(
     `WITH RECURSIVE
       area_tree AS (
@@ -26,29 +30,55 @@ router.get('/:locationId/areas', requireLocationMember('locationId'), asyncHandl
         LEFT JOIN bins b ON b.area_id = t.id AND b.deleted_at IS NULL
         GROUP BY t.root_id
       ),
+      item_areas AS (
+        SELECT COALESCE(bi.area_id, b.area_id) AS area_id
+        FROM bin_items bi
+        LEFT JOIN bins b ON b.id = bi.bin_id
+        WHERE bi.location_id = $1 AND bi.deleted_at IS NULL
+          AND (bi.bin_id IS NULL OR (b.deleted_at IS NULL AND (b.visibility = 'location' OR b.created_by = $2)))
+      ),
+      area_item_counts AS (
+        SELECT area_id, COUNT(*) AS cnt FROM item_areas WHERE area_id IS NOT NULL GROUP BY area_id
+      ),
       desc_item_counts AS (
-        SELECT t.root_id, COUNT(bi.id) AS cnt
+        SELECT t.root_id, CAST(COALESCE(SUM(aic.cnt), 0) AS INTEGER) AS cnt
         FROM area_tree t
-        LEFT JOIN bin_items bi ON bi.area_id = t.id AND bi.deleted_at IS NULL
+        LEFT JOIN area_item_counts aic ON aic.area_id = t.id
         GROUP BY t.root_id
       )
     SELECT a.id, a.location_id, a.name, a.parent_id, a.created_by, a.created_at, a.updated_at,
       (SELECT COUNT(*) FROM bins WHERE area_id = a.id AND deleted_at IS NULL) AS bin_count,
       COALESCE(dc.cnt, 0) AS descendant_bin_count,
-      (SELECT COUNT(*) FROM bin_items WHERE area_id = a.id AND deleted_at IS NULL) AS item_count,
-      COALESCE(dic.cnt, 0) AS descendant_item_count
+      COALESCE(aic.cnt, 0) AS item_count,
+      COALESCE(dic.cnt, 0) AS descendant_item_count,
+      (SELECT COUNT(*) FROM bin_items WHERE area_id = a.id AND deleted_at IS NULL) AS loose_item_count
     FROM areas a
     LEFT JOIN desc_counts dc ON dc.root_id = a.id
+    LEFT JOIN area_item_counts aic ON aic.area_id = a.id
     LEFT JOIN desc_item_counts dic ON dic.root_id = a.id
     WHERE a.location_id = $1
     ORDER BY a.name ${d.nocase()}`,
-    [locationId]
+    [locationId, userId]
   );
   const unassignedResult = await query(
     'SELECT COUNT(*) AS cnt FROM bins WHERE location_id = $1 AND area_id IS NULL AND deleted_at IS NULL',
     [locationId]
   );
-  res.json({ results: result.rows, count: result.rows.length, unassigned_count: unassignedResult.rows[0]?.cnt ?? 0 });
+  // Items that are in no area: not in a box and not in an area, or in a box that has no area.
+  const unassignedItems = await query(
+    `SELECT COUNT(*) AS cnt
+     FROM bin_items bi
+     LEFT JOIN bins b ON b.id = bi.bin_id
+     WHERE bi.location_id = $1 AND bi.deleted_at IS NULL AND COALESCE(bi.area_id, b.area_id) IS NULL
+       AND (bi.bin_id IS NULL OR (b.deleted_at IS NULL AND (b.visibility = 'location' OR b.created_by = $2)))`,
+    [locationId, userId]
+  );
+  res.json({
+    results: result.rows,
+    count: result.rows.length,
+    unassigned_count: unassignedResult.rows[0]?.cnt ?? 0,
+    unassigned_item_count: unassignedItems.rows[0]?.cnt ?? 0,
+  });
 }));
 
 // POST /api/locations/:locationId/areas — create area (admin only)

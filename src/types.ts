@@ -76,6 +76,12 @@ export interface Area {
   parent_id: string | null;
   bin_count: number;
   descendant_bin_count: number;
+  /** Every item the area holds: items placed directly in it plus the items in its boxes (child boxes included). */
+  item_count: number;
+  /** item_count summed over the area and its sub-areas. */
+  descendant_item_count: number;
+  /** Only the items placed directly in the area (not in a box). */
+  loose_item_count: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;

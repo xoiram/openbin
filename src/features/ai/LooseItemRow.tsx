@@ -1,35 +1,39 @@
 import { Package } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/auth';
+import { ItemRow } from './ItemRow';
 import { getMatchPath, type LooseItemQueryMatch } from './useInventoryQuery';
 
 interface LooseItemRowProps {
   match: LooseItemQueryMatch;
+  canWrite?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+  /** External removal signal (e.g. from bulk remove). Hides the row. */
+  externallyRemoved?: boolean;
 }
 
 /**
- * Read-only row for an item that lives in an area (or nowhere) rather than in
- * a box. Not selectable and has no actions: the checkout/remove/move actions
- * are box-item based and cannot address a loose item yet.
+ * Row for an item that lives in an area (or nowhere) rather than in a box. It behaves like a box item row
+ * (rename, quantity, remove, check out, selection) through the location-scoped item routes; it has no box
+ * to open, so the location text shows the area path instead.
  */
-export function LooseItemRow({ match }: LooseItemRowProps) {
+export function LooseItemRow({ match, canWrite = false, selected, onToggleSelect, externallyRemoved }: LooseItemRowProps) {
   const { t } = useTranslation('ai');
+  const { activeLocationId } = useAuth();
   const path = getMatchPath(match);
   return (
-    <div className="flex items-center gap-3 px-3 py-2.5" data-testid="loose-item-row">
-      <Package className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" aria-hidden="true" />
-      <span className="flex-1 min-w-0">
-        <span className="block text-[15px] font-semibold text-[var(--text-primary)] truncate">
-          {match.name}
-          {match.quantity != null && (
-            <span className="ml-1.5 text-[13px] font-normal text-[var(--text-tertiary)]">
-              {`×${match.quantity}`}
-            </span>
-          )}
-        </span>
-        <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5">
-          {path || t('itemQuery.unassigned', { defaultValue: 'Unassigned' })}
-        </span>
-      </span>
-    </div>
+    <ItemRow
+      item={{ id: match.item_id, name: match.name, quantity: match.quantity }}
+      binId={null}
+      locationId={activeLocationId ?? undefined}
+      locationText={path || t('itemQuery.unassigned', { defaultValue: 'Unassigned' })}
+      leading={<Package className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" aria-hidden="true" />}
+      testId="loose-item-row"
+      canWrite={canWrite}
+      selected={selected}
+      onToggleSelect={onToggleSelect}
+      externallyRemoved={externallyRemoved}
+    />
   );
 }

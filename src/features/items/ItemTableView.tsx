@@ -1,5 +1,7 @@
+import { ArrowRightLeft, FolderTree, PackageMinus, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { ActionMenu, MenuDivider, MenuItem } from '@/components/ui/action-menu';
 import { BinIconBadge } from '@/components/ui/bin-icon-badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Highlight } from '@/components/ui/highlight';
@@ -9,11 +11,18 @@ import { Table, TableHeader, TableRow } from '@/components/ui/table';
 import { useEntitySelectionInteraction } from '@/lib/bulk/useEntitySelectionInteraction';
 import { resolveColor } from '@/lib/colorPalette';
 import { resolveIcon } from '@/lib/iconMap';
-import { useTerminology } from '@/lib/terminology';
 import { cn } from '@/lib/utils';
 import type { ItemEntry } from './useItems';
 
 export type ItemSortColumn = 'alpha' | 'bin' | 'qty';
+
+/** Per-row actions (writers only). Passing this adds an action menu to every row. */
+export interface ItemRowActionHandlers {
+  onEdit: (entry: ItemEntry) => void;
+  onCheckout: (entry: ItemEntry) => void;
+  onMove: (entry: ItemEntry) => void;
+  onDelete: (entry: ItemEntry) => void;
+}
 
 interface ItemTableViewProps {
   items: ItemEntry[];
@@ -27,6 +36,7 @@ interface ItemTableViewProps {
   selectable?: boolean;
   selectedIds?: Set<string>;
   onSelect?: (id: string, index: number, shiftKey: boolean) => void;
+  rowActions?: ItemRowActionHandlers;
 }
 
 export function ItemTableView({
@@ -41,9 +51,9 @@ export function ItemTableView({
   selectable,
   selectedIds,
   onSelect,
+  rowActions,
 }: ItemTableViewProps) {
   const { t } = useTranslation('items');
-  const term = useTerminology();
 
   return (
     <>
@@ -53,7 +63,8 @@ export function ItemTableView({
           <span className="w-6 shrink-0" aria-hidden />
           <SortHeader label={t('table.item', { defaultValue: 'Item' })} column="alpha" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-[2]" />
           <SortHeader label={t('table.qty', { defaultValue: 'Qty' })} column="qty" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} defaultDirection="desc" className="w-14 justify-end" />
-          <SortHeader label={term.Bin} column="bin" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-1" />
+          <SortHeader label={t('looseItems.table.location', { defaultValue: 'Stored in' })} column="bin" currentColumn={sortColumn} currentDirection={sortDirection} onSort={onSortChange} className="flex-1" />
+          {rowActions && <span className="w-11 shrink-0" aria-hidden />}
         </TableHeader>
 
         {/* Rows */}
@@ -66,6 +77,7 @@ export function ItemTableView({
             selectable={selectable}
             selected={selectedIds?.has(entry.id) ?? false}
             onSelect={onSelect}
+            rowActions={rowActions}
           />
         ))}
       </Table>
@@ -81,6 +93,7 @@ function ItemRow({
   selectable,
   selected,
   onSelect,
+  rowActions,
 }: {
   entry: ItemEntry;
   index: number;
@@ -88,6 +101,7 @@ function ItemRow({
   selectable?: boolean;
   selected?: boolean;
   onSelect?: (id: string, index: number, shiftKey: boolean) => void;
+  rowActions?: ItemRowActionHandlers;
 }) {
   const { t } = useTranslation('items');
   const navigate = useNavigate();
@@ -152,12 +166,36 @@ function ItemRow({
       <span className="w-14 shrink-0 text-[13px] tabular-nums text-[var(--text-tertiary)] text-right">
         {entry.quantity != null ? entry.quantity : '—'}
       </span>
-      <div className="flex-1 min-w-0 row">
+      <div className="flex-1 min-w-0 row" data-testid="item-location">
         {hasBin && <BinIconBadge icon={BinIcon} colorPreset={colorPreset} />}
+        {!hasBin && entry.area_id && <FolderTree className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" aria-hidden />}
         <span className={cn('truncate text-[13px] text-[var(--text-tertiary)]', !placeName && 'italic')}>
           <Highlight text={placeLabel} query={searchQuery} />
         </span>
       </div>
+      {rowActions && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: keeps menu clicks/keys from activating the row
+        <div className="shrink-0" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
+          <ItemRowMenu entry={entry} actions={rowActions} />
+        </div>
+      )}
     </TableRow>
+  );
+}
+
+function ItemRowMenu({ entry, actions }: { entry: ItemEntry; actions: ItemRowActionHandlers }) {
+  const { t } = useTranslation(['items', 'common']);
+  return (
+    <ActionMenu
+      triggerAriaLabel={t('looseItems.actions.menuLabel', { defaultValue: 'Item actions' })}
+      triggerClassName="shrink-0 flex items-center justify-center size-11 -my-2 -mr-2 text-[var(--text-tertiary)] transition-opacity opacity-30 lg:opacity-0 lg:group-hover:opacity-100 aria-expanded:opacity-100"
+      menuClassName="min-w-[160px]"
+    >
+      <MenuItem icon={Pencil} label={t('looseItems.actions.edit', { defaultValue: 'Edit' })} onClick={() => actions.onEdit(entry)} />
+      <MenuItem icon={PackageMinus} label={t('looseItems.actions.checkout', { defaultValue: 'Check out' })} onClick={() => actions.onCheckout(entry)} />
+      <MenuItem icon={ArrowRightLeft} label={t('looseItems.actions.move', { defaultValue: 'Move…' })} onClick={() => actions.onMove(entry)} />
+      <MenuDivider />
+      <MenuItem icon={Trash2} label={t('common:actions.delete', { defaultValue: 'Delete' })} onClick={() => actions.onDelete(entry)} destructive />
+    </ActionMenu>
   );
 }

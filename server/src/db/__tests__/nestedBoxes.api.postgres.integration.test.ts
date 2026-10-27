@@ -427,15 +427,18 @@ describe.skipIf(!url)('nested boxes and loose items API on PostgreSQL', () => {
 
     const areas = await call('get', `/api/locations/${loc}/areas`, owner.token);
     expect(typeof areas.body.unassigned_count).toBe('number');
+    expect(typeof areas.body.unassigned_item_count).toBe('number');
+    expect(areas.body.unassigned_item_count).toBe(2); // the floating item and the one in the area-less box
     const byName = Object.fromEntries(areas.body.results.map((a: Json) => [a.name, a]));
     for (const a of areas.body.results) {
-      for (const k of ['bin_count', 'descendant_bin_count', 'item_count', 'descendant_item_count']) {
+      for (const k of ['bin_count', 'descendant_bin_count', 'item_count', 'descendant_item_count', 'loose_item_count']) {
         expect(typeof a[k], `${a.name}.${k}`).toBe('number');
       }
     }
-    expect(byName.House).toMatchObject({ item_count: 1, descendant_item_count: 3, bin_count: 0, descendant_bin_count: 2 });
-    expect(byName.Garage).toMatchObject({ item_count: 0, descendant_item_count: 2, bin_count: 2 });
-    expect(byName.Shelf).toMatchObject({ item_count: 2, descendant_item_count: 2, bin_count: 0 });
+    // item_count = every item the area holds (loose + in its boxes, child boxes included)
+    expect(byName.House).toMatchObject({ item_count: 1, loose_item_count: 1, descendant_item_count: 6, bin_count: 0, descendant_bin_count: 2 });
+    expect(byName.Garage).toMatchObject({ item_count: 3, loose_item_count: 0, descendant_item_count: 5, bin_count: 2 });
+    expect(byName.Shelf).toMatchObject({ item_count: 2, loose_item_count: 2, descendant_item_count: 2, bin_count: 0 });
 
     // deleting an area leaves its loose items unassigned (and unassigned count updates)
     expect((await call('delete', `/api/locations/${loc}/areas/${subsub}`, owner.token)).status).toBe(200);

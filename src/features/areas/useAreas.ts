@@ -13,6 +13,8 @@ export interface AreaTreeNode extends Area {
 
 interface AreasResponse extends ListResponse<Area> {
   unassigned_count: number;
+  /** Items in no area: not in a box or an area, or in a box that has no area. */
+  unassigned_item_count?: number;
 }
 
 /** Build a tree from a flat area list. Returns root nodes with nested children. */
@@ -42,6 +44,11 @@ export function buildAreaTree(areas: Area[]): AreaTreeNode[] {
   setDepth(roots, 0);
 
   return roots;
+}
+
+/** Items placed directly in this area and in all of its sub-areas (what deleting the area leaves unassigned). */
+export function sumLooseItems(node: AreaTreeNode): number {
+  return node.loose_item_count + node.children.reduce((sum, child) => sum + sumLooseItems(child), 0);
 }
 
 /** Flatten a tree into a depth-first ordered list with depth values. */
@@ -76,6 +83,7 @@ export function getAreaPath(areaId: string, areas: Area[]): string {
 export function useAreaList(locationId: string | null | undefined) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [unassignedCount, setUnassignedCount] = useState(0);
+  const [unassignedItemCount, setUnassignedItemCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const refreshCounter = useRefreshOn(Events.AREAS);
 
@@ -85,6 +93,7 @@ export function useAreaList(locationId: string | null | undefined) {
     if (!path) {
       setAreas([]);
       setUnassignedCount(0);
+      setUnassignedItemCount(0);
       setIsLoading(false);
       return;
     }
@@ -97,12 +106,14 @@ export function useAreaList(locationId: string | null | undefined) {
         if (!cancelled) {
           setAreas(resp.results);
           setUnassignedCount(resp.unassigned_count);
+          setUnassignedItemCount(resp.unassigned_item_count ?? 0);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setAreas([]);
           setUnassignedCount(0);
+          setUnassignedItemCount(0);
         }
       })
       .finally(() => {
@@ -114,7 +125,7 @@ export function useAreaList(locationId: string | null | undefined) {
 
   const areaTree = useMemo(() => buildAreaTree(areas), [areas]);
 
-  return { areas, areaTree, unassignedCount, isLoading };
+  return { areas, areaTree, unassignedCount, unassignedItemCount, isLoading };
 }
 
 export async function createArea(locationId: string, name: string, parentId?: string | null): Promise<Area> {

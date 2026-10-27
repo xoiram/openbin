@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/toast';
 import { restoreBinFromTrash } from '@/features/bins/useBins';
 import {
   checkoutItemSafe,
+  type ItemHome,
   removeItemSafe,
   renameItemSafe,
   updateQuantitySafe,
@@ -26,7 +27,14 @@ import type { EnrichedQueryItem } from './useInventoryQuery';
 
 interface ItemRowProps {
   item: EnrichedQueryItem;
-  binId: string;
+  /** The box the item is in, or null for a loose item (in an area or unassigned); a loose item needs `locationId`. */
+  binId: string | null;
+  locationId?: string;
+  /** Where the item is, shown under its name (used for loose items, whose location is an area path). */
+  locationText?: string;
+  /** Rendered before the name (the checkbox comes first). */
+  leading?: ReactNode;
+  testId?: string;
   canWrite?: boolean;
   isTrashed?: boolean;
   onOpenBin?: (binId: string) => void;
@@ -39,7 +47,11 @@ interface ItemRowProps {
 export function ItemRow({
   item,
   binId,
-  canWrite = false,
+  locationId,
+  locationText,
+  leading,
+  testId,
+  canWrite: canWriteProp = false,
   isTrashed = false,
   onOpenBin,
   selected,
@@ -49,6 +61,11 @@ export function ItemRow({
   const { t } = useTranslation(['ai', 'common']);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  // Item actions need to know where the item lives; a box item goes through the box routes, a loose item
+  // through the location-scoped ones (which is why it needs a location).
+  const home: ItemHome | null =
+    binId !== null ? { binId } : locationId ? { binId: null, locationId } : null;
+  const canWrite = canWriteProp && home !== null;
 
   // The Ask AI turn holds a frozen snapshot of the AI response, so the `item`
   // prop never updates after mutations. Track the latest values locally so
@@ -80,12 +97,14 @@ export function ItemRow({
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   function handleOpen() {
+    if (binId === null) return;
     if (onOpenBin) onOpenBin(binId);
     else navigate(`/bin/${binId}`);
   }
 
   async function handleCheckout() {
-    const result = await checkoutItemSafe(binId, item.id);
+    if (!home) return;
+    const result = await checkoutItemSafe(home, item.id);
     if (result.ok) {
       showToast({ message: t('itemQuery.checkedOutToast', { defaultValue: 'Checked out "{{name}}"', name: displayName }) });
     } else {
@@ -99,7 +118,8 @@ export function ItemRow({
       setEditingName(false);
       return;
     }
-    const r = await renameItemSafe(binId, item.id, trimmed);
+    if (!home) return;
+    const r = await renameItemSafe(home, item.id, trimmed);
     if (r.ok) {
       setDisplayName(trimmed);
       showToast({ message: t('itemQuery.renamedToast', { defaultValue: 'Renamed to "{{name}}"', name: trimmed }) });
@@ -115,7 +135,8 @@ export function ItemRow({
       setEditingQty(false);
       return;
     }
-    const r = await updateQuantitySafe(binId, item.id, clamped);
+    if (!home) return;
+    const r = await updateQuantitySafe(home, item.id, clamped);
     if (r.ok) {
       if (r.removed) {
         // Server deletes the item when quantity <= 0. Mirror that in the UI.
@@ -131,7 +152,8 @@ export function ItemRow({
   }
 
   async function handleRemove() {
-    const r = await removeItemSafe(binId, item.id);
+    if (!home) return;
+    const r = await removeItemSafe(home, item.id);
     if (r.ok) {
       setRemoved(true);
       showToast({ message: t('itemQuery.removedToast', { defaultValue: 'Removed "{{name}}"', name: displayName }) });
@@ -142,6 +164,7 @@ export function ItemRow({
   }
 
   async function handleRestoreBin() {
+    if (binId === null) return;
     try {
       await restoreBinFromTrash(binId);
       showToast({ message: t('itemQuery.binRestoredToast', { defaultValue: 'Bin restored' }) });
@@ -158,7 +181,10 @@ export function ItemRow({
 
   return (
     <>
-      <div className="group flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-hover)] transition-colors">
+      <div
+        className="group flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-hover)] transition-colors"
+        data-testid={testId}
+      >
         {canWrite && !isTrashed && onToggleSelect && (
           <SelectionCheckbox
             checked={!!selected}
@@ -166,6 +192,7 @@ export function ItemRow({
             label={t('itemQuery.selectItemAriaLabel', { defaultValue: 'Select {{name}}', name: displayName })}
           />
         )}
+        {leading}
         {editingName ? (
           <input
             ref={nameInputRef}
@@ -186,8 +213,11 @@ export function ItemRow({
             className="flex-1 min-w-0 bg-[var(--bg-input)] text-[14px] text-[var(--text-primary)] outline-none rounded-[var(--radius-xs)] border border-[var(--border-flat)] px-2 py-0.5 -my-0.5"
           />
         ) : (
-          <span className="flex-1 min-w-0 text-[14px] text-[var(--text-primary)] truncate">
-            {displayName}
+          <span className="flex-1 min-w-0">
+            <span className="block text-[14px] text-[var(--text-primary)] truncate">{displayName}</span>
+            {locationText !== undefined && (
+              <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5 truncate">{locationText}</span>
+            )}
           </span>
         )}
 
@@ -235,7 +265,7 @@ export function ItemRow({
         <ItemActionMenu
           canWrite={canWrite}
           isTrashed={isTrashed}
-          onOpenBin={handleOpen}
+          onOpenBin={binId !== null ? handleOpen : undefined}
           onRestoreBin={handleRestoreBin}
           onCheckout={canWrite ? handleCheckout : undefined}
           onRename={
@@ -263,10 +293,15 @@ export function ItemRow({
           <DialogHeader>
             <DialogTitle>{t('itemQuery.removeItemTitle', { defaultValue: 'Remove item?' })}</DialogTitle>
             <DialogDescription>
-              {t('itemQuery.removeItemDescription', {
-                defaultValue: 'This will permanently remove "{{name}}" from the bin.',
-                name: displayName,
-              })}
+              {binId === null
+                ? t('looseItemRows.removeItemDescription', {
+                    defaultValue: 'This will permanently remove "{{name}}".',
+                    name: displayName,
+                  })
+                : t('itemQuery.removeItemDescription', {
+                    defaultValue: 'This will permanently remove "{{name}}" from the bin.',
+                    name: displayName,
+                  })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
