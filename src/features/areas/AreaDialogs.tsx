@@ -130,6 +130,8 @@ interface DeleteAreaTarget {
   binCount: number;
   descendantAreaCount?: number;
   descendantBinCount?: number;
+  /** Items placed directly in the area (and its sub-areas) that become unassigned. */
+  looseItemCount?: number;
 }
 
 interface DeleteAreaDialogProps {
@@ -159,6 +161,18 @@ export function DeleteAreaDialog({ target, onOpenChange, locationId }: DeleteAre
 
   function getDescription(): string {
     if (!target) return '';
+    const base = getBaseDescription(target);
+    const looseItems = target.looseItemCount ?? 0;
+    if (looseItems <= 0) return base;
+    const looseNote = t('areaItems.deleteLoose', {
+      count: looseItems,
+      defaultValue_one: '{{count}} item placed directly in it will become unassigned.',
+      defaultValue_other: '{{count}} items placed directly in it will become unassigned.',
+    });
+    return `${base} ${looseNote}`;
+  }
+
+  function getBaseDescription(target: DeleteAreaTarget): string {
     const hasDescendantAreas = target.descendantAreaCount && target.descendantAreaCount > 0;
     const totalBins = target.descendantBinCount ?? target.binCount;
 
