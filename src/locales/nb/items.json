@@ -87,5 +87,65 @@
     "unassigned": "Ikke tildelt",
     "rowLabelUnassigned": "{{name}}, ikke tildelt",
     "rowLabelWithQuantityUnassigned": "{{name}} ({{quantity}}), ikke tildelt"
+  },
+  "looseItems": {
+    "table": {
+      "location": "Oppbevares i"
+    },
+    "filters": {
+      "areaLabel": "Filtrer etter {{area}}",
+      "allAreas": "Alle {{areas}}",
+      "unassigned": "Ikke tildelt",
+      "notInBin": "Ikke i {{bin}}",
+      "clear": "Fjern filtre"
+    },
+    "empty": {
+      "filteredTitle": "Ingen gjenstander samsvarer med filtrene",
+      "filteredSubtitle": "Prøv å fjerne et filter"
+    },
+    "place": {
+      "label": "Hvor den skal",
+      "bin": "I {{bin}}",
+      "area": "I {{area}}",
+      "none": "Ikke plassert"
+    },
+    "add": {
+      "button": "Legg til gjenstand",
+      "title": "Legg til gjenstand",
+      "description": "Legg gjenstanden i {{bin}} eller {{area}}, eller la den være uplassert.",
+      "name": "Navn",
+      "namePlaceholder": "Navn på gjenstand",
+      "nameRequired": "Skriv inn et navn",
+      "quantity": "Antall (valgfritt)",
+      "quantityInvalid": "Antall må være et helt tall over null",
+      "noneHint": "Gjenstanden forblir ikke tildelt til du flytter den.",
+      "addAnother": "Legg til flere",
+      "submit": "Legg til gjenstand",
+      "submitting": "Legger til…",
+      "added": "La til {{name}}",
+      "addedTo": "La til {{name}} i {{place}}"
+    },
+    "edit": {
+      "title": "Rediger gjenstand",
+      "quantity": "Antall",
+      "save": "Lagre",
+      "saved": "Oppdaterte {{name}}"
+    },
+    "delete": {
+      "title": "Slette {{name}}?",
+      "description": "Dette kan ikke angres."
+    },
+    "actions": {
+      "menuLabel": "Handlinger for gjenstand",
+      "edit": "Rediger",
+      "checkout": "Sjekk ut",
+      "move": "Flytt…",
+      "checkedOut": "Sjekket ut {{name}}",
+      "deleted": "Slettet {{name}}"
+    },
+    "move": {
+      "description": "Velg hvor gjenstandene skal: i {{bin}}, i {{area}}, eller ikke tildelt.",
+      "noneHint": "Gjenstandene havner uten {{bin}} og uten {{area}}."
+    }
   }
 }

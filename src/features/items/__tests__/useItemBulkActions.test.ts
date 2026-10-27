@@ -59,9 +59,25 @@ describe('useItemBulkActions', () => {
   it('bulkMove sends targetBinId and reports name in toast', async () => {
     mockApiFetch.mockResolvedValue({ moved: 3 });
     const { result } = renderHook(() => useItemBulkActions(clearSelection, showToast));
-    await act(() => result.current.bulkMove(['a', 'b', 'c'], 'bin-target', 'Garage A'));
+    await act(() => result.current.bulkMove(['a', 'b', 'c'], { binId: 'bin-target' }, 'Garage A'));
     expect(mockApiFetch).toHaveBeenCalledWith('/api/items/bulk-move', { method: 'POST', body: { ids: ['a', 'b', 'c'], targetBinId: 'bin-target' } });
     expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ message: 'Moved 3 items to Garage A' }));
+  });
+
+  it('bulkMove sends only targetAreaId for an area target', async () => {
+    mockApiFetch.mockResolvedValue({ moved: 1 });
+    const { result } = renderHook(() => useItemBulkActions(clearSelection, showToast));
+    await act(() => result.current.bulkMove(['a'], { areaId: 'area-1' }, 'Garage'));
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/items/bulk-move', { method: 'POST', body: { ids: ['a'], targetAreaId: 'area-1' } });
+    expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ message: 'Moved 1 item to Garage' }));
+  });
+
+  it('bulkMove sends only unassigned: true for the unassigned target', async () => {
+    mockApiFetch.mockResolvedValue({ moved: 2 });
+    const { result } = renderHook(() => useItemBulkActions(clearSelection, showToast));
+    await act(() => result.current.bulkMove(['a', 'b'], { unassigned: true }, 'Unassigned'));
+    expect(mockApiFetch).toHaveBeenCalledWith('/api/items/bulk-move', { method: 'POST', body: { ids: ['a', 'b'], unassigned: true } });
+    expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ message: 'Moved 2 items to Unassigned' }));
   });
 
   it('bulkQuantity sends op + value', async () => {

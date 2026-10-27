@@ -72,6 +72,26 @@ describe('usePaginatedItemList', () => {
     expect(basePath).toContain('sort_dir=desc');
   });
 
+  it('adds area_id, unassigned and loose params from the filters', () => {
+    renderHook(() => usePaginatedItemList(undefined, undefined, undefined, { areaId: 'a1', loose: true }));
+    const areaPath = mockUsePaginatedList.mock.calls[0][0] as string;
+    expect(areaPath).toContain('area_id=a1');
+    expect(areaPath).toContain('loose=true');
+    expect(areaPath).not.toContain('unassigned');
+
+    renderHook(() => usePaginatedItemList(undefined, undefined, undefined, { unassigned: true }));
+    const unPath = mockUsePaginatedList.mock.calls[1][0] as string;
+    expect(unPath).toContain('unassigned=true');
+    expect(unPath).not.toContain('area_id');
+  });
+
+  it('never sends area_id together with unassigned (the API answers 422)', () => {
+    renderHook(() => usePaginatedItemList(undefined, undefined, undefined, { areaId: 'a1', unassigned: true }));
+    const path = mockUsePaginatedList.mock.calls[0][0] as string;
+    expect(path).toContain('unassigned=true');
+    expect(path).not.toContain('area_id');
+  });
+
   it('passes null basePath when no locationId', () => {
     mockUseAuth.mockReturnValue({ activeLocationId: null } as ReturnType<typeof useAuth>);
 
