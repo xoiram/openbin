@@ -1,6 +1,6 @@
 # Nested boxes and items in areas
 
-Status: **in progress**. PR 1 (server core) and PR 2 (export/import, AI awareness, MCP, API docs) are merged; the nested-box UI and the area/loose-item UI are still to build (see "Remaining"). This extends `Location → Area → Bin → Item` in two ways:
+Status: **complete**. PR 1 (server core), PR 2 (export/import, AI awareness, MCP, API docs), PR 3 (nested-box UI) and PR 4 (area/loose-item UI) are merged (see "Remaining" for known limitations). This extends `Location → Area → Bin → Item` in two ways:
 
 1. a box can contain one more level of boxes (a "child box"),
 2. an area can contain items directly ("loose items"), without a box.
@@ -139,7 +139,12 @@ Decisions made while building the server core that the plan above didn't settle:
 - **Wording.** Norwegian strings avoid an article in front of the configurable noun and keep the same placeholders as English (the i18n lint requires both).
 - **Not verified in a real browser.** The environment had no browser (Chromium was installed but its system libraries are missing). The dropdown uses the same portal and fixed-position approach as `AreaPicker`, and its Escape handling is covered by tests that render it inside a real `Dialog`, but its look on mobile bottom sheets hasn't been seen.
 
+## PR 4 implementation notes
+
+- **What shipped.** Area cards show the item count (every item the area holds, `(N total)` with sub-areas) linking to `/items?area_id=`; the Unassigned card links to `/items?unassigned=true`; the area menu has *Add item* (members see only that entry; rename/delete stay admin-only); the delete-area dialog warns that items placed directly in the area and its sub-areas become unassigned (sub-areas cascade, `bin_items.area_id` is `ON DELETE SET NULL`; tested). The Items page has area / unassigned / *not in a box* filters (URL params, deep links, `?add=1[&area_id=]` opens the Add dialog), an *Add item* dialog (box, area or not placed), per-row Edit / Check out / Move / Delete, a three-target move dialog, and a translated *Stored in* column. Loose-item rows in Ask AI results are actionable (rename, quantity, remove, check out, bulk). The demo seed has loose and unassigned items.
+- **Decisions.** Card count = the linked list's count (decided 2026-10-27). Single-row item delete is a hard delete with confirmation and no undo (the server deletes the row; only the bulk delete is undoable). The bulk-move body key is `ids`. Quantities in the Add/Edit dialogs are whole numbers > 0; clearing sets null. Returning a loose checkout uses the location-scoped return.
+- **Not verified in a real browser** (none available); covered by component tests that render the real components. The Add dialog's box path (`addItemsToBin`) doesn't fire the areas event, so area counts refresh on the next areas-page visit rather than live.
+
 ### Remaining
-- **PR 4, area/loose-item UI:** create/edit items in an area, area cards with counts and filtered links (settle the area-count vs. area-filter difference), items list location column, move dialogs with box/area/unassigned targets, checkout/return for loose items, shopping-list display, loose-item actions in Ask AI results, loose items in the demo seed.
 - **Known limitations:** CSV flattens child boxes; a child trashed in the same second as its parent is restored with it; batch/AI can't create nested boxes; a child count on the AI `delete_bin` preview; onboarding's first-box form has no *Inside* field; the item move/return dialogs' box picker now searches on the server (first 50 by name) instead of listing the first 200.
 - **Pre-existing, found on the way:** replace-import deletes other users' private boxes that were never exported; export allows 5000 boxes but import rejects > 2000; an import with custom-field values but no definitions fails entirely; the root `npm run build` fails because `public/api-docs/openapi.yaml` is a symlink and `cp` refuses to copy a file onto itself; `AreaPicker`'s nested *Create new area* dialog closes its parent dialog on Escape.

@@ -240,4 +240,28 @@ describe('GET /api/locations/:locationId/areas item counts', () => {
     const orphan = await query<{ area_id: string | null }>('SELECT area_id FROM bin_items WHERE name = $1', ['Mower']);
     expect(orphan.rows[0].area_id).toBeNull();
   });
+  it('leaves loose items of a deleted area and of its sub-areas unassigned', async () => {
+    const { token } = await createTestUser(app);
+    const location = await createTestLocation(app, token);
+    const garage = await createTestArea(app, token, location.id, 'Garage');
+    const shed = await request(app)
+      .post(`/api/locations/${location.id}/areas`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Shed', parent_id: garage.id });
+    await addItem(location.id, { areaId: garage.id }, 'Ladder');
+    await addItem(location.id, { areaId: shed.body.id }, 'Mower');
+
+    const del = await request(app)
+      .delete(`/api/locations/${location.id}/areas/${garage.id}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(del.status).toBe(200);
+
+    const rows = await query<{ name: string; area_id: string | null }>('SELECT name, area_id FROM bin_items ORDER BY name');
+    expect(rows.rows).toEqual([
+      { name: 'Ladder', area_id: null },
+      { name: 'Mower', area_id: null },
+    ]);
+    const res = await request(app).get(`/api/locations/${location.id}/areas`).set('Authorization', `Bearer ${token}`);
+    expect(res.body.unassigned_item_count).toBe(2);
+  });
 });
