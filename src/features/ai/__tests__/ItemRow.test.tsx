@@ -78,7 +78,7 @@ describe('ItemRow — Checkout action', () => {
     await userEvent.click(screen.getByRole('button', { name: /item actions/i }));
     await userEvent.click(screen.getByRole('menuitem', { name: /checkout/i }));
     await waitFor(() => {
-      expect(mockCheckoutItemSafe).toHaveBeenCalledWith('b1', 'i1');
+      expect(mockCheckoutItemSafe).toHaveBeenCalledWith({ binId: 'b1' }, 'i1');
     });
   });
 
@@ -106,7 +106,7 @@ describe('ItemRow — Remove action with confirm dialog', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: /remove/i }));
     await userEvent.click(screen.getByRole('button', { name: /^remove$/i }));
     await waitFor(() => {
-      expect(mockRemoveItemSafe).toHaveBeenCalledWith('b1', 'i1');
+      expect(mockRemoveItemSafe).toHaveBeenCalledWith({ binId: 'b1' }, 'i1');
     });
   });
 
@@ -138,7 +138,7 @@ describe('ItemRow — Inline rename', () => {
     await userEvent.type(input, 'Shelter');
     fireEvent.keyDown(input, { key: 'Enter' });
     await waitFor(() => {
-      expect(mockRenameItemSafe).toHaveBeenCalledWith('b1', 'i1', 'Shelter');
+      expect(mockRenameItemSafe).toHaveBeenCalledWith({ binId: 'b1' }, 'i1', 'Shelter');
     });
   });
 

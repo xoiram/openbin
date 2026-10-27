@@ -49,6 +49,8 @@ export function ItemRow({
   const { t } = useTranslation(['ai', 'common']);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  // Item actions need to know where the item lives; a box item goes through the box routes.
+  const home = { binId };
 
   // The Ask AI turn holds a frozen snapshot of the AI response, so the `item`
   // prop never updates after mutations. Track the latest values locally so
@@ -85,7 +87,7 @@ export function ItemRow({
   }
 
   async function handleCheckout() {
-    const result = await checkoutItemSafe(binId, item.id);
+    const result = await checkoutItemSafe(home, item.id);
     if (result.ok) {
       showToast({ message: t('itemQuery.checkedOutToast', { defaultValue: 'Checked out "{{name}}"', name: displayName }) });
     } else {
@@ -99,7 +101,7 @@ export function ItemRow({
       setEditingName(false);
       return;
     }
-    const r = await renameItemSafe(binId, item.id, trimmed);
+    const r = await renameItemSafe(home, item.id, trimmed);
     if (r.ok) {
       setDisplayName(trimmed);
       showToast({ message: t('itemQuery.renamedToast', { defaultValue: 'Renamed to "{{name}}"', name: trimmed }) });
@@ -115,7 +117,7 @@ export function ItemRow({
       setEditingQty(false);
       return;
     }
-    const r = await updateQuantitySafe(binId, item.id, clamped);
+    const r = await updateQuantitySafe(home, item.id, clamped);
     if (r.ok) {
       if (r.removed) {
         // Server deletes the item when quantity <= 0. Mirror that in the UI.
@@ -131,7 +133,7 @@ export function ItemRow({
   }
 
   async function handleRemove() {
-    const r = await removeItemSafe(binId, item.id);
+    const r = await removeItemSafe(home, item.id);
     if (r.ok) {
       setRemoved(true);
       showToast({ message: t('itemQuery.removedToast', { defaultValue: 'Removed "{{name}}"', name: displayName }) });
