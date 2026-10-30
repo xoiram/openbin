@@ -54,14 +54,6 @@ export function LabelCell({ bin, qrDataUrl, format, labelDirection, showColorSwa
     const qrImage = (
       <div className="relative" style={{ width: qrSizeCSS, height: qrSizeCSS }}>
         <img src={qrDataUrl} alt="" style={{ width: '100%', height: '100%' }} />
-        {showIcon && (
-          <div
-            className="qr-icon-overlay"
-            style={{ width: '30%', height: '30%', ...(layout.useColoredCell ? { backgroundColor: colorPreset?.bg } : {}) }}
-          >
-            <Icon style={{ width: '100%', height: '100%' }} />
-          </div>
-        )}
       </div>
     );
 

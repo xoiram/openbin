@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { batchGenerateQRDataURLs } from '@/lib/qr';
 import type { Bin } from '@/types';
+import { buildBinIconMap } from './iconToDataUrl';
 import { LabelCell } from './LabelCell';
 import type { LabelFormat } from './labelFormats';
 import { buildColorMap, computeCellBleed, computeLabelsPerPage, computePageSize, computeRowsPerPage, DEFAULT_LABEL_FORMAT, getLabelFormat } from './labelFormats';
@@ -46,9 +47,11 @@ export function LabelSheet({ bins, format, labelDirection, showColorSwatch, icon
     const binIds = bins.map((b) => b.id);
     const colorMap = buildColorMap(bins, !!showColorSwatch);
 
-    const generate = useStyled
-      ? import('@/lib/styledQr').then((mod) => mod.batchGenerateStyledQRDataURLs(binIds, qrPixelSize, qrStyle as QrStyleOptions, colorMap))
-      : batchGenerateQRDataURLs(binIds, qrPixelSize, undefined, colorMap);
+    const generate = (showIcon && showQrCode ? buildBinIconMap(bins) : Promise.resolve(undefined)).then((iconMap) =>
+      useStyled
+        ? import('@/lib/styledQr').then((mod) => mod.batchGenerateStyledQRDataURLs(binIds, qrPixelSize, qrStyle as QrStyleOptions, colorMap, undefined, iconMap))
+        : batchGenerateQRDataURLs(binIds, qrPixelSize, undefined, colorMap, iconMap),
+    );
 
     generate.then((result) => {
       if (!cancelled) {
@@ -65,7 +68,7 @@ export function LabelSheet({ bins, format, labelDirection, showColorSwatch, icon
     return () => {
       cancelled = true;
     };
-  }, [bins, qrPixelSize, binColorKey, qrStyleKey, useStyled]);
+  }, [bins, qrPixelSize, binColorKey, qrStyleKey, useStyled, showIcon, showQrCode]);
 
   if (loading || (bins.length > 0 && qrMap.size === 0)) {
     return (

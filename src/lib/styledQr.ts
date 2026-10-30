@@ -1,6 +1,6 @@
 import type { QrStyleOptions } from '@/features/print/usePrintSettings';
 import { getBinQrPayload } from './constants';
-import { getQRCodeStyling, makeLruCache, type QRColorOptions, rawQrToDataURL } from './qr';
+import { getQRCodeStyling, iconKey, makeLruCache, type QRColorOptions, qrImageOptions, rawQrToDataURL } from './qr';
 
 const cache = makeLruCache();
 
@@ -13,8 +13,9 @@ export async function generateStyledQRDataURL(
   size: number,
   style: QrStyleOptions,
   colorOverride?: QRColorOptions,
+  icon?: string,
 ): Promise<string> {
-  const key = `${binId}:${size}:${styleHash(style, colorOverride)}`;
+  const key = `${binId}:${size}:${styleHash(style, colorOverride)}:${iconKey(icon)}`;
   const cached = cache.get(key);
   if (cached) return cached;
 
@@ -22,7 +23,8 @@ export async function generateStyledQRDataURL(
   const payload = getBinQrPayload(binId);
 
   const bgColor = colorOverride?.light ?? '#ffffff';
-  const errorCorrectionLevel = style.errorCorrection;
+  // An embedded icon hides modules, so never go below Q.
+  const errorCorrectionLevel = icon && (style.errorCorrection === 'L' || style.errorCorrection === 'M') ? 'Q' : style.errorCorrection;
 
   const options: ConstructorParameters<typeof Ctor>[0] = {
     width: size,
@@ -53,6 +55,11 @@ export async function generateStyledQRDataURL(
       color: bgColor,
     },
   };
+
+  if (icon) {
+    options.image = icon;
+    options.imageOptions = qrImageOptions(size);
+  }
 
   if (style.cornerSquareType) {
     options.cornersSquareOptions = {
@@ -87,6 +94,7 @@ export async function batchGenerateStyledQRDataURLs(
   style: QrStyleOptions,
   colorsByBinId?: Map<string, QRColorOptions>,
   concurrency: number = 4,
+  iconsByBinId?: Map<string, string>,
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
   let idx = 0;
@@ -95,7 +103,7 @@ export async function batchGenerateStyledQRDataURLs(
     while (idx < binIds.length) {
       const i = idx++;
       const binId = binIds[i];
-      const dataUrl = await generateStyledQRDataURL(binId, size, style, colorsByBinId?.get(binId));
+      const dataUrl = await generateStyledQRDataURL(binId, size, style, colorsByBinId?.get(binId), iconsByBinId?.get(binId));
       results.set(binId, dataUrl);
     }
   }

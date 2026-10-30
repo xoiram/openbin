@@ -55,14 +55,28 @@ export async function rawQrToDataURL(raw: Blob | ArrayBuffer | Buffer): Promise<
 
 const cache = makeLruCache();
 
+/** Options for embedding an icon in the QR centre: whole modules under it are cleared, so no dot is sliced. */
+export function qrImageOptions(size: number) {
+  return { hideBackgroundDots: true, imageSize: 0.3, margin: Math.max(2, Math.round(size / 60)) };
+}
+
+/** Short stable key for an icon data URL, for cache keys. */
+export function iconKey(icon?: string): string {
+  if (!icon) return '';
+  let h = 0;
+  for (let i = 0; i < icon.length; i++) h = (Math.imul(h, 31) + icon.charCodeAt(i)) | 0;
+  return String(h);
+}
+
 export async function generateQRDataURL(
   binId: string,
   size: number = 256,
   colors?: QRColorOptions,
+  icon?: string,
 ): Promise<string> {
   const dark = colors?.dark ?? '#000000';
   const light = colors?.light ?? '#ffffff';
-  const key = `${binId}:${size}:${dark}:${light}`;
+  const key = `${binId}:${size}:${dark}:${light}:${iconKey(icon)}`;
   const cached = cache.get(key);
   if (cached) return cached;
 
@@ -76,6 +90,7 @@ export async function generateQRDataURL(
     margin: 1,
     dotsOptions: { type: 'square', color: dark },
     backgroundOptions: { color: light },
+    ...(icon ? { qrOptions: { errorCorrectionLevel: 'Q' as const }, image: icon, imageOptions: qrImageOptions(size) } : {}),
   });
 
   const raw = await qr.getRawData('png');
@@ -94,6 +109,7 @@ export async function batchGenerateQRDataURLs(
   size: number = 256,
   concurrency: number = 6,
   colorsByBinId?: Map<string, QRColorOptions>,
+  iconsByBinId?: Map<string, string>,
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
   let idx = 0;
@@ -102,7 +118,7 @@ export async function batchGenerateQRDataURLs(
     while (idx < binIds.length) {
       const i = idx++;
       const binId = binIds[i];
-      const dataUrl = await generateQRDataURL(binId, size, colorsByBinId?.get(binId));
+      const dataUrl = await generateQRDataURL(binId, size, colorsByBinId?.get(binId), iconsByBinId?.get(binId));
       results.set(binId, dataUrl);
     }
   }

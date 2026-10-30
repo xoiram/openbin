@@ -29,31 +29,7 @@ function truncateToWidth(doc: JsPDF, text: string, maxWidth: number): string {
   return `${truncated}\u2026`;
 }
 
-/** Draw icon overlay in the center of a QR code with a square background. */
-function drawIconOverlay(
-  doc: JsPDF,
-  iconDataUrl: string,
-  qrX: number,
-  qrY: number,
-  qrSize: number,
-  bgColor?: string,
-): void {
-  const halfSide = qrSize * 0.15;
-  const cx = qrX + qrSize / 2;
-  const cy = qrY + qrSize / 2;
-  if (bgColor) {
-    setFillHex(doc, bgColor);
-  } else {
-    doc.setFillColor(255, 255, 255);
-  }
-  const side = halfSide * 2;
-  const r = side * 0.1; // slight corner radius
-  doc.roundedRect(cx - halfSide, cy - halfSide, side, side, r, r, 'F');
-  const iconDrawSize = halfSide * 1.4;
-  doc.addImage(iconDataUrl, 'PNG', cx - iconDrawSize / 2, cy - iconDrawSize / 2, iconDrawSize, iconDrawSize);
-}
-
-/** Draw QR image + optional icon overlay + optional short code under QR. */
+/** Draw QR image (icon is embedded in it) + optional short code under QR. */
 function drawQrBlock(
   doc: JsPDF,
   p: DrawLabelParams,
@@ -63,14 +39,6 @@ function drawQrBlock(
 ): void {
   if (!p.qrDataUrl) return;
   doc.addImage(p.qrDataUrl, 'PNG', qrX, qrY, p.qrSize, p.qrSize);
-
-  if (p.hasIcon) {
-    const iconDataUrl = p.iconMap.get(p.bin.icon);
-    if (iconDataUrl) {
-      const iconBg = layout.useColoredCell ? p.colorPreset?.bg : undefined;
-      drawIconOverlay(doc, iconDataUrl, qrX, qrY, p.qrSize, iconBg);
-    }
-  }
 
   if (layout.codeUnderQr) {
     drawCodeUnderQr(doc, p.bin.short_code, qrX, qrY + p.qrSize, p.qrSize, layout.qrCodeFontSizePt);
