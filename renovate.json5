@@ -8,6 +8,10 @@
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: ['config:recommended', ':dependencyDashboard'],
   timezone: 'Europe/Oslo',
+  // Conventional commits, without a scope: this repo's convention is no
+  // parentheses in commit prefixes ("chore: update ...").
+  semanticCommits: 'enabled',
+  semanticCommitScope: null,
   gitAuthor: 'Renovate <renovate@dot42.no>',
   // Renovate merges the PR itself after CI is green, not GitHub's auto-merge
   // (there's no branch protection to make that wait for CI).
