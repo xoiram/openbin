@@ -57,7 +57,8 @@ const cache = makeLruCache();
 
 /** Options for embedding an icon in the QR centre: whole modules under it are cleared, so no dot is sliced. */
 export function qrImageOptions(size: number) {
-  return { hideBackgroundDots: true, imageSize: 0.3, margin: Math.max(2, Math.round(size / 60)) };
+  // saveAsBlob off: the icon is already a data URL, and the library's re-fetch of it is an XHR the CSP's connect-src blocks, which hangs rendering.
+  return { hideBackgroundDots: true, imageSize: 0.3, margin: Math.max(2, Math.round(size / 60)), saveAsBlob: false };
 }
 
 /** Short stable key for an icon data URL, for cache keys. */
