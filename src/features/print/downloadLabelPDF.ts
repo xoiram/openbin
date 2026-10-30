@@ -18,24 +18,31 @@ interface DownloadLabelPDFParams {
 export async function downloadLabelPDF(params: DownloadLabelPDFParams): Promise<void> {
   const { bins, format, labelOptions, iconSize, qrStyle } = params;
 
-  // 1. Generate QR data URLs (cache-hit from LRU cache since LabelSheet already generated them)
+  // 1. Render icon PNGs (if showIcon enabled); they are also embedded in the QR codes
+  let iconMap = new Map<string, string>();
+  if (labelOptions.showIcon) {
+    const uniqueIcons = [...new Set(bins.map((b) => b.icon))];
+    iconMap = await batchRenderIconDataURLs(uniqueIcons, 128);
+  }
+
+  // 2. Generate QR data URLs (cache-hit from LRU cache since LabelSheet already generated them)
   const qrPixelSize = Math.round(parseFloat(format.qrSize) * 150);
   const colorMap = buildColorMap(bins, labelOptions.showColorSwatch);
+  const qrIcons = new Map<string, string>();
+  if (labelOptions.showIcon) {
+    for (const b of bins) {
+      const url = iconMap.get(b.icon);
+      if (url) qrIcons.set(b.id, url);
+    }
+  }
   let qrMap: Map<string, string>;
   if (!labelOptions.showQrCode) {
     qrMap = new Map();
   } else if (!isDefaultQrStyle(qrStyle)) {
     const { batchGenerateStyledQRDataURLs } = await import('@/lib/styledQr');
-    qrMap = await batchGenerateStyledQRDataURLs(bins.map((b) => b.id), qrPixelSize, qrStyle as QrStyleOptions, colorMap);
+    qrMap = await batchGenerateStyledQRDataURLs(bins.map((b) => b.id), qrPixelSize, qrStyle as QrStyleOptions, colorMap, undefined, qrIcons);
   } else {
-    qrMap = await batchGenerateQRDataURLs(bins.map((b) => b.id), qrPixelSize, undefined, colorMap);
-  }
-
-  // 2. Render icon PNGs (if showIcon enabled)
-  let iconMap = new Map<string, string>();
-  if (labelOptions.showIcon) {
-    const uniqueIcons = [...new Set(bins.map((b) => b.icon))];
-    iconMap = await batchRenderIconDataURLs(uniqueIcons, 128);
+    qrMap = await batchGenerateQRDataURLs(bins.map((b) => b.id), qrPixelSize, undefined, colorMap, qrIcons);
   }
 
   // 3. Generate PDF blob

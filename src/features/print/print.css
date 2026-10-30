@@ -35,20 +35,6 @@
   font-weight: 700;
 }
 
-.qr-icon-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  border-radius: 2pt;
-  padding: 2pt;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* ─── QR Style Range Slider ─── */
 .qr-range-slider {
   -webkit-appearance: none;
