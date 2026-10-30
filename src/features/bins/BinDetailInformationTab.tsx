@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useScanHistory } from '@/features/dashboard/scanHistory';
 import { BinUsageSection } from '@/features/usage/BinUsageSection';
+import { generateBinQRDataURLs } from '@/lib/binQr';
 import { resolveColor } from '@/lib/colorPalette';
-import { resolveIcon } from '@/lib/iconMap';
-import { generateQRDataURL } from '@/lib/qr';
 import { sectionHeader, sectionHeaderRow } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { BinDetailActivitySection } from './BinDetailActivitySection';
@@ -23,7 +22,6 @@ const QR_GEN_SIZE = 540;
 export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
   const { t, i18n } = useTranslation('bins');
   const relativeTime = useRelativeTime();
-  const Icon = resolveIcon(bin.icon);
   const colorPreset = useMemo(
     () => (bin.color ? resolveColor(bin.color) : null),
     [bin.color],
@@ -38,13 +36,16 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    generateQRDataURL(bin.id, QR_GEN_SIZE, { dark: QR_FG, light: cardBg }).then((url) => {
-      if (!cancelled) setQrUrl(url);
+    generateBinQRDataURLs([bin], QR_GEN_SIZE, {
+      colors: new Map([[bin.id, { dark: QR_FG, light: cardBg }]]),
+      withIcon: true,
+    }).then((urls) => {
+      if (!cancelled) setQrUrl(urls.get(bin.id) ?? '');
     });
     return () => {
       cancelled = true;
     };
-  }, [bin.id, cardBg]);
+  }, [bin.id, bin.icon, cardBg]);
 
   const createdAbsolute = useMemo(
     () =>
@@ -98,22 +99,6 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
                   alt={t('infoTab.qrAlt', { defaultValue: 'QR code for {{name}}', name: bin.name })}
                   className="w-full h-full block"
                 />
-              )}
-              {bin.icon && (
-                <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
-                  style={{
-                    width: '30%',
-                    height: '30%',
-                    backgroundColor: cardBg,
-                    padding: '4px',
-                  }}
-                >
-                  <Icon
-                    style={{ width: '100%', height: '100%', color: QR_FG }}
-                    strokeWidth={2.5}
-                  />
-                </div>
               )}
             </div>
           </div>
