@@ -70,14 +70,3 @@ async function renderIconToDataUrl(iconName: string, sizePx: number): Promise<st
     document.body.removeChild(container);
   }
 }
-
-/** Map bin id → rendered icon PNG, for embedding in each bin's QR code. */
-export async function buildBinIconMap(bins: Array<{ id: string; icon: string }>): Promise<Map<string, string>> {
-  const byName = await batchRenderIconDataURLs(bins.map((b) => b.icon).filter(Boolean));
-  const result = new Map<string, string>();
-  for (const b of bins) {
-    const url = byName.get(b.icon);
-    if (url) result.set(b.id, url);
-  }
-  return result;
-}

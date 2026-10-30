@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRelativeTime } from '@/features/activity/useRelativeTime';
 import { useScanHistory } from '@/features/dashboard/scanHistory';
-import { batchRenderIconDataURLs } from '@/features/print/iconToDataUrl';
 import { BinUsageSection } from '@/features/usage/BinUsageSection';
+import { generateBinQRDataURLs } from '@/lib/binQr';
 import { resolveColor } from '@/lib/colorPalette';
-import { generateQRDataURL } from '@/lib/qr';
 import { sectionHeader, sectionHeaderRow } from '@/lib/utils';
 import type { Bin } from '@/types';
 import { BinDetailActivitySection } from './BinDetailActivitySection';
@@ -37,15 +36,12 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    // The icon is embedded in the QR so the modules behind it are cleared on the grid.
-    const iconPromise = bin.icon
-      ? batchRenderIconDataURLs([bin.icon]).then((m) => m.get(bin.icon))
-      : Promise.resolve(undefined);
-    iconPromise
-      .then((icon) => generateQRDataURL(bin.id, QR_GEN_SIZE, { dark: QR_FG, light: cardBg }, icon))
-      .then((url) => {
-        if (!cancelled) setQrUrl(url);
-      });
+    generateBinQRDataURLs([bin], QR_GEN_SIZE, {
+      colors: new Map([[bin.id, { dark: QR_FG, light: cardBg }]]),
+      withIcon: true,
+    }).then((urls) => {
+      if (!cancelled) setQrUrl(urls.get(bin.id) ?? '');
+    });
     return () => {
       cancelled = true;
     };
