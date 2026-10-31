@@ -11,6 +11,9 @@ export async function batchRenderIconDataURLs(
   iconNames: string[],
   sizePx: number = 128,
 ): Promise<Map<string, string>> {
+  // Callers may be inside a React effect, where flushSync is a no-op and the icon would never render.
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
   const unique = [...new Set(iconNames)];
   const results = new Map<string, string>();
 
