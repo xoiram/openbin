@@ -143,6 +143,7 @@
     "endColor": "Sluttfarge",
     "errorCorrection": "Feilretting",
     "gradient": "Fargeovergang",
+    "iconOverridesNote": "Etiketter som viser ikonet i QR-koden bruker enkle, firkantede moduler, så denne stilen brukes ikke på dem. Slå av ikonet for å bruke stilen.",
     "linear": "Lineær",
     "previewAlt": "QR-forhåndsvisning",
     "radial": "Radiell",

@@ -143,6 +143,7 @@
     "endColor": "End Color",
     "errorCorrection": "Error Correction",
     "gradient": "Gradient",
+    "iconOverridesNote": "Labels that show the icon in the QR code use plain square modules, so this style is not applied to them. Turn off the icon to use this style.",
     "linear": "Linear",
     "previewAlt": "QR preview",
     "radial": "Radial",
