@@ -7,7 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  # Lint, type checks, client tests and both builds. ~2 min; the server tests (the slow
+  # part, ~6 min on one runner) run in parallel as the `test-server` shards below.
+  quick:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -44,16 +46,55 @@ jobs:
       - name: Test (client)
         run: npx vitest run
 
-      - name: Test (server)
-        run: npx vitest run
-        working-directory: server
-
       - name: Build client
         run: npx vite build
 
       - name: Build server
         run: npm run build
         working-directory: server
+
+  # Server unit tests (SQLite) split across 4 runners. Vitest assigns each test file to a
+  # shard by a hash of its path and gives every shard the same number of files; with no
+  # file over ~25 s that splits the work to within ~10% of even. If you change the shard
+  # count, change both the matrix and the `/4` below.
+  test-server:
+    name: test-server (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Test (server, shard ${{ matrix.shard }}/4)
+        run: npx vitest run --shard=${{ matrix.shard }}/4
+        working-directory: server
+
+  # Single required-looking status for the whole pipeline: keeps the `check` name that
+  # PR tooling (and Renovate's automerge) already watch, and fails if any job above did.
+  check:
+    needs: [quick, test-server]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        env:
+          QUICK: ${{ needs.quick.result }}
+          TEST_SERVER: ${{ needs.test-server.result }}
+        run: |
+          echo "quick: $QUICK, test-server: $TEST_SERVER"
+          [ "$QUICK" = "success" ] && [ "$TEST_SERVER" = "success" ]
 
   # Server unit tests run on SQLite only. This job runs the tests that need a real
   # PostgreSQL (migrations, schema parity): `npm run test:postgres` in server/.
