@@ -21,7 +21,8 @@ export async function generateBinQRDataURLs(
 
   let icons: Map<string, string> | undefined;
   if (withIcon) {
-    const byName = await batchRenderIconDataURLs(bins.map((b) => b.icon).filter(Boolean));
+    // An empty icon name is valid: resolveIcon() falls back to the default icon, as the labels always showed.
+    const byName = await batchRenderIconDataURLs(bins.map((b) => b.icon));
     icons = new Map();
     for (const b of bins) {
       const url = byName.get(b.icon);
