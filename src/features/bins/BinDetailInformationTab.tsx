@@ -39,9 +39,13 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
     generateBinQRDataURLs([bin], QR_GEN_SIZE, {
       colors: new Map([[bin.id, { dark: QR_FG, light: cardBg }]]),
       withIcon: true,
-    }).then((urls) => {
-      if (!cancelled) setQrUrl(urls.get(bin.id) ?? '');
-    });
+    })
+      .then((urls) => {
+        if (!cancelled) setQrUrl(urls.get(bin.id) ?? '');
+      })
+      .catch(() => {
+        if (!cancelled) setQrUrl('');
+      });
     return () => {
       cancelled = true;
     };

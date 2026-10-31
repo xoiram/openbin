@@ -19,7 +19,8 @@ async function iconMarkup(name: string): Promise<string> {
 }
 
 async function svgToPngDataURL(svg: string, px: number): Promise<string> {
-  const img = new Image();
+  // Sized to the raster so engines that rasterise at intrinsic size don't upscale a tiny bitmap.
+  const img = new Image(px, px);
   const loaded = new Promise<void>((resolve, reject) => {
     img.onload = () => resolve();
     img.onerror = () => reject(new Error('Failed to render QR SVG'));

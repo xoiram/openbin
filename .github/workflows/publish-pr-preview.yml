@@ -63,5 +63,7 @@ jobs:
             BUILD_EDITION=selfhosted
             BUILD_VERSION=pr-${{ github.event.pull_request.number }}.${{ github.event.pull_request.head.sha }}
             APK_UPGRADE_BUST=${{ github.run_id }}
-          cache-from: type=gha,scope=fork-selfhosted
+          cache-from: |
+            type=gha,scope=pr-preview
+            type=gha,scope=fork-selfhosted
           cache-to: type=gha,mode=max,scope=pr-preview
