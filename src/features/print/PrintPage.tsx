@@ -180,6 +180,7 @@ export function PrintPage() {
           {(printMode === 'labels' || printMode === 'items') && (
             <QrStyleCard
               qrStyle={qrStyle}
+              iconOverridesStyle={printMode === 'labels' && labelOptions.showIcon && labelOptions.showQrCode}
               onUpdateStyle={handleUpdateQrStyle}
               expanded={ui.qrStyleExpanded}
               onExpandedChange={ui.setQrStyleExpanded}

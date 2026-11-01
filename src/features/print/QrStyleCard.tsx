@@ -24,6 +24,8 @@ const ERROR_LEVELS: { key: QrStyleOptions['errorCorrection']; label: string }[] 
 
 interface QrStyleCardProps {
   qrStyle: QrStyleOptions;
+  /** The label shows the bin icon in the QR, which is always drawn with plain square modules. */
+  iconOverridesStyle?: boolean;
   onUpdateStyle: (style: QrStyleOptions) => void;
   expanded: boolean;
   onExpandedChange: (v: boolean) => void;
@@ -176,7 +178,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange }: QrStyleCardProps) {
+export function QrStyleCard({ qrStyle, iconOverridesStyle, onUpdateStyle, expanded, onExpandedChange }: QrStyleCardProps) {
   const { t } = useTranslation('print');
   const shapeLabels = {
     auto: t('qrStyle.shapes.auto', { defaultValue: 'Auto' }),
@@ -230,6 +232,14 @@ export function QrStyleCard({ qrStyle, onUpdateStyle, expanded, onExpandedChange
             expanded && 'rotate-180',
           )} />
         </button>
+
+        {iconOverridesStyle && !isDefaultQrStyle(qrStyle) && (
+          <p className="mt-3 text-[13px] text-[var(--text-tertiary)]">
+            {t('qrStyle.iconOverridesNote', {
+              defaultValue: 'Labels that show the icon in the QR code use plain square modules, so this style is not applied to them. Turn off the icon to use this style.',
+            })}
+          </p>
+        )}
 
         {expanded && (
           <div className="mt-3 space-y-4">

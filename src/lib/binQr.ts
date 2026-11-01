@@ -1,13 +1,12 @@
-import { batchRenderIconDataURLs } from '@/features/print/iconToDataUrl';
 import type { QrStyleOptions } from '@/features/print/usePrintSettings';
 import { isDefaultQrStyle } from '@/features/print/usePrintSettings';
 import { batchGenerateQRDataURLs, type QRColorOptions } from './qr';
 
 interface BinQrOptions {
-  /** Custom QR style; the plain generator is used when absent or default. */
+  /** Custom QR style; the plain generator is used when absent or default. Ignored when an icon badge is embedded. */
   style?: QrStyleOptions;
   colors?: Map<string, QRColorOptions>;
-  /** Embed each bin's icon in the QR centre (modules behind it are cleared). */
+  /** Embed each bin's icon in a badge cut out of the QR centre (plain square modules, level H). */
   withIcon?: boolean;
 }
 
@@ -19,20 +18,21 @@ export async function generateBinQRDataURLs(
 ): Promise<Map<string, string>> {
   const ids = bins.map((b) => b.id);
 
-  let icons: Map<string, string> | undefined;
   if (withIcon) {
-    // Keep empty names: resolveIcon falls back to the default icon, as the bin card does.
-    const byName = await batchRenderIconDataURLs(bins.map((b) => b.icon));
-    icons = new Map();
-    for (const b of bins) {
-      const url = byName.get(b.icon);
-      if (url) icons.set(b.id, url);
-    }
+    // Empty icon names are kept: resolveIcon falls back to the default icon, as the bin card does.
+    const { generateBadgeQRDataURL } = await import('./qrBadgeRender');
+    const results = new Map<string, string>();
+    await Promise.all(
+      bins.map(async (b) => {
+        results.set(b.id, await generateBadgeQRDataURL(b.id, b.icon, size, colors?.get(b.id)));
+      }),
+    );
+    return results;
   }
 
   if (!isDefaultQrStyle(style)) {
     const { batchGenerateStyledQRDataURLs } = await import('./styledQr');
-    return batchGenerateStyledQRDataURLs(ids, size, style as QrStyleOptions, colors, undefined, icons);
+    return batchGenerateStyledQRDataURLs(ids, size, style as QrStyleOptions, colors);
   }
-  return batchGenerateQRDataURLs(ids, size, undefined, colors, icons);
+  return batchGenerateQRDataURLs(ids, size, undefined, colors);
 }
