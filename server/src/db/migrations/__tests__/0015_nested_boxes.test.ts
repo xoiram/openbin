@@ -29,7 +29,9 @@ function oldDatabase(): Database.Database {
   db.pragma('foreign_keys = ON');
   db.exec(OLD_SCHEMA);
   db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY NOT NULL, applied_at TEXT NOT NULL DEFAULT (datetime(\'now\')))');
-  for (const m of migrations.filter((x) => x.name !== nestedBoxes.name)) {
+  // Later migrations (0016+) are not applied yet either: they run on top, as they would on a real 0014 install.
+  const pending = migrations.slice(migrations.indexOf(nestedBoxes));
+  for (const m of migrations.filter((x) => !pending.includes(x))) {
     db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run(m.name);
   }
   db.exec(`

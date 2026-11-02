@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS locations (
   term_location           TEXT NOT NULL DEFAULT '',
   term_area               TEXT NOT NULL DEFAULT '',
   default_join_role       TEXT NOT NULL DEFAULT 'member' CHECK (default_join_role IN ('member', 'viewer')),
+  public_qr_access        BOOLEAN NOT NULL DEFAULT FALSE,
+  public_qr_photos        BOOLEAN NOT NULL DEFAULT TRUE,
   created_at              TEXT NOT NULL DEFAULT (NOW()),
   updated_at              TEXT NOT NULL DEFAULT (NOW())
 );
@@ -97,7 +99,9 @@ CREATE TABLE IF NOT EXISTS bins (
   created_by    TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at    TEXT NOT NULL DEFAULT (NOW()),
   updated_at    TEXT NOT NULL DEFAULT (NOW()),
-  deleted_at    TEXT
+  deleted_at    TEXT,
+  public_view_count   INTEGER NOT NULL DEFAULT 0,
+  last_public_view_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS bin_items (

@@ -37,6 +37,7 @@ AI-powered bin inventory: photo recognition fills bins, chat answers "where is X
 - **Thumbnails** are generated off the main thread by a `piscina` pool (`server/src/lib/thumbnailPool.ts`). Never run Sharp on the main thread: it blocks the event loop.
 - **QR URLs**: the scanner regex and `ScanRedirect` accept both old hash URLs and path URLs; printed labels in the wild use both, so don't break either when touching `/bin/:id` routing.
 - **Photos** are served via the API (`getPhotoUrl(id)` → `/api/photos/${id}/file`), authenticated by httpOnly cookies, never a query param.
+- **`/api/public/*` is unauthenticated** and keyed by bin UUID (`server/src/routes/publicBins.ts`, spec in `docs/public-qr-access.md`). Never look boxes up there by `short_code`, never add a mutating method, and return fields by allowlist.
 - **Export** streams large JSON with `res.write()`: don't buffer the response (`server/src/routes/export.ts`).
 - **Attachments**: `ATTACHMENTS_ENABLED=false` makes every attachments route 404; the client reads the flag from `/api/auth/status`.
 - **Env vars**: parsed and validated in `server/src/lib/config.ts`; full list in `.env.example`.

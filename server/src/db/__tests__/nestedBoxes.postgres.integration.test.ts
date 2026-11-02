@@ -33,7 +33,9 @@ async function oldDatabase(name: string): Promise<pg.Pool> {
   const pool = await isolatedPool(name);
   await pool.query(OLD_SCHEMA);
   await pool.query('CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
-  for (const m of migrations.filter((x) => x.name !== '0015_nested_boxes')) {
+  // Later migrations (0016+) are not applied yet either: they run on top, as they would on a real 0014 install.
+  const pendingFrom = migrations.findIndex((x) => x.name === '0015_nested_boxes');
+  for (const m of migrations.slice(0, pendingFrom)) {
     await pool.query('INSERT INTO schema_migrations (name) VALUES ($1)', [m.name]);
   }
   await pool.query(`

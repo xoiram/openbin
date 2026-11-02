@@ -34,6 +34,10 @@ export interface Location {
   term_location: string;
   term_area: string;
   default_join_role: 'member' | 'viewer';
+  /** Anyone who scans a box's QR code can view it read-only without logging in. */
+  public_qr_access: boolean;
+  /** Whether that public view includes photos (only meaningful while public_qr_access is on). */
+  public_qr_photos: boolean;
   role?: 'admin' | 'member' | 'viewer';
   member_count?: number;
   viewer_count?: number;

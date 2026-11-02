@@ -29,6 +29,16 @@ export const joinLimiter: RequestHandler = isTest ? noop : rateLimit({
   message: { error: 'RATE_LIMITED', message: 'Too many attempts, please try again later' },
 });
 
+/** Unauthenticated public QR views: per IP, applies self-hosted too (this is the one route open to the internet). */
+export const publicLimiter: RequestHandler = isTest ? noop : rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `ip:${ipKeyGenerator(req.ip ?? '')}`,
+  message: { error: 'RATE_LIMITED', message: 'Too many requests, please try again later' },
+});
+
 export const sensitiveAuthLimiter: RequestHandler = isTest ? noop : rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,

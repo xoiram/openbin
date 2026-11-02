@@ -312,6 +312,14 @@ components:
           enum: [member, viewer]
           default: member
           description: Default role assigned to new members joining via invite code
+        public_qr_access:
+          type: boolean
+          default: false
+          description: When true, anyone who scans a box's QR code can view it read-only without logging in (private boxes excluded)
+        public_qr_photos:
+          type: boolean
+          default: true
+          description: Whether the public QR view includes photos. Only meaningful while public_qr_access is on
         created_at:
           type: string
           format: date-time
@@ -380,6 +388,14 @@ components:
           enum: [member, viewer]
           default: member
           description: Default role assigned to new members joining via invite code
+        public_qr_access:
+          type: boolean
+          default: false
+          description: When true, anyone who scans a box's QR code can view it read-only without logging in (private boxes excluded)
+        public_qr_photos:
+          type: boolean
+          default: true
+          description: Whether the public QR view includes photos. Only meaningful while public_qr_access is on
 
     LocationMember:
       type: object
@@ -2939,6 +2955,12 @@ paths:
                   type: string
                   enum: [member, viewer]
                   description: Default role assigned to new members joining via invite code
+                public_qr_access:
+                  type: boolean
+                  description: Allow unauthenticated read-only access to boxes via their QR code (admin only; default false)
+                public_qr_photos:
+                  type: boolean
+                  description: Include photos in the public QR view (admin only; default true)
       responses:
         '200':
           description: Location updated
@@ -8024,6 +8046,67 @@ paths:
       security: []
       parameters:
         - name: token
+          in: path
+          required: true
+          schema: { type: string }
+        - name: photoId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Thumbnail (WebP)
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /public/bins/{id}:
+    get:
+      tags: [Sharing]
+      summary: Public read-only view of a box, reached by its QR code (no auth)
+      description: |
+        Available only while the box's location has `public_qr_access` on. Looked up by bin UUID only
+        (never `short_code`). Returns an allowlisted view: name, area name, notes, tags, icon, colour, items,
+        custom fields as `{ name, value }` pairs, photos (empty when `public_qr_photos` is off), the parent box
+        and non-private child boxes. Private boxes, trashed boxes, unknown ids and locations with the feature
+        off all return the same 404. Each successful load increments the box's public view counter.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Public box data
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /public/bins/{id}/photos/{photoId}/file:
+    get:
+      tags: [Sharing]
+      summary: Serve a photo of a publicly viewable box (no auth)
+      description: 404 unless the location has both `public_qr_access` and `public_qr_photos` on.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: photoId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Photo file
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /public/bins/{id}/photos/{photoId}/thumb:
+    get:
+      tags: [Sharing]
+      summary: Serve a thumbnail of a publicly viewable box photo (no auth)
+      description: 404 unless the location has both `public_qr_access` and `public_qr_photos` on.
+      security: []
+      parameters:
+        - name: id
           in: path
           required: true
           schema: { type: string }

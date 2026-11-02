@@ -67,7 +67,7 @@ Allowlist, mirroring the share page:
 
 - `id` (needed so the client can link to children and photos), `name`, `area_name`, `notes`, `tags`, `icon`, `color`, `card_style`, `created_at`, `updated_at`
 - `items`: `{ name, quantity }[]`, not deleted, ordered by position
-- `custom_fields`
+- `custom_fields`: `{ name, value }[]` in position order, empty values skipped (field ids are internal, so they are resolved to names server-side)
 - `photos`: `{ id, filename }[]`; always `[]` when the location has `public_qr_photos` off
 - `parent`: `{ id, name } | null`, only when the parent is itself public
 - `children`: `{ id, name, icon, color, item_count }[]`, only children that are not deleted and not private
