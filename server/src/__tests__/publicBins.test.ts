@@ -203,6 +203,17 @@ describe('GET /api/public/bins/:id', () => {
       expect(after.t).not.toBeNull();
     });
 
+    it('shows members the count on the normal bin detail response', async () => {
+      const { user, bin } = await setup();
+      const detail = () => request(app).get(`/api/bins/${bin.id}`).set('Authorization', `Bearer ${user.token}`);
+      expect((await detail()).body.public_view_count).toBe(0);
+
+      await publicGet(bin.id);
+      await publicGet(bin.id);
+
+      expect((await detail()).body.public_view_count).toBe(2);
+    });
+
     it('does not count refused requests or member views through the normal API', async () => {
       const { user, bin } = await setup({ publicAccess: false });
       await publicGet(bin.id);

@@ -86,6 +86,19 @@ export function BinDetailInformationTab({ bin }: BinDetailInformationTabProps) {
             <dd className="text-[var(--text-primary)]">
               {lastScan ? relativeTime(lastScan.scannedAt) : t('infoTab.never', { defaultValue: 'Never' })}
             </dd>
+
+            {(bin.public_view_count ?? 0) > 0 && (
+              <>
+                <dt className="text-[var(--text-tertiary)]">{t('infoTab.publicViews', { defaultValue: 'Opened without login' })}</dt>
+                <dd className="text-[var(--text-primary)]">
+                  {t('infoTab.publicViewsValue', {
+                    defaultValue_one: '{{count}} time',
+                    defaultValue_other: '{{count}} times',
+                    count: bin.public_view_count,
+                  })}
+                </dd>
+              </>
+            )}
           </dl>
 
           <div

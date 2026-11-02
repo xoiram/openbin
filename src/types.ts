@@ -145,6 +145,8 @@ export interface Bin {
   updated_at: string;
   deleted_at?: string | null;
   is_pinned?: boolean;
+  /** Times this box was opened through the public QR view (no login). */
+  public_view_count?: number;
 }
 
 export interface CustomField {

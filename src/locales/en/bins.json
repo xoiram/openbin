@@ -349,6 +349,9 @@
     "details": "Details",
     "lastScanned": "Last scanned",
     "never": "Never",
+    "publicViews": "Opened without login",
+    "publicViewsValue_one": "{{count}} time",
+    "publicViewsValue_other": "{{count}} times",
     "qrAlt": "QR code for {{name}}",
     "updated": "Updated",
     "usage": "Usage"
@@ -505,6 +508,17 @@
     "sampleItems": "Item one, item two, item three",
     "sampleTag1": "tag",
     "sampleTag2": "label"
+  },
+  "publicPage": {
+    "contains": "Contains",
+    "errorMessage": "Check your connection and try again.",
+    "errorTitle": "Couldn't load this page",
+    "insideParent": "Inside {{name}}",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "loginToEdit": "Log in to edit",
+    "readOnlyNotice": "You're viewing a read-only copy. You don't have access to edit this.",
+    "retry": "Try again"
   },
   "quickAdd": {
     "addCount": "Add {{selected}}",

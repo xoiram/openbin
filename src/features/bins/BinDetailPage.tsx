@@ -22,6 +22,7 @@ import { BinDetailToolbar } from './BinDetailToolbar';
 import { ChangeCodeDialog } from './ChangeCodeDialog';
 import { DeleteBinDialog } from './DeleteBinDialog';
 import { MoveBinDialog } from './MoveBinDialog';
+import { PublicBinFallback } from './PublicBinFallback';
 import { ShareBinDialog } from './ShareBinDialog';
 import { useAutoSaveBin } from './useAutoSaveBin';
 import { useBinDetailActions } from './useBinDetailActions';
@@ -122,16 +123,22 @@ export function BinDetailPage() {
   }
 
   if (!bin) {
+    // No access to this box. If its location allows public QR access, show the read-only view instead.
     return (
-      <EmptyState
-        icon={PackageOpen}
-        title={t('detailPage.notFoundTitle', { defaultValue: '{{bin}} not found', bin: term.Bin })}
-        subtitle={t('detailPage.notFoundSubtitle', { defaultValue: 'It may have been deleted or moved to another {{location}}.', location: term.location })}
-      >
-        <Button variant="outline" onClick={() => navigate('/bins')}>
-          {t('detailPage.backTo', { defaultValue: 'Back to {{bins}}', bins: term.bins })}
-        </Button>
-      </EmptyState>
+      <PublicBinFallback
+        binId={id}
+        notFound={
+          <EmptyState
+            icon={PackageOpen}
+            title={t('detailPage.notFoundTitle', { defaultValue: '{{bin}} not found', bin: term.Bin })}
+            subtitle={t('detailPage.notFoundSubtitle', { defaultValue: 'It may have been deleted or moved to another {{location}}.', location: term.location })}
+          >
+            <Button variant="outline" onClick={() => navigate('/bins')}>
+              {t('detailPage.backTo', { defaultValue: 'Back to {{bins}}', bins: term.bins })}
+            </Button>
+          </EmptyState>
+        }
+      />
     );
   }
 

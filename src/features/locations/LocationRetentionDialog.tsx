@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { OptionGroup } from '@/components/ui/option-group';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/toast';
 import { useTerminology } from '@/lib/terminology';
 import { getErrorMessage } from '@/lib/utils';
@@ -35,6 +36,8 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
   const [activityRetention, setActivityRetention] = useState(90);
   const [trashRetention, setTrashRetention] = useState(30);
   const [defaultJoinRole, setDefaultJoinRole] = useState<'member' | 'viewer'>('member');
+  const [publicQrAccess, setPublicQrAccess] = useState(false);
+  const [publicQrPhotos, setPublicQrPhotos] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -42,6 +45,8 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
       setActivityRetention(location.activity_retention_days ?? 90);
       setTrashRetention(location.trash_retention_days ?? 30);
       setDefaultJoinRole(location.default_join_role ?? 'member');
+      setPublicQrAccess(location.public_qr_access ?? false);
+      setPublicQrPhotos(location.public_qr_photos ?? true);
       setSaving(false);
     }
   }, [open, location]);
@@ -54,6 +59,8 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
         activity_retention_days: activityRetention,
         trash_retention_days: trashRetention,
         default_join_role: defaultJoinRole,
+        public_qr_access: publicQrAccess,
+        public_qr_photos: publicQrPhotos,
       });
       onOpenChange(false);
       showToast({ message: t('retention.saved', { defaultValue: 'Retention settings saved' }), variant: 'success' });
@@ -124,6 +131,34 @@ export function LocationRetentionDialog({ location, open, onOpenChange }: Locati
                 ? t('retention.viewerHint', { defaultValue: 'New members will be read-only until promoted.' })
                 : t('retention.memberHint', { defaultValue: 'New members can create and edit content.' })}
             </p>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <Label id="public-qr-access-label">{t('retention.publicQrLabel', { defaultValue: 'Public QR access' })}</Label>
+                <p className="text-[11px] text-[var(--text-tertiary)]">
+                  {t('retention.publicQrHint', {
+                    defaultValue: "Anyone who scans a QR label can see its contents, read-only and without logging in. Private {{bins}} are never shown. Anyone who has a label or its link can see the contents, so only turn this on if that's fine.",
+                    bins: term.bins,
+                  })}
+                </p>
+              </div>
+              <Switch checked={publicQrAccess} onCheckedChange={setPublicQrAccess} aria-labelledby="public-qr-access-label" />
+            </div>
+            {publicQrAccess && (
+              <div className="flex items-start justify-between gap-3 pl-4 border-l border-[var(--border-subtle)]">
+                <div className="space-y-1">
+                  <Label id="public-qr-photos-label">{t('retention.publicQrPhotosLabel', { defaultValue: 'Include photos' })}</Label>
+                  <p className="text-[11px] text-[var(--text-tertiary)]">
+                    {t('retention.publicQrPhotosHint', {
+                      defaultValue: "Photos can show more than the contents, such as what's around the {{bin}}.",
+                      bin: term.bin,
+                    })}
+                  </p>
+                </div>
+                <Switch checked={publicQrPhotos} onCheckedChange={setPublicQrPhotos} aria-labelledby="public-qr-photos-label" />
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>

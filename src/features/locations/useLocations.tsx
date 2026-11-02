@@ -57,7 +57,7 @@ export async function createLocation(name: string): Promise<Location> {
   return location;
 }
 
-export async function updateLocation(id: string, payload: Record<string, string | number>): Promise<void> {
+export async function updateLocation(id: string, payload: Record<string, string | number | boolean>): Promise<void> {
   await apiFetch(`/api/locations/${id}`, {
     method: 'PUT',
     body: payload,

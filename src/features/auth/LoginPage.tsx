@@ -1,7 +1,7 @@
 import { LogIn, Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BrandIcon } from '@/components/BrandIcon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { ApiError, apiFetch } from '@/lib/api';
 import { useAppSettings } from '@/lib/appSettings';
 import { useAuth } from '@/lib/auth';
 import { useAuthStatusConfig } from '@/lib/qrConfig';
+import { safeNextPath } from '@/lib/safeRedirect';
 import { cycleThemePreference, useTheme } from '@/lib/theme';
 import { cn, focusRing, getErrorMessage } from '@/lib/utils';
 import { useOAuthReturn } from './OAuthReturn';
@@ -22,6 +23,10 @@ import { SocialButtons, SocialDivider } from './SocialButtons';
 export function LoginPage() {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Where to go after signing in (e.g. back to the box whose QR code was scanned). Password sign-in only:
+  // OAuth/OIDC round-trips drop the parameter and land on the dashboard.
+  const nextPath = safeNextPath(searchParams.get('next')) ?? '/';
   const { login, refreshSession } = useAuth();
   const { showToast } = useToast();
   const { settings } = useAppSettings();
@@ -82,7 +87,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      navigate('/');
+      navigate(nextPath);
     } catch (err) {
       if (
         err instanceof ApiError &&
@@ -213,7 +218,7 @@ export function LoginPage() {
         onRecovered={async () => {
           try {
             await login(email.trim(), password);
-            navigate('/');
+            navigate(nextPath);
           } catch (err) {
             setFormError(getErrorMessage(err, t('login.recoveryFailed', { defaultValue: 'Login failed after recovery' })));
           }

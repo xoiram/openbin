@@ -35,7 +35,7 @@ AI-powered bin inventory: photo recognition fills bins, chat answers "where is X
 - **`html5-qrcode`** is ~330KB gzipped: always dynamic-import the scanner page.
 - **Route mounting**: photos upload on the bins router (`POST /api/bins/:id/photos`), export is at `/api`, areas are under `/api/locations` (not `/api/areas`).
 - **Thumbnails** are generated off the main thread by a `piscina` pool (`server/src/lib/thumbnailPool.ts`). Never run Sharp on the main thread: it blocks the event loop.
-- **QR URLs**: the scanner regex and `ScanRedirect` accept both old hash URLs and path URLs; printed labels in the wild use both, so don't break either when touching `/bin/:id` routing.
+- **QR URLs**: the in-app scanner regex (`BIN_URL_REGEX` in `lib/qr.ts`) accepts both old hash URLs and path URLs. Nothing else converts hash URLs, so a hash-style label scanned with a phone camera never reaches the box. `/bin/:id` is the URL printed labels use: keep it working, including for anonymous visitors (`AuthGuard` renders the public view there).
 - **Photos** are served via the API (`getPhotoUrl(id)` → `/api/photos/${id}/file`), authenticated by httpOnly cookies, never a query param.
 - **`/api/public/*` is unauthenticated** and keyed by bin UUID (`server/src/routes/publicBins.ts`, spec in `docs/public-qr-access.md`). Never look boxes up there by `short_code`, never add a mutating method, and return fields by allowlist.
 - **Export** streams large JSON with `res.write()`: don't buffer the response (`server/src/routes/export.ts`).

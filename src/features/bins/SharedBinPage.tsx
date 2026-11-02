@@ -3,31 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { BrandIcon } from '@/components/BrandIcon';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PublicPhotoGrid } from './PublicPhotoGrid';
 import { useSharedBin } from './useBinShare';
-
-function SharedPhotoGrid({ photos, token }: { photos: Array<{ id: string; filename: string }>; token: string }) {
-  if (photos.length === 0) return null;
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {photos.map((p) => (
-        <a
-          key={p.id}
-          href={`/api/shared/${token}/photos/${p.id}/file`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block aspect-square rounded-[var(--radius-sm)] overflow-hidden bg-[var(--bg-input)]"
-        >
-          <img
-            src={`/api/shared/${token}/photos/${p.id}/thumb`}
-            alt={p.filename}
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
-        </a>
-      ))}
-    </div>
-  );
-}
 
 export function SharedBinPage() {
   const { t } = useTranslation('bins');
@@ -90,7 +67,10 @@ export function SharedBinPage() {
         {hasPhotos && (
           <div className="flat-card p-4 space-y-2">
             <h2 className="text-sm font-medium text-[var(--text-secondary)]">{t('sharedPage.photos', { defaultValue: 'Photos' })}</h2>
-            <SharedPhotoGrid photos={bin.photos} token={bin.shareToken} />
+            <PublicPhotoGrid
+              photos={bin.photos}
+              urls={(id) => ({ file: `/api/shared/${bin.shareToken}/photos/${id}/file`, thumb: `/api/shared/${bin.shareToken}/photos/${id}/thumb` })}
+            />
           </div>
         )}
 

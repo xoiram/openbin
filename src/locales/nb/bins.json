@@ -349,6 +349,9 @@
     "details": "Detaljer",
     "lastScanned": "Sist skannet",
     "never": "Aldri",
+    "publicViews": "Åpnet uten innlogging",
+    "publicViewsValue_one": "{{count}} gang",
+    "publicViewsValue_other": "{{count}} ganger",
     "qrAlt": "QR-kode for {{name}}",
     "updated": "Oppdatert",
     "usage": "Bruk"
@@ -505,6 +508,17 @@
     "sampleItems": "Gjenstand én, gjenstand to, gjenstand tre",
     "sampleTag1": "stikkord",
     "sampleTag2": "merkelapp"
+  },
+  "publicPage": {
+    "contains": "Inneholder",
+    "errorMessage": "Sjekk tilkoblingen og prøv igjen.",
+    "errorTitle": "Kunne ikke laste siden",
+    "insideParent": "Inni {{name}}",
+    "itemCount_one": "{{count}} gjenstand",
+    "itemCount_other": "{{count}} gjenstander",
+    "loginToEdit": "Logg inn for å redigere",
+    "readOnlyNotice": "Du ser en skrivebeskyttet kopi. Du har ikke tilgang til å redigere dette.",
+    "retry": "Prøv igjen"
   },
   "quickAdd": {
     "addCount": "Legg til {{selected}}",
