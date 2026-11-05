@@ -21,6 +21,8 @@ function makeLocation(
     term_location: 'Location',
     term_area: 'Area',
     default_join_role: 'member',
+    public_qr_access: false,
+    public_qr_photos: true,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   };

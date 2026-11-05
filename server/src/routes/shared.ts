@@ -1,10 +1,8 @@
-import path from 'node:path';
 import { Router } from 'express';
 import { d, query } from '../db.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
-import { config } from '../lib/config.js';
 import { NotFoundError } from '../lib/httpErrors.js';
-import { storage } from '../lib/storage.js';
+import { type PhotoFileRow, type PhotoThumbRow, sendPhotoFile, sendPhotoThumb, setSharedHeaders } from '../lib/publicPhotoResponse.js';
 
 const router = Router();
 
@@ -34,12 +32,6 @@ async function resolveShare(token: string): Promise<ShareRow> {
     }
   }
   return row;
-}
-
-/** Security headers for all shared responses */
-function setSharedHeaders(res: import('express').Response): void {
-  res.setHeader('Referrer-Policy', 'no-referrer');
-  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
 }
 
 // GET /api/shared/:token — view a shared bin
@@ -90,84 +82,26 @@ router.get('/:token', asyncHandler(async (req, res) => {
 router.get('/:token/photos/:photoId/file', asyncHandler(async (req, res) => {
   const share = await resolveShare(req.params.token);
 
-  const photoResult = await query(
+  const photoResult = await query<PhotoFileRow>(
     'SELECT storage_path, mime_type FROM photos WHERE id = $1 AND bin_id = $2',
     [req.params.photoId, share.bin_id],
   );
   if (photoResult.rows.length === 0) throw new NotFoundError('Photo not found');
 
-  const photo = photoResult.rows[0];
-  if (!(await storage.exists(photo.storage_path))) throw new NotFoundError('Photo file not found');
-
-  setSharedHeaders(res);
-  res.setHeader('Content-Type', photo.mime_type || 'application/octet-stream');
-  res.setHeader('Cache-Control', 'private, max-age=3600');
-  storage.readStream(photo.storage_path).pipe(res);
+  await sendPhotoFile(res, photoResult.rows[0]);
 }));
 
 // GET /api/shared/:token/photos/:photoId/thumb — serve thumbnail from shared bin
 router.get('/:token/photos/:photoId/thumb', asyncHandler(async (req, res) => {
   const share = await resolveShare(req.params.token);
 
-  const photoResult = await query(
+  const photoResult = await query<PhotoThumbRow>(
     'SELECT storage_path, thumb_path FROM photos WHERE id = $1 AND bin_id = $2',
     [req.params.photoId, share.bin_id],
   );
   if (photoResult.rows.length === 0) throw new NotFoundError('Photo not found');
 
-  const photo = photoResult.rows[0];
-
-  setSharedHeaders(res);
-
-  // Serve existing thumbnail if available
-  if (photo.thumb_path && (await storage.exists(photo.thumb_path))) {
-    res.setHeader('Content-Type', 'image/webp');
-    res.setHeader('Cache-Control', 'private, max-age=3600');
-    storage.readStream(photo.thumb_path).pipe(res);
-    return;
-  }
-
-  // Generate thumbnail lazily
-  if (!(await storage.exists(photo.storage_path))) throw new NotFoundError('Photo file not found');
-
-  try {
-    const thumbFilename = `${path.basename(photo.storage_path, path.extname(photo.storage_path))}_thumb.webp`;
-    const thumbStoragePath = path.join(path.dirname(photo.storage_path), thumbFilename);
-
-    if (config.storageBackend === 's3') {
-      const { generateThumbnailBuffer } = await import('../lib/thumbnailPool.js');
-      const originalBuffer = await storage.read(photo.storage_path);
-      const thumbBuffer = await generateThumbnailBuffer(originalBuffer);
-      await storage.upload(thumbStoragePath, thumbBuffer, 'image/webp');
-      await query('UPDATE photos SET thumb_path = $1 WHERE id = $2', [thumbStoragePath, req.params.photoId]);
-
-      res.setHeader('Content-Type', 'image/webp');
-      res.setHeader('Cache-Control', 'private, max-age=3600');
-      res.end(thumbBuffer);
-    } else {
-      const { generateThumbnail } = await import('../lib/photoHelpers.js');
-      const { safePath } = await import('../lib/pathSafety.js');
-      const { PHOTO_STORAGE_PATH } = await import('../lib/uploadConfig.js');
-
-      const thumbFullPath = path.join(PHOTO_STORAGE_PATH, thumbStoragePath);
-      const originalFile = safePath(PHOTO_STORAGE_PATH, photo.storage_path);
-      if (!originalFile) throw new NotFoundError('Photo file not found');
-
-      await generateThumbnail(originalFile, thumbFullPath);
-      await query('UPDATE photos SET thumb_path = $1 WHERE id = $2', [thumbStoragePath, req.params.photoId]);
-
-      res.setHeader('Content-Type', 'image/webp');
-      res.setHeader('Cache-Control', 'private, max-age=3600');
-      storage.readStream(thumbStoragePath).pipe(res);
-    }
-  } catch {
-    // Fallback to original photo
-    const mimeResult = await query('SELECT mime_type FROM photos WHERE id = $1', [req.params.photoId]);
-    const mimeType = mimeResult.rows[0]?.mime_type || 'application/octet-stream';
-    res.setHeader('Content-Type', mimeType);
-    res.setHeader('Cache-Control', 'private, max-age=3600');
-    storage.readStream(photo.storage_path).pipe(res);
-  }
+  await sendPhotoThumb(res, req.params.photoId, photoResult.rows[0]);
 }));
 
 export { router as sharedRoutes };

@@ -18,7 +18,7 @@ import {
 } from './lib/httpErrors.js';
 import { pushLog } from './lib/logBuffer.js';
 import { createLogger } from './lib/logger.js';
-import { apiLimiter, authLimiter, joinLimiter, registerLimiter, sensitiveAuthLimiter } from './lib/rateLimiters.js';
+import { apiLimiter, authLimiter, joinLimiter, publicLimiter, registerLimiter, sensitiveAuthLimiter } from './lib/rateLimiters.js';
 import { isRestoreInProgress } from './lib/restore.js';
 import { tryAuthenticate } from './middleware/auth.js';
 import { maintenanceGate } from './middleware/maintenance.js';
@@ -52,6 +52,7 @@ import locationsRoutes from './routes/locations/index.js';
 import photosRoutes from './routes/photos.js';
 import { planRoutes } from './routes/plan.js';
 import printSettingsRoutes from './routes/printSettings.js';
+import { publicBinsRoutes } from './routes/publicBins.js';
 import savedViewsRoutes from './routes/savedViews.js';
 import scanHistoryRoutes from './routes/scanHistory.js';
 import { sharedRoutes } from './routes/shared.js';
@@ -260,6 +261,7 @@ export function createApp(opts?: { mountEeRoutes?: (app: express.Express) => voi
   app.use('/api/shopping-list', shoppingListRoutes);
   app.use('/api/plan', planRoutes);
   app.use('/api/shared', sharedRoutes);
+  app.use('/api/public', publicLimiter, publicBinsRoutes);
   opts?.mountEeRoutes?.(app);
   app.use('/api', exportRoutes);
   app.use('/api/ai', aiRoutes);

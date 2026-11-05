@@ -67,7 +67,7 @@ Allowlist, mirroring the share page:
 
 - `id` (needed so the client can link to children and photos), `name`, `area_name`, `notes`, `tags`, `icon`, `color`, `card_style`, `created_at`, `updated_at`
 - `items`: `{ name, quantity }[]`, not deleted, ordered by position
-- `custom_fields`
+- `custom_fields`: `{ name, value }[]` in position order, empty values skipped (field ids are internal, so they are resolved to names server-side)
 - `photos`: `{ id, filename }[]`; always `[]` when the location has `public_qr_photos` off
 - `parent`: `{ id, name } | null`, only when the parent is itself public
 - `children`: `{ id, name, icon, color, item_count }[]`, only children that are not deleted and not private
@@ -86,17 +86,23 @@ Never returned: `area_id`, `location_id`, `created_by`, `created_by_name`, `visi
 
 ### Routing
 
-`/bin/:id` moves out of `AuthGuard` into a wrapper component:
+`/bin/:id` stays inside the protected route group; the route tree does not change. Instead:
 
-1. Not logged in: render `PublicBinPage` (no `AppLayout`, no providers that need a user).
-2. Logged in: render the existing protected tree with `BinDetailPage`.
-3. Logged in, but the authenticated fetch returns 404 or 403 (non-member): fall back to `PublicBinPage` for that ID.
+1. Not logged in: `AuthGuard` matches exactly `/bin/:id` (nothing deeper) and renders a lazily loaded `PublicBinPage` for that id in place of the usual redirect to `/login`. Every other protected path still redirects. `PublicBinPage` has no app providers (no `LocationProvider`, `PlanProvider` or terminology), so it uses neutral wording rather than the location's custom terms.
+2. Logged in: unchanged, `BinDetailPage`.
+3. Logged in, but the authenticated fetch fails (non-member): `BinDetailPage`'s not-found branch renders `PublicBinFallback`, which tries the public endpoint and shows the read-only view inside the app shell, or the usual not-found state if the box isn't public (or the lookup failed).
 
-All other protected routes stay behind `AuthGuard`. When the public lookup also 404s, an anonymous visitor is sent to `/login?redirect=/bin/:id` (today's behaviour); a logged-in visitor sees the normal not-found state.
+(An earlier draft moved the route out of the guard into a wrapper; that needs duplicate route definitions or nested `<Routes>`, and gains nothing.)
+
+When the public lookup 404s for an anonymous visitor they are sent to `/login?next=/bin/:id`. Only a 404 means "not public": a network or server failure shows an error page instead of a misleading login redirect.
+
+**Login return-to.** The login page did not previously support returning anywhere, so this adds it: after password sign-in it navigates to `?next=` if the value passes `safeNextPath()` (`src/lib/safeRedirect.ts`: must start with a single `/`; rejects `//`, `/\`, control characters and the auth pages), else to `/`. OAuth/OIDC sign-in drops the parameter and lands on the dashboard.
+
+**Old printed labels.** Nothing converts old hash-style URLs (`/#/bin/<id>`) to path URLs outside the in-app scanner, so a label of that vintage scanned with a phone camera loads `/` and never reaches the box, with or without this feature. Out of scope.
 
 ### `PublicBinPage`
 
-Reuse the layout of `SharedBinPage` where it fits; share components rather than copying them. It shows the public response fields, children as links to `/bin/<childId>` (each opens the public view and counts), and a link to the parent when present. A small "Log in to edit" link goes to `/login` with a redirect back to the bin. No edit controls anywhere.
+Reuse the layout of `SharedBinPage` where it fits; share components rather than copying them. It shows the public response fields, children as links to `/bin/<childId>` (each opens the public view and counts), and a link to the parent when present. A small "Log in to edit" link goes to `/login?next=/bin/<id>`. No edit controls anywhere.
 
 ### Settings
 
@@ -104,7 +110,7 @@ Toggle in location settings (admin only): "Let anyone who scans a QR code see th
 
 ## Counting
 
-`public_view_count` and `last_public_view_at` count only loads through the public endpoint. Member views are not counted. A view of a child box counts for the child only. Show the count in the bin's information tab for members (e.g. "Viewed N times by scan without login") only when the location toggle is on and the count is above zero. Keep that UI minimal.
+`public_view_count` and `last_public_view_at` count only loads through the public endpoint. Member views are not counted. A view of a child box counts for the child only. `GET /api/bins/:id` returns `public_view_count`; the bin's information tab shows "Opened without login: N times" for members whenever it is above zero (it does not also check the location toggle: a non-zero count means public access was on at some point, and it avoids a location lookup in that tab). Keep that UI minimal.
 
 ## Tests
 

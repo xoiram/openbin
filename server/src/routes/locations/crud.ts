@@ -14,7 +14,7 @@ const router = Router();
 // GET /api/locations — list user's locations
 router.get('/', asyncHandler(async (req, res) => {
   const result = await query(
-    `SELECT l.id, l.name, l.created_by, l.invite_code, l.activity_retention_days, l.trash_retention_days, l.app_name, l.term_bin, l.term_location, l.term_area, l.default_join_role, l.created_at, l.updated_at,
+    `SELECT l.id, l.name, l.created_by, l.invite_code, l.activity_retention_days, l.trash_retention_days, l.app_name, l.term_bin, l.term_location, l.term_area, l.default_join_role, l.public_qr_access, l.public_qr_photos, l.created_at, l.updated_at,
             lm.role,
             (SELECT COUNT(*) FROM location_members WHERE location_id = l.id) AS member_count,
             (SELECT COUNT(*) FROM location_members WHERE location_id = l.id AND role = 'viewer') AS viewer_count,
@@ -39,6 +39,8 @@ router.get('/', asyncHandler(async (req, res) => {
       term_location: row.term_location,
       term_area: row.term_area,
       default_join_role: row.default_join_role,
+      public_qr_access: !!row.public_qr_access,
+      public_qr_photos: !!row.public_qr_photos,
       role: await getEffectiveMemberRole(
         req.user!.id,
         row.id,
@@ -100,7 +102,7 @@ router.post('/', asyncHandler(async (req, res) => {
     );
 
     const locResult = await tx<Record<string, unknown>>(
-      'SELECT id, name, invite_code, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role, created_at, updated_at FROM locations WHERE id = $1',
+      'SELECT id, name, invite_code, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role, public_qr_access, public_qr_photos, created_at, updated_at FROM locations WHERE id = $1',
       [locationId],
     );
     return locResult.rows[0];
@@ -128,6 +130,8 @@ router.post('/', asyncHandler(async (req, res) => {
     term_location: location.term_location,
     term_area: location.term_area,
     default_join_role: location.default_join_role,
+    public_qr_access: !!location.public_qr_access,
+    public_qr_photos: !!location.public_qr_photos,
     role: 'admin',
     member_count: 1,
     viewer_count: 0,
@@ -140,14 +144,14 @@ router.post('/', asyncHandler(async (req, res) => {
 // PUT /api/locations/:id — update location (admin only)
 router.put('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role } = req.body;
+  const { name, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role, public_qr_access, public_qr_photos } = req.body;
 
   if (!await isLocationAdmin(id, req.user!.id)) {
     throw new ForbiddenError('Only admins can update this location');
   }
 
   // At least one field must be provided
-  if (name === undefined && activity_retention_days === undefined && trash_retention_days === undefined && app_name === undefined && term_bin === undefined && term_location === undefined && term_area === undefined && default_join_role === undefined) {
+  if (name === undefined && activity_retention_days === undefined && trash_retention_days === undefined && app_name === undefined && term_bin === undefined && term_location === undefined && term_area === undefined && default_join_role === undefined && public_qr_access === undefined && public_qr_photos === undefined) {
     throw new ValidationError('At least one field must be provided');
   }
 
@@ -181,12 +185,23 @@ router.put('/:id', asyncHandler(async (req, res) => {
     throw new ValidationError('default_join_role must be "member" or "viewer"');
   }
 
+  for (const [field, value] of [['public_qr_access', public_qr_access], ['public_qr_photos', public_qr_photos]] as const) {
+    if (value !== undefined && typeof value !== 'boolean') {
+      throw new ValidationError(`${field} must be a boolean`);
+    }
+  }
+
   // Get old state for activity log
-  const oldResult = await query('SELECT name, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role FROM locations WHERE id = $1', [id]);
+  const oldResult = await query('SELECT name, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role, public_qr_access, public_qr_photos FROM locations WHERE id = $1', [id]);
   if (oldResult.rows.length === 0) {
     throw new NotFoundError('Location not found');
   }
-  const oldLoc = oldResult.rows[0];
+  // SQLite stores booleans as 0/1, Postgres as true/false: normalise so the activity diff compares like with like
+  const oldLoc = {
+    ...oldResult.rows[0],
+    public_qr_access: !!oldResult.rows[0].public_qr_access,
+    public_qr_photos: !!oldResult.rows[0].public_qr_photos,
+  };
 
   const setClauses: string[] = [`updated_at = ${d.now()}`];
   const params: unknown[] = [];
@@ -224,12 +239,19 @@ router.put('/:id', asyncHandler(async (req, res) => {
     setClauses.push(`default_join_role = $${paramIdx++}`);
     params.push(default_join_role);
   }
+  // Boolean literals, not params: better-sqlite3 cannot bind a JS boolean
+  if (public_qr_access !== undefined) {
+    setClauses.push(`public_qr_access = ${public_qr_access ? 'TRUE' : 'FALSE'}`);
+  }
+  if (public_qr_photos !== undefined) {
+    setClauses.push(`public_qr_photos = ${public_qr_photos ? 'TRUE' : 'FALSE'}`);
+  }
 
   params.push(id);
 
   const result = await query(
     `UPDATE locations SET ${setClauses.join(', ')} WHERE id = $${paramIdx}
-     RETURNING id, name, created_by, invite_code, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role, created_at, updated_at`,
+     RETURNING id, name, created_by, invite_code, activity_retention_days, trash_retention_days, app_name, term_bin, term_location, term_area, default_join_role, public_qr_access, public_qr_photos, created_at, updated_at`,
     params
   );
 
@@ -245,6 +267,8 @@ router.put('/:id', asyncHandler(async (req, res) => {
   if (term_location !== undefined) newObj.term_location = term_location.trim();
   if (term_area !== undefined) newObj.term_area = term_area.trim();
   if (default_join_role !== undefined) newObj.default_join_role = default_join_role;
+  if (public_qr_access !== undefined) newObj.public_qr_access = public_qr_access;
+  if (public_qr_photos !== undefined) newObj.public_qr_photos = public_qr_photos;
   const changes = computeChanges(oldLoc, newObj, Object.keys(newObj));
   if (changes) {
     logRouteActivity(req, {
@@ -269,6 +293,8 @@ router.put('/:id', asyncHandler(async (req, res) => {
     term_location: location.term_location,
     term_area: location.term_area,
     default_join_role: location.default_join_role,
+    public_qr_access: !!location.public_qr_access,
+    public_qr_photos: !!location.public_qr_photos,
     created_at: location.created_at,
     updated_at: location.updated_at,
   });
