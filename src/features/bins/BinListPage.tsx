@@ -414,7 +414,7 @@ export function BinListPage() {
           onClear={clearSelection}
           isBusy={isBusy}
           actions={buildBinBulkActions({
-            t: t as Translate,
+            t: t as unknown as Translate,
             term,
             isAdmin,
             pinLabel,
